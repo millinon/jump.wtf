@@ -2,7 +2,6 @@
 		<hr>
     <footer>
 				<p>&copy; Phillip Goldfarb 2015</p>
-                                <?php if(defined('HHVM_VERSION')) echo "<p>+HHVM</p>"; ?>                               
     </footer>
     </div> <!-- /container -->
 		<script src=<?php echo $CDN_HOST; ?>/h/js/vendor/jquery-1.11.1.min.js></script>
