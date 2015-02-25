@@ -1,0 +1,11 @@
+# Blackhole for Bad Bots
+
+Options All -Indexes
+DirectoryIndex index.php
+
+ErrorDocument 404 /b/index.php
+
+<Files blackhole.dat>
+			Order Allow,Deny
+				Deny from all
+		</Files>

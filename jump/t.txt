@@ -1,0 +1,25 @@
+JUMP.WTF Terms of Service and Privacy Policy
+
+I'm not a lawyer, so this document is non-exhaustive. It may be updated from time to time. You can email me at admin@jump.wtf with any questions or concerns.
+
+1) Quality of Service
+
+	This website is intended for sharing web URLs and files. It is not a backup service. Therefore, do not use it to store your sole copies of data. URLs or files submitted to JUMP.WTF may be removed at any time without notification. However, if you lose data that was previously available on JUMP.WTF, feel free to email me in case I have a backup copy. There is no guarantee made that a backup will be retained.
+
+2) Liability
+
+	You are solely responsible for any URLs or files that you choose to submit, or choose to send to another person. If I receieve any complaint regarding content hosted at a JUMP.WTF URL or as a file on JUMP.WTF, it may be removed. By uploading a URL or file, you agree that you have the rights to do so. Attempting any sort of malicious submission or tampering with the provided services revokes your right to submit URLs or files.
+
+	Likewise, if you learn of a URL or file that the submitter legally is not able to submit, contact me at dmca@jump.wtf with the ID of the offending content, and it will be immediately removed.
+	
+3) Privacy
+
+	When you submit a URL or file, that data, as well as your IP address, is stored. If you opt to submit an optional password for future deletion, a hashed version of that password will be stored. None of this data will ever be sold or transferred to any other person or organization, unless I am legally required to. No other identifying information is ever stored.
+
+	When you submit a URL or file, your browser temporarily stores a cookie with some information that you just submitted, to make it easier for you to use the site. It's not used to track you.
+	
+	When you submit a URL or file, a unique URL in the form of jump.wtf/xxxx, where 'x' represents a letter or number, and there may be any number of characters. It is possible that by guessing random characters, a person could find your content. If this is a concern, you can email me, and I can assign your content a longer URL that will be essentially impossible to guess.
+	
+	I will never look at a URL generated for your content or the content you submit, again unless I am legally required to review it. I do not receive any kind of notification when content is submitted.
+	
+	If you decide at a later time that you wish to delete submitted content, but you did not set a password or do not remember the password, you may contact me, and it will be deleted if you are able to prove that you submitted the content.

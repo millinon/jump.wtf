@@ -1,0 +1,3 @@
+ErrorDocument  500 /m
+
+DirectoryIndex i.hh
