@@ -1,0 +1,108 @@
+#!/bin/env node
+
+String.prototype.endsWith = function(suffix) {
+		return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+var args = process.argv.slice(2);
+var ifname;
+var verbose;
+
+if(args.length < 1){
+		usage_exit();
+}
+
+args.forEach(function(val, index, array){
+				if(val === "-v") verbose = true;
+				else ifname = val;
+				});
+
+function vprint(s) {
+		if(verbose) console.log(s);
+}
+
+function usage_exit() {
+		console.log("Usage: minify \"file.(css|js)\" [-v]");
+		process.exit();
+}
+
+var compress = require('node-minify');
+var fs = require('fs');
+
+if(compress === null){
+		console.log("Error: node-minify is not installed");
+		console.log("Run npm install node-minify");
+		process.exit();
+}
+
+var extension = "";
+if(ifname.endsWith(".css")){
+		extension = "css";
+} else if(ifname.endsWith(".js")){
+		extension = "js";
+} else {
+		console.log("Filename must end with .js or .css");
+		usage_exit();
+}
+
+var cwd = process.cwd();
+vprint("Got cwd: " + cwd);
+
+if(! fs.existsSync(ifname)){
+		console.log("Error: file'" + ifname + "' not found");
+		usage_exit();
+}
+
+fs.readdir(cwd, function(err,files){
+				if(err){
+					console.log(err);
+					process.exit(1);
+				} else {
+					vprint("Readfiles worked");
+				}
+
+				var matches = 0;
+
+				vprint("Doing " + extension + " stuff");
+
+				vprint("original ifname: " + ifname);
+
+				ifname = ifname.replace("\." + extension,"");		
+				
+				vprint("truncated ifname: " + ifname);
+				
+				var regex = new RegExp(ifname + "\-\[0-9]+\.min\." + extension + "$");
+
+				vprint("regex: " + regex);
+
+				for(var i = 0; i < files.length; i++){
+						vprint("		checking " + files[i]);
+					if(regex.test(files[i])) matches++;
+				}
+
+				vprint("Found " + matches + " previous minified versions");
+
+				new compress.minify({type: 'yui-' + extension,fileIn: ifname + "." + extension,fileOut: ifname + "-" + matches + ".min." + extension,callback: 
+						function(err,min){
+						if(err){
+						console.log(err);
+						process.exit(1);
+						}
+						vprint("File minified");
+
+						fs.chmodSync(ifname + "-" + matches + ".min." + extension, 0755);
+
+						fs.writeFile(ifname + "." + extension + ".latest", ifname + "-" + matches + ".min." + extension + "\n", function(err){
+								if(err){
+								console.log(err);
+								process.exit(1);
+								} else {
+								vprint("Wrote " + ifname + "." + extension + ".latest");
+								process.exit(0);
+								}
+								});
+						}
+				});
+});
+
+
