@@ -108,6 +108,8 @@ The AWS stuff uses aws.phar provided by [Amazon](https://github.com/aws/aws-sdk-
 
 The bad bot trapdoor is a modified version of the code by Jeff Starr available [here](http://perishablepress.com/blackhole-bad-bots/).
 
+`r.hh` uses [ZeroClipboard](https://github.com/zeroclipboard/zeroclipboard) to provide "Click to copy" functionality.
+
 As an easter egg, clippy.js is included on the page from [here](https://www.smore.com/clippy-js).
 
 I've included these resources with the rest of the project files; if there are issues with this inclusion, please just let me know and I'll work with you to correct the problem.
