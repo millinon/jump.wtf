@@ -40,11 +40,11 @@ The data on the submitted links is intended to all be stored remotely by AWS res
 TODO, in no particular order:
 
 * Check submissions against known malicious files and URLs
-* Check submitters against known malicous IP addresses
+* Check submitters against known malicious IP addresses
 * Rate limit submissions
 * Rate limit (non-existing) key lookups
 * Handle uploads to Glacier non-synchronously
-* Migrate PHP files to Hack
+* Migrate PHP files tso Hack
 * Improve Hack code style
 * Add error checking
 * Harden HTTP server security
@@ -53,6 +53,7 @@ TODO, in no particular order:
 * Add submission-time options to the user:
  * Expiration date
  * Promotional codes (custom URL, extended expiration, multiple file selection, etc.)
+* Check browser version before presenting "Click to copy" button
 
 ## Setup
 
@@ -76,7 +77,7 @@ When a request is submitted to `s.hh`, the file or URL goes through some basic c
 
 Once a key is selected, the metadata is sent to DynamoDB with the new key as the primary index. If the submission is marked as having a click limit (e.g. a click limit of 1 click), then the submission is marked as being private. Any submissions that are private have a positive click limit stored in the DynamoDB table that gets decremented each time that it is accessed. If the user submitted a file, it is uploaded to the CDN-backed S3 bucket (or the non CDN-backed version if it is private).
 
-A checksum is also submitted to DynamoDB as the seconday index, in case a checksum would be useful in the future to improve handling of duplicate submissions. This may not be the right approach or the right use of a secondary index, in which case please suggest a correction.
+A checksum is also submitted to DynamoDB as the secondary index, in case a checksum would be useful in the future to improve handling of duplicate submissions. This may not be the right approach or the right use of a secondary index, in which case please suggest a correction.
 
 If the submission is a file upload, then a backup is also uploaded to Glacier for convenience, although this could be removed without affecting the experience of users.
 
@@ -98,7 +99,7 @@ If all goes well, the user is redirected to the corresponding link with a "Locat
 
 When a link to be deleted is submitted to `s.hh`, the link is first checked as existing, and the link's stored deletion password checked with the one stored in DynamoDB (salted and hashed).
 
-If the reuqest is verified, then the link is marked as inactive in DynamoDB. If the link is a file, the file is deleted from the corresponding S3 bucket, and invalidated in CloudFront.
+If the request is verified, then the link is marked as inactive in DynamoDB. If the link is a file, the file is deleted from the corresponding S3 bucket, and invalidated in CloudFront.
 
 ## Dependencies
 
