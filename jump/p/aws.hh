@@ -14,9 +14,14 @@ use Aws\S3\Enum\Group;
 use Aws\S3\Model\AcpBuilder;
 use Aws\S3\S3Client;
 
+function mk_aws(){
+	return Aws::factory('p/aws.json');
+}
+/*
 $aws = Aws::factory('p/aws.json');
 
 $dyclient = $aws->get('DynamoDb');
 $s3client = $aws->get('S3');
 $cfclient = $aws->get('CloudFront');
 $glclient = $aws->get('Glacier');
+*/

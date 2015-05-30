@@ -1,4 +1,4 @@
-<?php require("p/constants.hh"); ?>
+<?php require("p/aws_constants.hh"); ?>
 		<hr>
     <footer>
 				<p>&copy; Phillip Goldfarb 2015</p>
