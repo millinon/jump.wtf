@@ -2,7 +2,7 @@
 			<div class="row equalrow">
 				<div class="formgroup col-xs-12 col-sm-12 col-md-4 col-lg-4 col-md-offset-1 col-lg-offset-1 equal">
 					<h2><!--<span class="label label-primary">-->Submit a Link or File<!--</span>--></h2>
-						<form id="new_url_form" action="s" method="post"  enctype="multipart/form-data" onsubmit="subbutton()">
+						<form id="new_submit" action="s" method="post"  enctype="multipart/form-data" onsubmit="subbutton()">
 							<div class="input-group" style="width:80%">
 							<span class="input-group-addon" style="width:6em; text-align:left">
 										<input type="radio" name="sub_type" value="url" id="sel_url" checked>

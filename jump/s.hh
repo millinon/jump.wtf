@@ -1,4 +1,5 @@
 <?hh
+
 include('b/blackhole.hh');
 
 session_start();
