@@ -1,11 +1,11 @@
-<?hh
+<?php
 
-include('b/blackhole.hh');
+include('b/blackhole.php');
 
 session_start();
 
-require('p/constants.hh');
-require('p/aws.hh');
+require('p/constants.php');
+require('p/aws.php');
 
 if(!isset($_POST['action'])){
   header('Location:./');
@@ -247,3 +247,5 @@ if($action == 'new'){
   header('Location:./');
   exit();
 }
+
+?>

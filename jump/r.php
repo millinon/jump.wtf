@@ -1,6 +1,11 @@
-<?hh include('b/blackhole.hh');
+<?php
+
+include('b/blackhole.php');
+
 session_start();
-require('p/header.hh');
+
+require('p/header.php');
+
 echo  		"<div class='container-fluid'>";
 echo			"<div class='row equalrow'>";
 	if(isset($_SESSION['action'])){
@@ -41,4 +46,5 @@ echo			"<div class='row equalrow'>";
 			}
 
 echo "			</div></div>";
-require('p/footer.hh');
+require('p/footer.php');
+?>

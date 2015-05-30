@@ -1,10 +1,11 @@
-<?hh
+<?php
 
-include('b/blackhole.hh');
+include('b/blackhole.php');
 
-require('p/constants.hh');
-require('p/aws.hh');
+require('p/constants.php');
+require('p/aws.php');
 
+/*
 $path = explode('/', trim($_SERVER['SCRIPT_NAME'], '/'));
 
 $uri  = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
@@ -22,6 +23,9 @@ $uri = implode('/', $uri);
 $toks = explode(".", $uri);
 
 $uri = $toks[0];
+*/
+
+$uri = $_GET["l"];
 
 $it = $dyclient->getIterator('Query',array(
       'TableName' => 'key-list',
@@ -80,3 +84,4 @@ if(iterator_count($it) != 1){
   }
 }
 
+?>
