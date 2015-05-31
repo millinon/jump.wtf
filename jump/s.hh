@@ -88,15 +88,12 @@ function main($action){
 												$matches = null;
 
 												if(preg_match('/((\.[a-zA-Z0-9]{2,4})|(\.[a-zA-Z])){1,4}$/',$file['name'],$matches) > 0){
-														if($matches != NULL)		
-														$ext = $matches[0];
+														if($matches != NULL)	$ext = $matches[0];
 														else $ext = '';
 												} else $ext = '';
 
-												$res = move_uploaded_file($file['tmp_name'], aws_config::UBASEDIR . '/' . $new_key . $ext);
-
-												if(! $res){
-																err('Problem with uploaded file.');
+												if(! move_uploaded_file($file['tmp_name'], aws_config::UBASEDIR . '/' . $new_key . $ext)){
+																err('Problem with uploaded file: ' . error_get_last());
 												}
 
 												$res = $s3client->putObject(array(
