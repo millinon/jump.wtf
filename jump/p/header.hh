@@ -11,14 +11,14 @@
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <meta name="wot-verification" content="20e4bd73e0b4fc1e85ae"/>
-<link rel="stylesheet" href=<?php echo $CDN_HOST . "/h/css/bootstrap.min.css>"; ?>
+<link rel="stylesheet" href=<?php echo aws_config::CDN_HOST . "/h/css/bootstrap.min.css>"; ?>
 <link rel="shortcut icon" type="image/x-icon" href="https://f.jump.wtf/favicon.ico">
-<link rel="stylesheet" href=<?php echo $CDN_HOST . "/h/css/bootstrap-theme.min.css>"; ?>
-<link rel="stylesheet" href=<?php echo $CDN_HOST; ?>/h/css/<?php include("h/css/main.css.latest"); ?>>
-<link rel="stylesheet" type="text/css" href=<?php echo $CDN_HOST; ?>/h/css/clippy.css media="all">
-<link href='https://fonts.googleapis.com/css?family=Montserrat:700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href=<?php echo aws_config::CDN_HOST . "/h/css/bootstrap-theme.min.css>"; ?>
+<link rel="stylesheet" href=<?php echo aws_config::CDN_HOST; ?>/h/css/<?php include("h/css/main.css.latest"); ?> >
+<link rel="stylesheet" type="text/css" href=<?php echo aws_config::CDN_HOST; ?>/h/css/clippy.css media="all">
+<link href='//fonts.googleapis.com/css?family=Montserrat:700' rel='stylesheet' type='text/css' data-noprefix>
 
-<script src=<?php echo $CDN_HOST; ?>/h/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js></script>
+<script src=<?php echo aws_config::CDN_HOST; ?>/h/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js></script>
 </head>
 <body>
 <!--[if lt IE 7]>

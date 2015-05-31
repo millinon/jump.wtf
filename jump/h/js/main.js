@@ -74,7 +74,7 @@ handle = setInterval(function(){
 	lastPos[0] = currentMousePos.x;
 	lastPos[1] = currentMousePos.y;
 
-	if(mouseDist >= 6000){
+	if(mouseDist >= 20000){
 		initClippy();
 		window.clearInterval(handle);
 	}

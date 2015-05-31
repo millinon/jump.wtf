@@ -4,7 +4,7 @@ class aws_config {
     const BASEURL = "https://jump.wtf/"; /* URL to private file uploads */
     const FBASEURL = "https://f.jump.wtf/"; /* URL to public file uploads: I use a CDN for this */
 
-    const UBASEDIR = "/var/www/jump/u"; /* directory where uploads are moved temporarily */
+    const UBASEDIR = "/var/jump/u"; /* directory where uploads are moved temporarily */
 
     const VAULTNAME = "jump.wtf"; /* vault to upload backups to */
     const SAVE_BACKUP = TRUE; /* set to false to skip backups */
