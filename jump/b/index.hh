@@ -53,22 +53,13 @@ if (!$ipaddress || !preg_match("/^[\w\d\.\-]+\.[\w\d]{1,4}$/i", $ipaddress)) {
 		exit('Error: You did not specify a valid target host or IP.');
 }
 
-// check bot
-$fp = fopen($filename, 'r');//die('<p>Error opening file.</p>');
-while ($line = fgets($fp)) {
-	$u = explode(' ', $line);
-	if ($u[0] == $ipaddress){
-		die('bad dog');
-		break;
-	}
-}
-fclose($fp);
+require('blackhole.hh');
 
 // record hit
 $fp = fopen($filename, 'a+');
 fwrite($fp, "$ipaddress - $protocol - $date - $useragent - $request\n");
 fclose($fp);
 
-die('bad dog');
+die('404 file not found');
 
 exit;
