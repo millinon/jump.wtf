@@ -13,7 +13,7 @@ function g_main($uri){
 	$s3client = $aws->get('S3');
 
 	$it = $dyclient->getIterator('Query',array(
-				'TableName' => 'key-list',
+				'TableName' => aws_config::TABLENAME,
 				'ConsistentRead' => true,
 				'KeyConditions' => array(
 					'Object ID' => array(
@@ -39,15 +39,16 @@ function g_main($uri){
 				} else {
 					$s = aws_config::FBASEURL . $item['filename']['S'];
 				}
-
+				header('Referer: http://jump.wtf/' . $uri);
 				header('Location:' . $s);
 			} else {
+				header('Referer: http://jump.wtf/' . $uri);
 				header('Location:' . $item['url']['S']);
 			}
 
 			if($item['clicks']['N'] > 0){
 				$dyclient->updateItem(array(
-							'TableName' => 'key-list',
+							'TableName' => aws_config::TABLENAME,
 							'Key' => array(
 								'Object ID' => array(
 									'S' => $item['Object ID']['S']

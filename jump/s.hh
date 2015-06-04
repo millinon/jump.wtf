@@ -7,7 +7,6 @@ require('p/aws.hh');
 require('p/aws_constants.hh');
 require('p/key_constants.hh');
 
-session_start();
 
 function generate_key(){
 	$dyclient = mk_aws()->get('DynamoDb');
@@ -22,7 +21,7 @@ function generate_key(){
 			$new_key .= $nextChar;
 			if($j >= key_config::min_len){
 				$res = $dyclient->query(array(
-							'TableName' => 'key-list',
+							'TableName' => aws_config::TABLENAME,
 							'KeyConditions' => array(
 								'Object ID' => array(
 									'AttributeValueList' => array(
@@ -50,7 +49,9 @@ function err($s){
 	exit();
 }
 
-function main($action){
+function s_main($action){
+
+	session_start();
 
 	$aws = mk_aws();
 	$dyclient = $aws->get('DynamoDb');
@@ -150,7 +151,7 @@ function main($action){
 		}
 
 		$result = $dyclient->putItem(array(
-					'TableName' => 'key-list',
+					'TableName' => aws_config::TABLENAME,
 					'Item' => array_merge(array(
 							'Object ID' => array('S' => $new_key),
 							'Checksum' => array('S' => md5($url)),
@@ -186,7 +187,7 @@ function main($action){
 		}
 
 		$it = $dyclient->getIterator('Query',array(
-					'TableName' => 'key-list',
+					'TableName' => aws_config::TABLENAME,
 					'ConsistentRead' => true,
 					'KeyConditions' => array(
 						'Object ID' => array(
@@ -207,7 +208,7 @@ function main($action){
 					exit();
 				} else {
 					$dyclient->updateItem(array(
-								'TableName' => 'key-list',
+								'TableName' => aws_config::TABLENAME,
 								'Key' => array(
 									'Object ID' => array(
 										'S' => $item['Object ID']['S']
@@ -256,4 +257,4 @@ function main($action){
 if(!isset($_POST['action'])){
 	header('Location:./');
 	exit();
-} else main($_POST['action']);
+} else s_main($_POST['action']);
