@@ -9,7 +9,10 @@ class aws_config {
     const VAULTNAME = "jump.wtf"; /* vault to upload backups to */
     const SAVE_BACKUP = TRUE; /* set to false to skip backups */
 
-	const TABLENAME = "key-list"; /* name of the DynamoDB table */
+	const LINK_TABLE = "key-list"; /* name of the DynamoDB link table */
+
+	const DO_LOG = TRUE; /* set to false to disable IP logging */
+	const LOG_TABLE = "jump.wtf-log"; /* name of the DynamoDB logging table */
 
     const MAXCLICKS = 1000; /* maximum expiration clicks */
     const MAXURLLEN = 128; /* maximum URL length */

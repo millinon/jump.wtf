@@ -2,6 +2,8 @@
 
 include('b/blackhole.hh');
 
+include('p/log.hh');
+
 require('p/aws.hh');
 
 require('p/aws_constants.hh');
@@ -21,7 +23,7 @@ function generate_key(){
 			$new_key .= $nextChar;
 			if($j >= key_config::min_len){
 				$res = $dyclient->query(array(
-							'TableName' => aws_config::TABLENAME,
+							'TableName' => aws_config::LINK_TABLE,
 							'KeyConditions' => array(
 								'Object ID' => array(
 									'AttributeValueList' => array(
@@ -151,7 +153,7 @@ function s_main($action){
 		}
 
 		$result = $dyclient->putItem(array(
-					'TableName' => aws_config::TABLENAME,
+					'TableName' => aws_config::LINK_TABLE,
 					'Item' => array_merge(array(
 							'Object ID' => array('S' => $new_key),
 							'Checksum' => array('S' => md5($url)),
@@ -187,7 +189,7 @@ function s_main($action){
 		}
 
 		$it = $dyclient->getIterator('Query',array(
-					'TableName' => aws_config::TABLENAME,
+					'TableName' => aws_config::LINK_TABLE,
 					'ConsistentRead' => true,
 					'KeyConditions' => array(
 						'Object ID' => array(
@@ -208,7 +210,7 @@ function s_main($action){
 					exit();
 				} else {
 					$dyclient->updateItem(array(
-								'TableName' => aws_config::TABLENAME,
+								'TableName' => aws_config::LINK_TABLE,
 								'Key' => array(
 									'Object ID' => array(
 										'S' => $item['Object ID']['S']

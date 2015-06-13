@@ -2,6 +2,8 @@
 
 include('b/blackhole.hh');
 
+include('p/log.hh');
+
 require('p/aws_constants.hh');
 require('p/aws.hh');
 
@@ -13,7 +15,7 @@ function g_main($uri){
 	$s3client = $aws->get('S3');
 
 	$it = $dyclient->getIterator('Query',array(
-				'TableName' => aws_config::TABLENAME,
+				'TableName' => aws_config::LINK_TABLE,
 				'ConsistentRead' => true,
 				'KeyConditions' => array(
 					'Object ID' => array(
@@ -48,7 +50,7 @@ function g_main($uri){
 
 			if($item['clicks']['N'] > 0){
 				$dyclient->updateItem(array(
-							'TableName' => aws_config::TABLENAME,
+							'TableName' => aws_config::LINK_TABLE,
 							'Key' => array(
 								'Object ID' => array(
 									'S' => $item['Object ID']['S']

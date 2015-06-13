@@ -1,5 +1,6 @@
 <?hh
 include('b/blackhole.hh');
+include('p/log.hh');
 
 require('p/header.hh');
 require('p/forms.hh');
@@ -13,13 +14,16 @@ function get_num_links(){
 
 	$result = $dyclient->describeTable(
 		array(
-			'TableName' => 'key-list'));
+			'TableName' => aws_config::LINK_TABLE));
 	return $result['Table']['ItemCount'];
 }
 
 function is_meta(){
-	if( isset($_SERVER['HTTP_REFERER']) && preg_match("/(https?:\/\/)?(cdn\.)?jump\.wtf(\/.*)?/", $_SERVER['HTTP_REFERER'])) return "This is so meta.";
-	else if( isset($_ENV['HTTP_REFERER']) && preg_match("/(https?:\/\/)?(cdn\.)?jump\.wtf(\/.*)?/", $_ENV['HTTP_REFERER'])) return "This is so meta.";
+	if(
+	( isset($_SERVER['HTTP_REFERER']) && preg_match("/(https?:\/\/)?(cdn\.)?jump\.wtf(\/.*)?/", $_SERVER['HTTP_REFERER']))
+	||
+	( isset($_ENV['HTTP_REFERER']) && preg_match("/(https?:\/\/)?(cdn\.)?jump\.wtf(\/.*)?/", $_ENV['HTTP_REFERER']))
+	) return "This is so meta.";
 	else return "";
 }
 
