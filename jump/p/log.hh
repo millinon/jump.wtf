@@ -9,8 +9,6 @@ function jump_log(){
 
 		$page = preg_replace('|^/?([a-z])(\.hh)?(/.*)?|', '$1', $_SERVER['PHP_SELF']);
 
-		error_log("'" . $_SERVER['PHP_SELF'] . "' --> '" . $page . "'");
-
 		$dyclient = mk_aws()->get('DynamoDb');
 
 		$dyclient->updateItem(array(
