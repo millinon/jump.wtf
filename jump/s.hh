@@ -159,6 +159,7 @@ function s_main($action){
 							'Checksum' => array('S' => md5($url)),
 							'url' => array('S' => $url),
 							'pass' => array('S' => $password != '' ? hash('sha256',$password + $new_key) : 'nopass'),
+							'hits' => array('N' => 0),
 							'active' => array('N' => 1),
 							'clicks' => array('N' => $clicks),
 							'isPrivate' => array('N' => ($clicks > 0 ? 1 : 0)),
