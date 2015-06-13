@@ -7,6 +7,10 @@ function jump_log(){
 
 	if(aws_config::DO_LOG){
 
+		$page = preg_replace('|^/?([a-z])(\.hh)?(/.*)?|', '$1', $_SERVER['PHP_SELF']);
+
+		error_log("'" . $_SERVER['PHP_SELF'] . "' --> '" . $page . "'");
+
 		$dyclient = mk_aws()->get('DynamoDb');
 
 		$dyclient->updateItem(array(
@@ -15,7 +19,7 @@ function jump_log(){
 				'IP' => array(
 					'S' => "TOTAL")),
 			'AttributeUpdates' => array(
-				$_SERVER['PHP_SELF'] => array(
+				$page => array(
 					'Action' => 'ADD',
 					'Value' => array(
 						'N' => 1)),
@@ -32,7 +36,7 @@ function jump_log(){
 				'IP' => array(
 					'S' => $_SERVER['REMOTE_ADDR'])),
 			'AttributeUpdates' => array(
-				$_SERVER['PHP_SELF'] => array(
+				$page => array(
 					'Action' => 'ADD',
 					'Value' => array(
 						'N' => 1)),
