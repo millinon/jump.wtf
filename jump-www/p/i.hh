@@ -1,4 +1,5 @@
 <?hh
+/*
 include('b/blackhole.hh');
 include('p/log.hh');
 
@@ -8,6 +9,7 @@ require('p/footer.hh');
 
 require('p/aws.hh');
 require('p/aws_constants.hh');
+*/
 
 function get_num_links(){
 	$dyclient = mk_aws()->get('DynamoDb');
@@ -43,6 +45,7 @@ $body->appendChild(
 			By submitting a link or file, you are agreeing to this site's <a href="t.txt">Terms of Service and Privacy Policy</a>.
 			<br /><br />
 			A total of {get_num_links()} links have been generated.
+			<br /><br />
 			{is_meta()}
 		</p>
 	</div>
@@ -61,4 +64,4 @@ echo $body;
 echo "</html>";
 }
 
-i_main();
+//i_main();

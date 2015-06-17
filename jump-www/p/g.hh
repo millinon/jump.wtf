@@ -1,12 +1,13 @@
 <?hh
 
+/*
 include('b/blackhole.hh');
 
 include('p/log.hh');
 
 require('p/aws_constants.hh');
 require('p/aws.hh');
-
+*/
 
 function g_main($uri){
 
@@ -82,6 +83,7 @@ function g_main($uri){
 	}
 }
 
+/*
 $path = explode('/', trim($_SERVER['SCRIPT_NAME'], '/'));
 
 $uri  = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
@@ -99,3 +101,5 @@ $uri = implode('/', $uri);
 $toks = explode(".", $uri);
 
 g_main($toks[0]);
+*/
+

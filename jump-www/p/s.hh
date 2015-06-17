@@ -1,5 +1,6 @@
 <?hh
 
+/*
 include('b/blackhole.hh');
 
 include('p/log.hh');
@@ -8,7 +9,7 @@ require('p/aws.hh');
 
 require('p/aws_constants.hh');
 require('p/key_constants.hh');
-
+*/
 
 function generate_key(){
 	$dyclient = mk_aws()->get('DynamoDb');
@@ -257,7 +258,9 @@ function s_main($action){
 
 }
 
+/*
 if(!isset($_POST['action'])){
 	header('Location:./');
 	exit();
 } else s_main($_POST['action']);
+*/
