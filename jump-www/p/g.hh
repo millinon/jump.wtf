@@ -9,7 +9,7 @@ require('p/aws_constants.hh');
 require('p/aws.hh');
 */
 
-function g_main($uri){
+function g_main(string $uri): void{
 
 	$aws = mk_aws();
 	$dyclient = $aws->get('DynamoDb');

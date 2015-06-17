@@ -18,7 +18,7 @@ require('p/s.hh');
 require('p/r.hh');
 
 
-function main(){
+function main(): void{
 
 	$matches = array();
 

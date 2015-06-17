@@ -7,11 +7,11 @@ include('p/log.hh');
 
 require('p/aws.hh');
 
-require('p/aws_constants.hh');
+irequire('p/aws_constants.hh');
 require('p/key_constants.hh');
 */
 
-function generate_key(){
+function generate_key(): string{
 	$dyclient = mk_aws()->get('DynamoDb');
 
 	$MAX_TRIES = 3;	
@@ -45,14 +45,14 @@ function generate_key(){
 	return ''; // oh god what
 }
 
-function err($s){
+function err($s): void{
 	$_SESSION['action'] = 'error';
 	$_SESSION['problem'] = $s;
 	header('location:r');
 	exit();
 }
 
-function s_main($action){
+function s_main($action): void{
 
 	session_start();
 
@@ -159,7 +159,7 @@ function s_main($action){
 							'Object ID' => array('S' => $new_key),
 							'Checksum' => array('S' => md5($url)),
 							'url' => array('S' => $url),
-							'pass' => array('S' => $password != '' ? hash('sha256',$password + $new_key) : 'nopass'),
+							'pass' => array('S' => $password != '' ? hash('sha256',$password . $new_key) : 'nopass'),
 							'hits' => array('N' => 0),
 							'active' => array('N' => 1),
 							'clicks' => array('N' => $clicks),
@@ -231,10 +231,11 @@ function s_main($action){
 									)
 								));
 					if($item['isFile']['N'] == 1){
-						$s3client->deleteObject(array(
-									'Bucket' => ($item['isPrivate']['N'] == 1 ? aws_config::PRIVBUCKET : aws_config::PUBBUCKET),
-									'Key' => $item['filename']['S']
-									));
+						if(aws_config::SAVE_BACKUP){
+							$s3client->deleteObject(array(
+										'Bucket' => ($item['isPrivate']['N'] == 1 ? aws_config::PRIVBUCKET : aws_config::PUBBUCKET),
+										'Key' => $item['filename']['S']));
+						}
 						if($item['isPrivate']['N'] == 0){
 							$cfclient->createInvalidation(array(
 										'DistributionId' => 'E1J94UZFGW5FEI',

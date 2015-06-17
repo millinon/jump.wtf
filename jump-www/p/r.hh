@@ -6,7 +6,7 @@ require('p/header.hh');
 require('p/footer.hh');
 */
 
-function r_main(){
+function r_main(): void{
 
 	session_start();
 

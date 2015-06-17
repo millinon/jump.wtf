@@ -11,7 +11,7 @@ require('p/aws.hh');
 require('p/aws_constants.hh');
 */
 
-function get_num_links(){
+function get_num_links(): string{
 	$dyclient = mk_aws()->get('DynamoDb');
 
 	$result = $dyclient->describeTable(
@@ -20,7 +20,7 @@ function get_num_links(){
 	return $result['Table']['ItemCount'];
 }
 
-function is_meta(){
+function is_meta(): string{
 	if(
 	( isset($_SERVER['HTTP_REFERER']) && preg_match("/(https?:\/\/)?(cdn\.)?jump\.wtf(\/.*)?/", $_SERVER['HTTP_REFERER']))
 	||
@@ -29,7 +29,7 @@ function is_meta(){
 	else return "";
 }
 
-function i_main(){
+function i_main(): void{
 
 echo gen_html_tag();
 echo gen_head();
