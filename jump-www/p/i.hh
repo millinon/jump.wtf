@@ -17,7 +17,7 @@ function get_num_links(): string{
 	$result = $dyclient->describeTable(
 		array(
 			'TableName' => aws_config::LINK_TABLE));
-	return $result['Table']['ItemCount'];
+	return (string) $result['Table']['ItemCount'];
 }
 
 function is_meta(): string{
