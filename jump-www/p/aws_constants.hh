@@ -21,5 +21,5 @@ class aws_config {
     const PUBBUCKET = "jump.wtf"; /* bucket to store public files in */
     const PRIVBUCKET = "p.jump.wtf"; /* bucket to store private files in */
 
-    const CDN_HOST = "https://cdn.jump.wtf"; /* Where clients should download HTML resources from */
+    const CDN_HOST = "//cdn.jump.wtf"; /* Where clients should download HTML resources from */
 }

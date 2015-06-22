@@ -25,8 +25,12 @@ return <head>
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/bootstrap.min.css"} />
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/bootstrap-theme.min.css"} />
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/" . file_get_contents("h/css/main.css.latest")} />
-<link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/clippy.css"} media="all" />
+<link rel="stylesheet" href={aws_config::CDN_HOST . "/h/vendor/clippy.js/build/clippy.min.css"} media="all" />
 <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:700" type="text/css" data-noprefix="" />
+<link rel="stylesheet" href={aws_config::CDN_HOST . "/h/vendor/fork-ribbon/gh-fork-ribbon.min.css"} />
+<!--[if lt IE 9]>
+<link rel="stylesheet" href={aws_config::CDN_HOST . "/h/vendor/fork-ribbon/gh-fork-ribbon.ie.min.css" />
+<![endif]-->
 <script src={aws_config::CDN_HOST . "/h/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"}></script>
 </head>;
 }
@@ -37,8 +41,11 @@ function gen_nav(){
 return <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 		<div class="container">
 				<div class="navbar-header">
-				<a href="https://github.com/millinon/jump.wtf"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/c6625ac1f3ee0a12250227cf83ce904423abf351/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png" /></a>
-
+				    <div class="github-fork-ribbon-wrapper left">
+					    <div class="github-fork-ribbon">
+							<a href="https://github.com/millinon/jump.wtf">Fork me on GitHub</a>
+						</div>
+					</div>
 <a class="navbar-brand" href="https://jump.wtf">JUMP.WTF</a>
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">

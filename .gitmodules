@@ -1,0 +1,9 @@
+[submodule "jump-www/h/vendor/clippy.js"]
+	path = jump-www/h/vendor/clippy.js
+	url = https://github.com/smore-inc/clippy.js.git
+[submodule "jump-www/h/vendor/fork-ribbon"]
+	path = jump-www/h/vendor/fork-ribbon
+	url = https://github.com/simonwhitaker/github-fork-ribbon-css.git
+[submodule "jump-www/h/vendor/zeroclipboard"]
+	path = jump-www/h/vendor/zeroclipboard
+	url = https://github.com/zeroclipboard/zeroclipboard.git

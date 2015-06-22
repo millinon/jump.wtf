@@ -31,8 +31,8 @@ function r_main(): void{
 		$con->appendChild(<p>Your link has been generated: <a href={$_SESSION['new_link']} target="_blank">{$_SESSION['new_link']}</a></p>);
 		$con->appendChild(<br />);
 		$con->appendChild(<button id="copybutton" class="btn btn-default" data-clipboard-text={$_SESSION["new_link"]}><span class="glyphicon glyphicon-share" aria-hidden="true"></span>Copy to clipboard</button>);
-		$con->appendChild(<script src="https://cdn.jump.wtf/h/js/vendor/ZeroClipboard.min.js"></script>);
-		$con->appendChild(<script src="https://cdn.jump.wtf/h/js/clip-0.min.js"></script>);
+		$con->appendChild(<script src={aws_config::CDN_HOST . "/h/vendor/zeroclipboard/dist/ZeroClipboard.min.js"}></script>);
+		$con->appendChild(<script src={aws_config::CDN_HOST . "/h/js/clip-0.min.js"}></script>);
 	} else {
 		$con->appendChild(<h1>Error!</h1>);
 		$con->appendChild(<p>$_SESSION['problem']</p>);

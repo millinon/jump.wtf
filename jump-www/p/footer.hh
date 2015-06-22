@@ -4,8 +4,10 @@
 	
 	function gen_footer(){
 
-    return <footer>
-				<p>&copy; Phillip Goldfarb {date("Y")}</p>
+    return <footer class="footer">
+		<div class="container text-center">
+				<p class="text-muted">&copy; Phillip Goldfarb {date("Y")}</p>
+		</div>
     </footer>;
 	}
 
@@ -16,7 +18,7 @@
 
 	return array(
 	<script src={aws_config::CDN_HOST . "/h/js/vendor/jquery-1.11.1.min.js"}></script>,
-	<script async={true} src={aws_config::CDN_HOST ."/h/js/clippy.min.js"}></script>,
+	<script async={true} src={aws_config::CDN_HOST ."/h/vendor/clippy.js/build/clippy.min.js"}></script>,
 	<script async={true} src={aws_config::CDN_HOST . "/h/js/" . file_get_contents("h/js/main.js.latest")}></script>
 	);
 	
