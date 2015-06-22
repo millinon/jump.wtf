@@ -21,8 +21,7 @@ return <head>
 <meta name="description" content="" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 <link rel="shortcut icon" type="image/x-icon" href="https://f.jump.wtf/favicon.ico" />
-
-<link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/bootstrap.min.css"} />
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/bootstrap-theme.min.css"} />
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/css/" . file_get_contents("h/css/main.css.latest")} />
 <link rel="stylesheet" href={aws_config::CDN_HOST . "/h/vendor/clippy.js/build/clippy.min.css"} media="all" />

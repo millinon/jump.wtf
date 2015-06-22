@@ -1,4 +1,4 @@
-ZeroClipboard.config({swfPath: "https://cdn.jump.wtf/h/js/vendor/ZeroClipboard.swf" });
+ZeroClipboard.config({swfPath: "https://cdnjs.cloudflare.com/ajax/libs/zeroclipboard/2.2.0/ZeroClipboard.swf" });
 var client = new ZeroClipboard(document.getElementById("copybutton"));
 client.on("ready",function(readyEvent){
 		client.on("aftercopy",function(event){

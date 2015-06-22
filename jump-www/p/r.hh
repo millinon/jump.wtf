@@ -46,6 +46,10 @@ function r_main(): void{
 
 	$body->appendChild(<div class="jumbotron">{$con}</div>);
 
+	$body->appendChild(gen_footer());
+	foreach( gen_footer_scripts() as $script )
+		$body->appendChild($script);
+
 	echo $body;
 
 	echo "</html>";

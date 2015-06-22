@@ -32,7 +32,7 @@
 						</div>
 						<input type="hidden" name="action" id="action" value="new" />
 						<button id="newsub" type="submit" class="btn btn-primary">
-							<span id="newsub_glyph" class="glyphicon glyphicon-link" aria-hidden="true"></span>Submit
+							<span id="newsub_glyph" class="glyphicon glyphicon-link" aria-hidden="true"></span>&nbsp;Submit
 						</button>
 					</form>
 				</div>
@@ -52,7 +52,7 @@
 						</div>
 						<input type="hidden" name="action" id="d_action" value="del" />
 						<button type="submit" class="btn btn-primary">
-							<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>Submit
+							<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Submit
 						</button>
 					</form>
 				</div>
