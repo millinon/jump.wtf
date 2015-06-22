@@ -11,6 +11,8 @@ require('p/aws.hh');
 
 function g_main(string $uri): void{
 
+	$uri = explode(".", $uri)[0];
+
 	$aws = mk_aws();
 	$dyclient = $aws->get('DynamoDb');
 	$s3client = $aws->get('S3');
