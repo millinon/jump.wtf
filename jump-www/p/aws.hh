@@ -15,7 +15,7 @@ use Aws\S3\Model\AcpBuilder;
 use Aws\S3\S3Client;
 
 function mk_aws(){
-	return Aws::factory('p/aws.json');
+	return Aws::factory('p/config/aws.json');
 }
 /*
 $aws = Aws::factory('p/aws.json');

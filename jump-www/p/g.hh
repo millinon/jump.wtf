@@ -40,9 +40,9 @@ function g_main(string $uri): void{
 
 			if($item['isFile']['N'] == 1){
 				if($item['clicks']['N'] > 0){							
-					$s = $s3client->getObjectUrl(aws_config::PRIVBUCKET,$item['filename']['S'], '+15 minutes');
+					$s = $s3client->getObjectUrl(aws_config::PRIV_BUCKET,$item['filename']['S'], '+15 minutes');
 				} else {
-					$s = aws_config::FBASEURL . $item['filename']['S'];
+					$s = jump_config::FBASEURL . $item['filename']['S'];
 				}
 				header('Referer: http://jump.wtf/' . $uri);
 				header('Location:' . $s);
@@ -51,7 +51,7 @@ function g_main(string $uri): void{
 				header('Location:' . $item['url']['S']);
 			}
 			
-			if(aws_config::DO_LOG){
+			if(jump_config::DO_LOG){
 				$dyclient->updateItem(array(
 					'TableName' => aws_config::LINK_TABLE,
 					'Key' => array(

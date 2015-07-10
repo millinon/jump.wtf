@@ -9,8 +9,10 @@ require_once('p/forms.hh');
 require_once('p/footer.hh');
 
 require_once('p/aws.hh');
-require_once('p/aws_constants.hh');
-require_once('p/key_constants.hh');
+
+require_once('p/config/aws_config.hh');
+require_once('p/config/jump_config.hh');
+require_once('p/config/key_config.hh');
 
 require('p/i.hh');
 require('p/g.hh');
