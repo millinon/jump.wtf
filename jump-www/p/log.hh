@@ -1,11 +1,12 @@
 <?hh
 
-require('p/aws_constants.hh');
+require('p/aws_config.hh');
+require('p/jump_config.hh');
 require('p/aws.hh');
 
 function jump_log(){
 
-	if(aws_config::DO_LOG){
+	if(jump_config::DO_LOG){
 
 		$page = preg_replace('|^/?([a-z])(\.hh)?(/.*)?|', '$1', $_SERVER['PHP_SELF']);
 

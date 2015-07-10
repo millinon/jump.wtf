@@ -46,9 +46,6 @@ $body->appendChild(
 			An experiment with AWS resources.<br/>
 			By submitting a link or file, you are agreeing to this site's <a target="_blank" href="https://f.jump.wtf/wZw.txt">Terms of Service and Privacy Policy</a>.
 			<br /><br />
-			A total of {get_num_links()} links have been generated.
-			<br /><br />
-			{is_meta()}
 		</p>
 	</div>
 </div>

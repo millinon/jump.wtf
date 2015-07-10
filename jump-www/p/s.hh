@@ -82,7 +82,7 @@ function s_main($action): void{
 			$file = $_FILES['file'];
 
 			if($file['size'] > 8*1024*1024*10){
-				unlink('aws_config::UBASEDIR/' . $file['name']);
+				unlink('jump_config::UBASEDIR/' . $file['name']);
 				err('File too large');
 			}
 
@@ -96,21 +96,21 @@ function s_main($action): void{
 				else $ext = '';
 			} else $ext = '';
 
-			if(! move_uploaded_file($file['tmp_name'], aws_config::UBASEDIR . '/' . $new_key . $ext)){
+			if(! move_uploaded_file($file['tmp_name'], jump_config::UBASEDIR . '/' . $new_key . $ext)){
 				err('Problem with uploaded file: ' . error_get_last()["message"]);
 			}
 
 			$res = $s3client->putObject(array(
-						'Bucket' => ($clicks > 0 ? aws_config::PRIVBUCKET : aws_config::PUBBUCKET),
+						'Bucket' => ($clicks > 0 ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET),
 						'Key' => $new_key . $ext,
-						'SourceFile' => aws_config::UBASEDIR . '/' . $new_key . $ext,
+						'SourceFile' => jump_config::UBASEDIR . '/' . $new_key . $ext,
 						'StorageClass' => 'REDUCED_REDUNDANCY',
 						));
 
 			$url = $res['ObjectURL'];
 
-			if(aws_config::SAVE_BACKUP){
-				$file = fopen(aws_config::UBASEDIR . '/' . $new_key . '.meta.txt', 'w');
+			if(jump_config::SAVE_BACKUP){
+				$file = fopen(jump_config::UBASEDIR . '/' . $new_key . '.meta.txt', 'w');
 				fwrite($file, 'ID=' . $new_key . "\n");
 				fwrite($file, 'file=' . $filename . "\n");
 				fwrite($file, 'size=' . $filesize . "\n");
@@ -120,20 +120,20 @@ function s_main($action): void{
 
 
 				$zip = new ZipArchive();
-				if($zip->open(aws_config::UBASEDIR . '/' . $new_key . '_arc.zip', ZipArchive::CREATE | ZipArchive::OVERWRITE) == TRUE){
-					$zip->addFile(aws_config::UBASEDIR . '/' . $new_key . $ext, $new_key . $ext);
-					$zip->addFile(aws_config::UBASEDIR . '/' . $new_key . '.meta.txt', $new_key . '.meta.txt');
+				if($zip->open(jump_config::UBASEDIR . '/' . $new_key . '_arc.zip', ZipArchive::CREATE | ZipArchive::OVERWRITE) == TRUE){
+					$zip->addFile(jump_config::UBASEDIR . '/' . $new_key . $ext, $new_key . $ext);
+					$zip->addFile(jump_config::UBASEDIR . '/' . $new_key . '.meta.txt', $new_key . '.meta.txt');
 					$zip->close();
 
 					$glclient->uploadArchive(array(
-								'vaultName' => aws_config::VAULTNAME,
-								'body' => fopen(aws_config::UBASEDIR . '/' . $new_key . '_arc.zip', 'r')
+								'vaultName' => aws_config::BACKUP_VAULT_NAME,
+								'body' => fopen(jump_config::UBASEDIR . '/' . $new_key . '_arc.zip', 'r')
 								));
 				}
 
-				unlink(aws_config::UBASEDIR . '/' . $new_key . $ext);
-				unlink(aws_config::UBASEDIR . '/' . $new_key . '.meta.txt');
-				unlink(aws_config::UBASEDIR . '/' . $new_key . '_arc.zip');
+				unlink(jump_config::UBASEDIR . '/' . $new_key . $ext);
+				unlink(jump_config::UBASEDIR . '/' . $new_key . '.meta.txt');
+				unlink(jump_config::UBASEDIR . '/' . $new_key . '_arc.zip');
 
 			}
 
@@ -142,13 +142,13 @@ function s_main($action): void{
 			$ext = '';
 		}
 
-		if(strlen($url) > aws_config::MAXURLLEN){
+		if(strlen($url) > jump_config::MAX_URL_LEN){
 			err('Invalid URL.');
 			exit();
-		} else if(strlen($password) > aws_config::MAXPASSLEN){
+		} else if(strlen($password) > jump_config::MAX_PASS_LEN){
 			err('Invalid password.');
 			exit();
-		} else if($clicks > aws_config::MAXCLICKS || $clicks < -1){
+		} else if($clicks > jump_config::MAX_CLICKS || $clicks < -1){
 			err('Invalid expiration clicks');
 			exit();
 		}
@@ -176,7 +176,7 @@ function s_main($action): void{
 						     ))
 					));
 		$_SESSION['action'] = 'gen_success';
-		$_SESSION['new_link'] = (($type == 'url' || $clicks!=-1) ? aws_config::BASEURL : aws_config::FBASEURL) . $new_key . $ext;
+		$_SESSION['new_link'] = (($type == 'url' || $clicks!=-1) ? jump_config::BASEURL : jump_config::FBASEURL) . $new_key . $ext;
 		header('location:r');
 	} else if($action == 'del'){
 		$pass = $_POST['del_pass'];
@@ -185,7 +185,7 @@ function s_main($action): void{
 		if(strlen($key) > 20){
 			err('Invalid URL.');
 			exit();
-		} else if(strlen($pass) > aws_config::MAXPASSLEN){
+		} else if(strlen($pass) > jump_config::MAX_PASS_LEN){
 			err('Invalid password.');
 			exit();
 		}
@@ -231,9 +231,9 @@ function s_main($action): void{
 									)
 								));
 					if($item['isFile']['N'] == 1){
-						if(aws_config::SAVE_BACKUP){
+						if(jump_config::SAVE_BACKUP){
 							$s3client->deleteObject(array(
-										'Bucket' => ($item['isPrivate']['N'] == 1 ? aws_config::PRIVBUCKET : aws_config::PUBBUCKET),
+										'Bucket' => ($item['isPrivate']['N'] == 1 ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET),
 										'Key' => $item['filename']['S']));
 						}
 						if($item['isPrivate']['N'] == 0){
