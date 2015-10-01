@@ -1,46 +1,61 @@
 <?hh
-/*
-include('b/blackhole.hh');
 
-require('p/header.hh');
-require('p/footer.hh');
-*/
+function heading(string $action): string {
+    switch($action){
+        case "del_file":
+        case "del_url":
+            return "Deletion successful";
 
-function r_main(): void{
+        case "url_success":
+            return "Link generated";
+
+        case "file_success":
+            return "File uploaded";
+
+        case "error":
+            return "Error!";
+		
+        default:
+            header('location:./');
+            die();
+            return "";
+        }
+}
+
+function message(string $action, ?string $url, ?string $err): mixed {
+    switch($action){
+        case "del_file":
+            return <p>Link deleted; file deletion pending.</p>;
+        case "del_url":
+            return <p>Link deleted.</p>;
+
+        case "url_success":
+        case "file_success":
+            return <p>Your link has been generated: <a id="newlink" href={$url} target="_blank">{$url}</a></p>;
+
+        case "error":
+            return <p>{$err}</p>;
+        }
+}
+
+function r_main(): mixed{
 
 	session_start();
 
 	error_log('action = ' . $_SESSION['action']);
-
-	echo gen_html_tag();
-
-	echo gen_head();
-
+    
 	$body = <body></body>;
 	$body->appendChild(gen_nav());
 
-	$con = <div class="container centered"></div>;
+	$con = <div class="container centered">
+            <h2>{heading($_SESSION['action'])}</h2>
+        </div>;
 
-	if($_SESSION['action'] === 'del_success'){
-		$con->appendChild(<h2>Deletion successful</h2>);
-		$con->appendChild(<p>Link deleted.</p>);
-	} else if($_SESSION['action'] === 'gen_success') {
-		if($_SESSION['action'] === 'gen_success'){
-			$con->appendChild(<h1>Link Generated</h1>);
-		} else {
-			$con->appendChild(<h1>File Uploaded</h1>);
-		}
-		$con->appendChild(<p>Your link has been generated: <a href={$_SESSION['new_link']} target="_blank">{$_SESSION['new_link']}</a></p>);
-		$con->appendChild(<br />);
-		$con->appendChild(<button id="copybutton" class="btn btn-default" data-clipboard-text={$_SESSION["new_link"]}><span class="glyphicon glyphicon-share" aria-hidden="true"></span>Copy to clipboard</button>);
-		$con->appendChild(<script src={jump_config::CDN_HOST . "/h/vendor/zeroclipboard/dist/ZeroClipboard.min.js"}></script>);
-		$con->appendChild(<script src={jump_config::CDN_HOST . "/h/js/" . file_get_contents('h/js/clip.js.latest')}></script>);
-	} else if($_SESSION['action'] === 'error'){
-		$con->appendChild(<h1>Error!</h1>);
-		$con->appendChild(<p>{$_SESSION['problem']}</p>);
-	} else {
-		header('location:./');
-	}
+    $con->appendChild(message($_SESSION['action'], $_SESSION['new_link'], $_SESSION['problem']));
+        
+    if($_SESSION['action'] === 'url_success' || $_SESSION['action'] === 'file_success'){
+		$con->appendChild(<button id="copybutton" class="btn btn-default" data-clipboard-text={$_SESSION['new_link']}><span class="glyphicon glyphicon-share" aria-hidden="true"></span>Copy to clipboard</button>);
+    }
 
 	for( $i = 0; $i < 4; $i++){
 		$con->appendChild(<br />);
@@ -50,15 +65,12 @@ function r_main(): void{
 
 	$body->appendChild(<div class="jumbotron">{$con}</div>);
 
-	$body->appendChild(gen_footer());
-	foreach( gen_footer_scripts() as $script )
-		$body->appendChild($script);
 
-	echo $body;
+$body->appendChild(gen_footer());
+foreach( gen_footer_scripts() as $script )
+    $body->appendChild($script);
+$body->appendChild(<script src={jump_config::CDN_HOST . "/h/js/" . file_get_contents("h/js/clip.js.latest")}></script>);
 
-	echo "</html>";
-
-	session_destroy();
+    echo <x:doctype><html lang="en">{gen_head()}{$body}</html></x:doctype>;
+//	session_destroy();
 }
-
-//r_main();

@@ -35,18 +35,17 @@ function main(): void{
 	
 	error_log("'" . $_SERVER['PHP_SELF'] . "' --> " . $uri);
 
+    $body = null;
+
 	if($uri === 's'){
 		error_log("s_main");
 		s_main($_POST['action']);
 	} else if($uri === 'r') { //isset($_SESSION['action'])){
 		error_log("r_main");
-		r_main();
-	} else if($uri === 'k') {
-		error_log("k_main");
-		k_main();
+		$body = r_main();
 	} else if($uri !== "") {
 		error_log("g_main");
-		g_main($uri);
+	    g_main($uri);
 	} else {
 		error_log("i_main");
 		i_main();
