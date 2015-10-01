@@ -4,7 +4,7 @@ class :file_span extends :span {
 attribute bool disabled;
 }
 
-	function gen_form(){
+	function gen_form(): mixed{
 		return
 		<div class="container-fluid">
 			<div class="row equalrow">

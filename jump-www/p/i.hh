@@ -1,15 +1,4 @@
 <?hh
-/*
-include('b/blackhole.hh');
-include('p/log.hh');
-
-require('p/header.hh');
-require('p/forms.hh');
-require('p/footer.hh');
-
-require('p/aws.hh');
-require('p/aws_constants.hh');
-*/
 
 function get_num_links(): string{
 	$dyclient = mk_aws()->get('DynamoDb');
@@ -31,10 +20,10 @@ function is_meta(): string{
 	return "";
 }
 
-function i_main(): void{
+function i_main(): void {
 
-echo gen_html_tag();
-echo gen_head();
+//echo gen_html_tag();
+//echo gen_head();
 
 $body = <body></body>;
 $body->appendChild(gen_nav());
@@ -55,12 +44,7 @@ $body->appendChild(gen_form());
 
 $body->appendChild(gen_footer());
 foreach( gen_footer_scripts() as $script )
-	$body->appendChild($script);
+    $body->appendChild($script);
+echo <x:doctype><html lang="en">{gen_head()}{$body}</html></x:doctype>;
 
-echo $body;
-
-
-echo "</html>";
 }
-
-//i_main();

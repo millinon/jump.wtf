@@ -1,15 +1,15 @@
-[submodule "jump-www/h/vendor/clippy.js"]
-	path = jump-www/h/vendor/clippy.js
-	url = https://github.com/smore-inc/clippy.js.git
 [submodule "jump-www/h/vendor/fork-ribbon"]
 	path = jump-www/h/vendor/fork-ribbon
 	url = https://github.com/simonwhitaker/github-fork-ribbon-css.git
-[submodule "jump-www/h/vendor/zeroclipboard"]
-	path = jump-www/h/vendor/zeroclipboard
-	url = https://github.com/zeroclipboard/zeroclipboard.git
 [submodule "jump-www/h/vendor/clipboard.js"]
 	path = jump-www/h/vendor/clipboard.js
 	url = https://github.com/zenorocha/clipboard.js.git
 [submodule "jump-www/p/vendor/facebook/xhp-lib"]
 	path = jump-www/p/vendor/facebook/xhp-lib
 	url = https://github.com/facebook/xhp-lib.git
+[submodule "jump-www/h/vendor/clippy.js"]
+	path = jump-www/h/vendor/clippy.js
+	url = https://github.com/smore-inc/clippy.js.git
+[submodule "jump-www/h/vendor/bootstrap"]
+	path = jump-www/h/vendor/bootstrap
+	url = https://github.com/twbs/bootstrap.git

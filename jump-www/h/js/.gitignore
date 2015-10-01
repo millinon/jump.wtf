@@ -2,3 +2,4 @@ main-*.min.js
 main.js.latest
 clip-*.min.js
 clip.js.latest
+frame*

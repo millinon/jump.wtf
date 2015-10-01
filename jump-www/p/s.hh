@@ -155,7 +155,11 @@ function s_main($action): void{
 			err("Failed to generate URL. Please try again later.");
 		}
 
-		$_SESSION['action'] = 'gen_success';
+        if($type === 'url'){
+            $_SESSION['action'] = 'url_success';
+        } else if($type === 'file'){
+            $_SESSION['action'] = 'file_success';
+        }
 		$_SESSION['new_link'] = (($type === 'url' || $clicks!==-1) ? jump_config::BASEURL : jump_config::FBASEURL) . $new_key . $ext;
 		header('location:r');
 	} else if($action === 'del'){
@@ -266,7 +270,11 @@ function s_main($action): void{
 		}
 
 		// deletion successful
-		$_SESSION['action'] = 'del_success';
+        if($isFile){
+            $_SESSION['action'] = 'del_file';
+        } else {
+            $_SESSION['action'] = 'del_url';
+        }
 		header('location:r');
 	} else {
 		err('Invalid Request');
