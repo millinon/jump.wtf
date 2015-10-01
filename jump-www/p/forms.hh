@@ -1,6 +1,10 @@
 <?hh
 
-		function gen_form(){
+class :file_span extends :span {
+attribute bool disabled;
+}
+
+	function gen_form(){
 		return
 		<div class="container-fluid">
 			<div class="row equalrow">
@@ -9,16 +13,19 @@
 					<form id="new_submit" action="s" method="post"  enctype="multipart/form-data" onsubmit="subbutton()">
 						<div class="input-group" style="width:80%">
 							<span class="input-group-addon" style="width:6em; text-align:left">
-								<input type="radio" name="sub_type" value="url" id="sel_url" checked={true} />&nbsp;URL:
+								<input type="radio" name="sub_type" value="url" id="url" checked={true} />&nbsp;URL:
 							</span>
 							<input type="url" class="form-control" name="new_url" id="new_url" placeholder="http://www.example.com/" maxlength={128} autofocus={true} required={true} autocomplete="off" />
 						</div>
-						<div class="input-group" style="width:80%">
+						<div class="input-group" style="width:80%" style="height: 60px">
 							<span class="input-group-addon" style="width:6em; text-align:left">
 									<input type="radio" name="sub_type" value="file" id="sel_file" />&nbsp;File:
 							</span>
+							<span id="file-group" class="form-control" style="height: 60px; margin:0;">
 							<input type="hidden" name="MAX_FILE_SIZE" value="8388608" />
-							<input type="file" class="form-control" name="file" id="new_file" disabled={true} required={true}/>
+							<span class="btn btn-default btn-file btn-disabled" id="file-button">Browse <input type="file" class="form-control" name="file" id="new_file" disabled={true} required={true}/></span>
+							<span id="file-label" style="margin-left: 5px">No file selected</span>
+							</span>
 						</div>
 						<div class="input-group" style="width:80%">
 							<span class="input-group-addon">Password for deletion:</span>
@@ -26,7 +33,7 @@
 						</div>
 						<div class="input-group" style="width: 50%">
 							<span class="input-group-addon">
-							<input type="checkbox" name="expires" id="expires" onclick="t1()" />&nbsp;Expire after clicks:
+							<input type="checkbox" name="expires" id="expires" />&nbsp;Expire after clicks:
 							</span>
 							<input type="number" class="form-control" name="clicks" id="clicks" min={1.0} max={1000.0} step={1.0} value="" style="width:6em" disabled={true} />
 						</div>

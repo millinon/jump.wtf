@@ -1,4 +1,4 @@
-function t1(){
+function expire_toggle(){
 		if($("#expires").is(":checked")){
 						$("#clicks").prop("disabled",false);
 						$("#clicks").prop("value",1);
@@ -8,9 +8,31 @@ function t1(){
 		}
 }
 
-jQuery(document).ready(function(){$("input[name='sub_type']").change(radioChanged);});
+function iframe(){
+	return $('#file_frame').document;
+}
 
-function radioChanged(){
+
+
+$(document).ready(function(){
+	
+	$("#new_file").change(function(){
+		$("#file-label").text($("#new_file").val().replace(/^.*\\/, "").replace(/^.*\//, ""));});
+
+	$("#expires").change(function(){
+		if($(this).is(":checked")){
+						$("#clicks").prop("disabled",false);
+						$("#clicks").prop("value",1);
+		} else {
+				$("#clicks").prop("disabled",true);
+				$("#clicks").prop("value","");
+		}});
+
+
+	$("#file-group").attr("disabled", true);
+	$("#file-button").attr("disabled", true);
+
+	$("input[name='sub_type']").change(function (){
 		radioValue = $(this).val();
 
 		if(radioValue == "file"){
@@ -22,10 +44,13 @@ function radioChanged(){
 
 				//$("#new_file").addAttr('required');
 				$("#new_file").prop("disabled",false);
+				$("#file-group").attr("disabled", false);
+				$("#file-button").attr("disabled", false);
+				$("#file-label").text("No file selected");
 
 				$("#newsub_glyph").removeClass("glyphicon-link");
 				$("#newsub_glyph").addClass("glyphicon-cloud-upload");
-		} else if(radioValue == "url"){
+		} else {
 				$("#new_url").prop("disabled",false);
 				$("#new_url").prop("placeholder","http://www.example.com/");
 				
@@ -33,6 +58,10 @@ function radioChanged(){
 				//$("#new_file").removeAttr('required');
 
 				$("#new_file").prop("disabled",true);
+				$("#file-group").attr("disabled", true);
+				$("#file-button").attr("disabled", true);
+				$("#file-label").text("")
+
 				e = $("#new_file");
 				e.wrap('<form>').closest('form').get(0).reset();
 				e.unwrap();
@@ -40,7 +69,7 @@ function radioChanged(){
 				$("#newsub_glyph").removeClass("glyphicon-cloud-upload");
 				$("#newsub_glyph").addClass("glyphicon-link");
 		}
-}
+});});
 
 function subbutton(){
 		type = $("input[name='sub_type']:checked").val();

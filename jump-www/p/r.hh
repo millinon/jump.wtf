@@ -10,6 +10,8 @@ function r_main(): void{
 
 	session_start();
 
+	error_log('action = ' . $_SESSION['action']);
+
 	echo gen_html_tag();
 
 	echo gen_head();
@@ -19,11 +21,11 @@ function r_main(): void{
 
 	$con = <div class="container centered"></div>;
 
-	if($_SESSION['action'] == 'del_success'){
+	if($_SESSION['action'] === 'del_success'){
 		$con->appendChild(<h2>Deletion successful</h2>);
 		$con->appendChild(<p>Link deleted.</p>);
-	} else if($_SESSION['action'] != 'del_success') {
-		if($_SESSION['action'] == 'gen_success'){
+	} else if($_SESSION['action'] === 'gen_success') {
+		if($_SESSION['action'] === 'gen_success'){
 			$con->appendChild(<h1>Link Generated</h1>);
 		} else {
 			$con->appendChild(<h1>File Uploaded</h1>);
@@ -33,9 +35,11 @@ function r_main(): void{
 		$con->appendChild(<button id="copybutton" class="btn btn-default" data-clipboard-text={$_SESSION["new_link"]}><span class="glyphicon glyphicon-share" aria-hidden="true"></span>Copy to clipboard</button>);
 		$con->appendChild(<script src={jump_config::CDN_HOST . "/h/vendor/zeroclipboard/dist/ZeroClipboard.min.js"}></script>);
 		$con->appendChild(<script src={jump_config::CDN_HOST . "/h/js/" . file_get_contents('h/js/clip.js.latest')}></script>);
-	} else {
+	} else if($_SESSION['action'] === 'error'){
 		$con->appendChild(<h1>Error!</h1>);
-		$con->appendChild(<p>$_SESSION['problem']</p>);
+		$con->appendChild(<p>{$_SESSION['problem']}</p>);
+	} else {
+		header('location:./');
 	}
 
 	for( $i = 0; $i < 4; $i++){
@@ -54,7 +58,7 @@ function r_main(): void{
 
 	echo "</html>";
 
-//	session_unset();
+	session_destroy();
 }
 
 //r_main();

@@ -9,4 +9,7 @@ class aws_config {
 
     const PUB_BUCKET = "jump.wtf"; /* bucket to store public files in */
     const PRIV_BUCKET = "p.jump.wtf"; /* bucket to store private files in */
+
+	const CF_DIST_ID = "E1J94UZFGW5FEI"; /* cloudfront distribution, CDN for uploaded files */
+										 /* set to "" to disable */
 }

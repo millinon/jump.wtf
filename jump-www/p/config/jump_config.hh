@@ -16,5 +16,6 @@ class jump_config {
 
     const CDN_HOST = "//cdn.jump.wtf"; /* Where clients should download HTML resources from */
 
-	const MEMCACHE_HOSTS = "jump-bans.hpfzol.cfg.use1.cache.amazonaws.com";
+	const MAX_FILE_SIZE = 67108864;
+
 }

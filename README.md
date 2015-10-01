@@ -9,15 +9,13 @@ Jump.wtf is a project I started at the end of 2014 to become more familiar with 
 
 All of the work is done in PHP, which is gradually being converted to Hack. I'm not very experienced with PHP or Hack, so don't yell at me if the code isn't pretty. I decided to try to get it working on HHVM to take advantage of HHVM's JIT compilation and type system.
 
-You can see the project in action [here](https://jump.wtf); I'm using HHVM as a FastCGI server, passed through Apache, all on Ubuntu 14.04. I've included the Apache configuration files for jump.wtf in the conf directory. I've also included a program I wrote to minify Javascript and CSS; it can be found in the bin directory.
+You can see the project in action [here](https://jump.wtf); I'm using HHVM as a FastCGI server, passed through Apache, all on Ubuntu 14.04. I've included the Apache configuration files for jump.wtf in the conf directory. I've also included a program I wrote to minify Javascript and CSS; it can be found in the bin directory. It depends on Node.js.
 
 ## Project structure
 
-The `jump/` directory of the project is a mirror of the files I have in the root directory served by Apache and HHVM.
+The `jump-www/` directory of the project is a mirror of the files I have in the root directory served by Apache and HHVM.
 
-There are four user-facing scripts that handle the site interactions. In order to simplify the process of resolving a URI to either a user-submitted link or a static HTML file, every local script or directory has a length of one character; that way, any URI longer than one character can be checked as a submitted URL. All `.hh` files have their extensions hidden by the ProxyPass directive.
-
-These are the scripts:
+The file `main.hh` is the web-facing script that calls different main functions depending on the URI. Since every generated link must be at least two characters long, all one-character paths must be static resources. For example, `/h/css/main.css/` is a static resource, while `/main.css` will be redirected to the URL or file submitted when the key `main` was generated, if it exists.
 
 * `i.hh`: Index page
 * `g.hh`: Forwarding page
@@ -26,14 +24,14 @@ These are the scripts:
 
 A typical interaction is a user goes to the site root, which is served by `i.hh`. If the user submits a link or file, their browser sends a POST request that gets handled by `s.hh`. If all goes well, the user is redirected to `r.hh`, presenting the generated URL. If the generated key is in the form "someString", then when a visiting user accesses "jump.wtf/someString", `g.hh` handles the request. If `g.hh` finds a matching key, then the user is redirected to the corresponding URL.
 
-The rest of the static resources needed for the site are arranged into a few directories:
+The rest of the resources needed for the site are arranged into a few directories:
 
 * `b/`: A trapdoor for bad bots
 * `h/`: HTML resources (JS / CSS)
-* `p/`: PHP/HHVM resources
+* `p/`: PHP/HHVM scripts to be included
 * `u/`: Temporary storage for uploaded files
 
-The data on the submitted links is intended to all be stored remotely by AWS resources; the project should ultimately store no state on the local machine. This is violated currently by the `b/` trapdoor, and will also require implementation for adding rate limiting.
+The data on the submitted links is intended to all be stored remotely by AWS resources; the project should ultimately store no state on the local machine. This is violated currently by the `b/` trapdoor, and the temporary storage of uploaded files in the `u/` directory.
 
 ## To-Do
 
@@ -44,12 +42,8 @@ TODO, in no particular order:
 * Rate limit submissions
 * Rate limit (non-existing) key lookups
 * Handle uploads to Glacier non-synchronously
-* Migrate PHP files tso Hack
 * Improve Hack code style
-* Add error checking
-* Harden HTTP server security
 * Improve file upload processing
-* Handle file size overflow handling
 * Add submission-time options to the user:
  * Expiration date
  * Promotional codes (custom URL, extended expiration, multiple file selection, etc.)
