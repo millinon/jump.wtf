@@ -7,3 +7,9 @@
 [submodule "jump-www/h/vendor/zeroclipboard"]
 	path = jump-www/h/vendor/zeroclipboard
 	url = https://github.com/zeroclipboard/zeroclipboard.git
+[submodule "jump-www/h/vendor/clipboard.js"]
+	path = jump-www/h/vendor/clipboard.js
+	url = https://github.com/zenorocha/clipboard.js.git
+[submodule "jump-www/p/vendor/facebook/xhp-lib"]
+	path = jump-www/p/vendor/facebook/xhp-lib
+	url = https://github.com/facebook/xhp-lib.git

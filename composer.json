@@ -1,8 +1,0 @@
-{
-	"config" : {
-		"vendor-dir": "jump-www/p/vendor"
-	}, 
-	"require" : {
-		"facebook/xhp-lib": "2.x-dev"
-	}
-}
