@@ -29,7 +29,7 @@ function g_main(string $uri): void{
 						))
 				));
 
-	if(iterator_count($it) != 1){
+	if(iterator_count($it) !== 1){
 		header('Location:./');
 	} else {
 		foreach($it as $item){
@@ -44,10 +44,8 @@ function g_main(string $uri): void{
 				} else {
 					$s = jump_config::FBASEURL . $item['filename']['S'];
 				}
-				header('Referer: http://jump.wtf/' . $uri);
 				header('Location:' . $s);
 			} else {
-				header('Referer: http://jump.wtf/' . $uri);
 				header('Location:' . $item['url']['S']);
 			}
 			
@@ -84,24 +82,3 @@ function g_main(string $uri): void{
 		}
 	}
 }
-
-/*
-$path = explode('/', trim($_SERVER['SCRIPT_NAME'], '/'));
-
-$uri  = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
-
-foreach ($path as $key => $val) {
-	if ($val == $uri[$key]) {
-		unset($uri[$key]);
-	} else {
-		break;
-	}
-}
-
-$uri = implode('/', $uri);
-
-$toks = explode(".", $uri);
-
-g_main($toks[0]);
-*/
-

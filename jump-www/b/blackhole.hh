@@ -17,4 +17,4 @@ while ($line = fgets($fp)) {
 fclose($fp);
 }
 
-//check();
+check();
