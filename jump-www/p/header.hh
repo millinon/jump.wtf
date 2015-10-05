@@ -31,7 +31,7 @@ return <head>
 function gen_nav(){
 
 //echo "<body>";
-return <nav class="navbar navbar-inverse navbar-fixed-top">
+return <nav class="navbar navbar-inverse navbar-static-top">
 		<div class="container">
 				<div class="navbar-header">
 				    <div class="github-fork-ribbon-wrapper left">
