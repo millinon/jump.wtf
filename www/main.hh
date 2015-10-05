@@ -1,23 +1,23 @@
 <?hh
 
-include('b/blackhole.hh');
+include('blackhole/blackhole.hh');
 
-require_once('p/xhp.hh');
+require_once('vendor/facebook/xhp-lib/init.php');
 
-require_once('p/header.hh');
-require_once('p/forms.hh');
-require_once('p/footer.hh');
+require_once('header.hh');
+require_once('forms.hh');
+require_once('footer.hh');
 
-require_once('p/aws.hh');
+require_once('aws.hh');
 
-require_once('p/config/aws_config.hh');
-require_once('p/config/jump_config.hh');
-require_once('p/config/key_config.hh');
+require_once('config/aws_config.hh');
+require_once('config/jump_config.hh');
+require_once('config/key_config.hh');
 
-require('p/i.hh');
-require('p/g.hh');
-require('p/s.hh');
-require('p/r.hh');
+require('i.hh');
+require('g.hh');
+require('s.hh');
+require('r.hh');
 
 function main(): void{
 
@@ -27,7 +27,7 @@ function main(): void{
 
 
 	//if(! preg_match("|^/([a-z])(\.hh)?(/(.*))?|", $_SERVER['PHP_SELF'], $matches) ){
-	if(! preg_match("|^/main.hh/(.*)|", $_SERVER['PHP_SELF'], $matches) ){
+	if(! preg_match("|/main.hh/([^/]*)|", $_SERVER['PHP_SELF'], $matches) ){
 		i_main();
 	} else {
 		$uri = $matches[1];

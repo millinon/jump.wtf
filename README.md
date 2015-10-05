@@ -13,25 +13,27 @@ You can see the project in action [here](https://jump.wtf); I'm using HHVM as a 
 
 ## Project structure
 
-The `jump-www/` directory of the project is a mirror of the files I have in the root directory served by Apache and HHVM.
+The `www/` directory of the project is a mirror of the files I have in the root directory served by Apache and HHVM.
 
-The file `main.hh` is the web-facing script that calls different main functions depending on the URI. Since every generated link must be at least two characters long, all one-character paths must be static resources. For example, `/h/css/main.css/` is a static resource, while `/main.css` will be redirected to the URL or file submitted when the key `main` was generated, if it exists.
+The file `main.hh` is the web-facing script that calls different main functions depending on the URI. The main functions are divided into four different tasks:
 
 * `i.hh`: Index page
 * `g.hh`: Forwarding page
 * `r.hh`: Results page
 * `s.hh`: Submission script
 
-A typical interaction is a user goes to the site root, which is served by `i.hh`. If the user submits a link or file, their browser sends a POST request that gets handled by `s.hh`. If all goes well, the user is redirected to `r.hh`, presenting the generated URL. If the generated key is in the form "someString", then when a visiting user accesses "jump.wtf/someString", `g.hh` handles the request. If `g.hh` finds a matching key, then the user is redirected to the corresponding URL.
+A typical interaction is a user goes to the site root, which is served by `i.hh`. If the user submits a link or file, their browser sends a POST request that gets handled by `s.hh`. If all goes well, the user is redirected to `r.hh`, presenting the generated URL. If the generated key is in the form "someString", then when a visiting user accesses "jump.wtf/someString", `g.hh` handles the request by looking up the key `someString`. If `g.hh` finds a matching key, then the user is redirected to the corresponding URL. If not, then the user is redirected to the site index.
 
 The rest of the resources needed for the site are arranged into a few directories:
 
-* `b/`: A trapdoor for bad bots
-* `h/`: HTML resources (JS / CSS)
-* `p/`: PHP/HHVM scripts to be included
-* `u/`: Temporary storage for uploaded files
+* `www/blackhole/`: A trapdoor for bad bots
+* `www/config/`: Configuration information needed at runtime
+* `www/htdocs/`: HTML resources (JS / CSS)
+* `www/uploads/`: Temporary storage for uploaded files
 
-The data on the submitted links is intended to all be stored remotely by AWS resources; the project should ultimately store no state on the local machine. This is violated currently by the `b/` trapdoor, and the temporary storage of uploaded files in the `u/` directory.
+`www/vendor` contains Facebook's xhp-lib, a required library.
+
+The data on the submitted links is intended to all be stored remotely by AWS resources; the project should ultimately store no state on the local machine. This is violated currently by the `blackhole/` trapdoor, and the temporary storage of uploaded files in the `uploads/` directory.
 
 ## To-Do
 
@@ -51,9 +53,11 @@ TODO, in no particular order:
 
 ## Setup
 
-If you want to set up your own version of jump.wtf, you need to have an AWS account with access to S3 and DynamoDB at a bare minimum. I also include access to CloudFront, to provide a CDN for user-uploaded files, and Glacier, to automatically save backups of uploaded files. Credentials for this user need to be in `p/aws.json`, following the example provided by `p/aws.json.example`.
+If you want to set up your own version of jump.wtf, you need to have an AWS account with access to S3 and DynamoDB at a bare minimum. I also include access to CloudFront, to provide a CDN for user-uploaded files, and Glacier, to automatically save backups of uploaded files. Credentials for this user need to be in `www/config/aws.json`, following the example provided by `www/config/aws.json.example`.
 
-You need to have a web server set up so that it can statically serve the files in `/h`, and so that it can forward certain requests with the `*.hh` files by proxy to HHVM. Refer to the files in `conf/`.
+You need to have a web server set up so that it can statically serve the files in `www/htdocs`, and so that it can forward certain requests with the `*.hh` files by proxy to HHVM. Refer to the files in `www/config/`.
+
+It is important to note that the only files that are served statically are in the `www/htdocs` directory - no other files should be accessible from the Internet. I was previously making this distinction by checking the prefix of the URI against `/htdocs/`, but I decided that it makes far more sense to distinguish static files by subdomain, and serving all other requests through `main.hh`.
 
 At some point in the future, this project may have some sort of script to automate the setup process.
 
@@ -67,7 +71,7 @@ As a very simple example, the site's favicon isn't actually stored on my web ser
 
 ### Link generation process
 
-When a request is submitted to `s.hh`, the file or URL goes through some basic checking. A key is then generated from the strings in `p/key_charset.hh`. My version produces a key matching `[A-Za-z0-9]{3,5}`, but by modifying `p/constants.hh` and `p/key_charset.hh`, you could make it use words instead of characters to produce a different scheme of keys (think of Gfycat filenames). The generated keys are then checked against the DynamoDB to prevent duplicate key problems.
+When a request is submitted to `s.hh`, the file or URL goes through some basic checking. A key is then generated from the strings in `www/config/key_config.hh`. My version produces a key matching `[A-Za-z0-9]{4}`, but by modifying `p/constants.hh` and `p/key_charset.hh`, you could make it use words instead of characters to produce a different scheme of keys (think of Gfycat filenames). The generated keys are then checked against the DynamoDB to prevent duplicate key problems. Since the only URIs used in the process of generating links are `/s` and `/r`, almost any key scheme will work so long. If the dependence on `/s` and `/r` can be removed, then any key scheme at all will work.
 
 Once a key is selected, the metadata is sent to DynamoDB with the new key as the primary index. If the submission is marked as having a click limit (e.g. a click limit of 1 click), then the submission is marked as being private. Any submissions that are private have a positive click limit stored in the DynamoDB table that gets decremented each time that it is accessed. If the user submitted a file, it is uploaded to the CDN-backed S3 bucket (or the non CDN-backed version if it is private).
 
@@ -79,7 +83,7 @@ Once the key has been selected and the data uploaded, the user is presented with
 
 ### Link forwarding process
 
-When a request is submitted to `g.hh`, the key is extracted as someURI in the URL: "https://jump.wtf/someURI" (where someURI matches the regular expression "^[A-Za-z0-9]{2,5}$").
+When a request is submitted to `g.hh`, the key is extracted as someURI in the URL: "https://jump.wtf/someURI" (where someURI matches the regular expression "^[A-Za-z0-9]{4}$").
 
 They key is then queried as the primary index from the DynamoDB table. Since public file uploads are stored as a CDN-backed link, public files and links are handled in the same manner. If the link is to a private file, `g.hh` generates a signed URL to the file in the private S3 bucket, only valid for fifteen minutes. This is to prevent direct linking to the file in S3, which would make it impossible to track the number of clicks on a private link.
 
@@ -99,11 +103,13 @@ If the request is verified, then the link is marked as inactive in DynamoDB. If 
 
 The HTML part of the site is built off of [Bootstrap](http://getbootstrap.com/).
 
-The AWS stuff uses aws.phar provided by [Amazon](https://github.com/aws/aws-sdk-php/releases/latest). HHVM doesn't like `aws.phar` provided; I managed to get it working by extracting the phar into a directory `p/aws-phar`.
+The AWS stuff uses aws.phar provided by [Amazon](https://github.com/aws/aws-sdk-php/releases/latest). HHVM doesn't like `aws.phar` as provided; I managed to get it working by extracting the phar into `www/aws-phar`.
+
+HTML output is generated by Facebook's [xhp-lib](https://github.com/facebook/xhp-lib).
 
 The bad bot trapdoor is a modified version of the code by Jeff Starr available [here](http://perishablepress.com/blackhole-bad-bots/).
 
-`r.hh` uses [ZeroClipboard](https://github.com/zeroclipboard/zeroclipboard) to provide "Click to copy" functionality.
+`r.hh` uses [clipboard.js](https://github.com/zenorocha/clipboard.js) to provide "Click to copy" functionality.
 
 As an easter egg, clippy.js is included on the page from [here](https://www.smore.com/clippy-js).
 

@@ -2,7 +2,7 @@
 
 function check() {
 
-$filename = 'b/blackhole.dat';
+$filename = 'blackhole/blackhole.dat';
 $ipaddress = $_SERVER['REMOTE_ADDR'];
 
 if(!file_exists($filename)){
