@@ -14,7 +14,7 @@ function heading(string $action): string {
 
         case "error":
             return "Error!";
-		
+        
         default:
             header('location:./');
             die();
@@ -40,9 +40,9 @@ function message(string $action, ?string $url, ?string $err): mixed {
 
 function r_main(): void{
 
-	session_start();
+    session_start();
 
-	error_log('action = ' . $_SESSION['action']);
+    error_log('action = ' . $_SESSION['action']);
 
     echo <x:doctype>
             <html lang="en">
@@ -50,10 +50,10 @@ function r_main(): void{
                 <body>
                     {gen_nav()}
                     <div class="jumbotron">
-    	                <div class="container centered">
+                        <div class="container centered">
                             <h2>{heading($_SESSION['action'])}</h2>
                             {message($_SESSION['action'], $_SESSION['new_link'], $_SESSION['problem'])}
-    		                <button style={($_SESSION['action'] === 'url_success' || $_SESSION['action'] === 'file_success') ? "" : "display:none"} id="copybutton" class="btn btn-default" data-clipboard-text={isset($_SESSION['new_link']) ? $_SESSION['new_link'] : ""}>
+                            <button style={($_SESSION['action'] === 'url_success' || $_SESSION['action'] === 'file_success') ? "" : "display:none"} id="copybutton" class="btn btn-default" data-clipboard-text={isset($_SESSION['new_link']) ? $_SESSION['new_link'] : ""}>
                                 <span class="glyphicon glyphicon-share" aria-hidden="true"></span>
                                 Copy to clipboard
                             </button>

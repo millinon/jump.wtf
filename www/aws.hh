@@ -11,5 +11,5 @@ use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\CloudFront\Exception\CloudFrontException;
 
 function mk_aws(){
-	return Aws::factory('config/aws.json');
+    return Aws::factory('config/aws.json');
 }

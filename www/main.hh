@@ -23,36 +23,35 @@ require('error.hh');
 
 function main(): void{
 
-	$matches = array();
+    $matches = array();
 
-	$uri = "";
+    $uri = "";
 
-
-	if(! preg_match("|/main.hh/([^/]*)|", $_SERVER['PHP_SELF'], $matches) ){
-		i_main();
-	} else {
-		$uri = $matches[1];
-	}
-	
-	error_log("'" . $_SERVER['PHP_SELF'] . "' --> " . $uri);
+    if(! preg_match("|/main.hh/([^/]*)|", $_SERVER['PHP_SELF'], $matches) ){
+        i_main();
+    } else {
+        $uri = $matches[1];
+    }
+    
+    error_log("'" . $_SERVER['PHP_SELF'] . "' --> " . $uri);
 
     $body = null;
 
-	if($uri === 's'){
-		error_log("s_main");
-		s_main($_POST['action']);
-	} else if($uri === 'r') {
-		error_log("r_main");
-		r_main();
+    if($uri === 's'){
+        error_log("s_main");
+        s_main($_POST['action']);
+    } else if($uri === 'r') {
+        error_log("r_main");
+        r_main();
     } else if($uri === '404') {
         error_page(404, $uri);
-	} else if($uri !== "") {
-		error_log("g_main");
-	    g_main($uri);
-	} else if($uri === ""){
-		error_log("i_main");
-		i_main();
-	} else {
+    } else if($uri !== "") {
+        error_log("g_main");
+        g_main($uri);
+    } else if($uri === ""){
+        error_log("i_main");
+        i_main();
+    } else {
         error_page(404, $uri);
     }
 }

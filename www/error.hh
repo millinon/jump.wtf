@@ -21,23 +21,23 @@ function error_message(int $status) : mixed {
 
 function error_page(int $status, string $uri): void {
 
-error_log("Generated status " . $status . " for uri: \"" . $uri);
+    error_log("Generated status " . $status . " for uri: \"" . $uri);
 
-http_response_code($status);
+    http_response_code($status);
 
-echo <x:doctype>
+    echo <x:doctype>
         <html lang="en">
             {gen_head($status)}
             <body>
                 {gen_nav()}
                 <div class="jumbotron">
-                	<div class="container centered">
-		                <h1>Oh no!</h1>
+                    <div class="container centered">
+                        <h1>Oh no!</h1>
                         {error_message($status)}
                         <br /><br /><br /><br />
                         <a href=".">Go back</a>
                     </div>
-	            </div>
+                </div>
                 {gen_footer()}
                 {gen_footer_scripts()}
             </body>
