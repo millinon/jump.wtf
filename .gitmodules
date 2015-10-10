@@ -7,9 +7,6 @@
 [submodule "www/htdocs/vendor/clippy.js"]
 	path = www/htdocs/vendor/clippy.js
 	url = https://github.com/smore-inc/clippy.js.git
-[submodule "www/htdocs/vendor/fork-ribbon"]
-	path = www/htdocs/vendor/fork-ribbon
-	url = https://github.com/simonwhitaker/github-fork-ribbon-css.git
 [submodule "www/vendor/facebook/xhp-lib"]
 	path = www/vendor/facebook/xhp-lib
 	url = https://github.com/facebook/xhp-lib.git

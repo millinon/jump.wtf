@@ -35,6 +35,7 @@ echo <x:doctype>
 			                An experiment with AWS resources.<br/>
 			                By submitting a link or file, you are agreeing to this site's <a target="_blank" href="https://f.jump.wtf/wZw.txt">Terms of Service and Privacy Policy</a>.
 			                <br /><br />
+                            This site's source code is available on <a href="https://github.com/millinon/jump.wtf">GitHub</a>.
 		                </p>
                     </div>
 	            </div>

@@ -12,10 +12,6 @@ return <head>
         <link rel="stylesheet" href={jump_config::CDN_HOST . "/vendor/bootstrap/dist/css/bootstrap-theme.min.css"} />
         <link rel="stylesheet" href={jump_config::CDN_HOST . "/vendor/clippy.js/build/clippy.css"} media="all" />
         <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:700" type="text/css" data-noprefix="" />
-        <link rel="stylesheet" href={jump_config::CDN_HOST . "/vendor/fork-ribbon/gh-fork-ribbon.css"} />
-        <!--[if lt IE 9]>
-            <link rel="stylesheet" href={jump_config::CDN_HOST . "/vendor/fork-ribbon/gh-fork-ribbon.ie.css"} />
-        <![endif]-->
         <link rel="stylesheet" href={jump_config::CDN_HOST . "/css/" . file_get_contents("htdocs/css/main.css.latest")} />
     </head>;
 }
@@ -26,11 +22,6 @@ function gen_nav(){
 return <nav class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
 				<div class="navbar-header">
-				    <div class="github-fork-ribbon-wrapper left">
-					    <div class="github-fork-ribbon">
-							<a href="https://github.com/millinon/jump.wtf">Fork me on GitHub</a>
-						</div>
-					</div>
 <a class="navbar-brand" href="https://jump.wtf">JUMP.WTF</a>
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
