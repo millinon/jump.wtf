@@ -1,4 +1,4 @@
-?hh
+<?hh
 
 include('blackhole/blackhole.hh');
 
