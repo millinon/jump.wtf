@@ -1,0 +1,14 @@
+<?hh
+
+class aws_config {
+    const BACKUP_VAULT_NAME = "SOME_VAULT"; /* vault to upload backups to */
+
+    const LINK_TABLE = "SOME_LINK_TABLE"; /* name of the DynamoDB link table */
+
+    const LOG_TABLE = "SOME_LOG_TABLE"; /* name of the DynamoDB logging table */
+
+    const PUB_BUCKET = "SOME_BUCKET"; /* bucket to store public files in */
+    const PRIV_BUCKET = "SOME_OTHER_BUCKET"; /* bucket to store private files in */
+
+    const CF_DIST_ID = "SOMEDISTRIBUTIONID"; /* cloudfront distribution, CDN for uploaded files -- set to "" to disable */
+}
