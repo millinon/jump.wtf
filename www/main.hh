@@ -1,4 +1,4 @@
-<?hh
+?hh
 
 include('blackhole/blackhole.hh');
 
@@ -14,10 +14,12 @@ require_once('config/aws_config.hh');
 require_once('config/jump_config.hh');
 require_once('config/key_config.hh');
 
-require('i.hh');
-require('g.hh');
-require('s.hh');
-require('r.hh');
+require('index.hh');
+require('go.hh');
+require('submit.hh');
+require('result.hh');
+require('error.hh');
+
 
 function main(): void{
 
@@ -26,7 +28,6 @@ function main(): void{
 	$uri = "";
 
 
-	//if(! preg_match("|^/([a-z])(\.hh)?(/(.*))?|", $_SERVER['PHP_SELF'], $matches) ){
 	if(! preg_match("|/main.hh/([^/]*)|", $_SERVER['PHP_SELF'], $matches) ){
 		i_main();
 	} else {
@@ -40,16 +41,20 @@ function main(): void{
 	if($uri === 's'){
 		error_log("s_main");
 		s_main($_POST['action']);
-	} else if($uri === 'r') { //isset($_SESSION['action'])){
+	} else if($uri === 'r') {
 		error_log("r_main");
-		$body = r_main();
+		r_main();
+    } else if($uri === '404') {
+        error_page(404, $uri);
 	} else if($uri !== "") {
 		error_log("g_main");
 	    g_main($uri);
-	} else {
+	} else if($uri === ""){
 		error_log("i_main");
 		i_main();
-	}
+	} else {
+        error_page(404, $uri);
+    }
 }
 
 main();

@@ -1,29 +1,5 @@
-SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
-
-<VirtualHost *:443>
-	Servername static.jump.wtf
-	ServerAlias static.jump.wtf
-	
-	ServerAdmin admin@jump.wtf
-	
-	KeepAlive on
-
-	ErrorLog /var/log/jump/error.log
-	CustomLog /var/log/jump/access.log combined
-
-	Include jump-ssl.include
-
-	SSLCertificateFile /etc/ssl/certs/static.jump.wtf.crt
-	SSLCertificateKeyFile /etc/ssl/private/static.jump.wtf.key
-	SSLCACertificateFile /etc/ssl/ca-bundle/static.jump.wtf.ca-bundle
-
-	DocumentRoot /var/jump/htdocs
-	ErrorDocument 404 https://jump.wtf
-
-	<Directory /var/jump/htdocs>
-
 		Options +FollowSymLinks
-		AllowOverride All options=all
+		#AllowOverride All options=all
 
 		AuthType None
 
@@ -40,22 +16,7 @@ SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
 		DefaultType None
 
 		<IfModule mod_headers.c>
-			Header set Access-Control-Allow-Origin "*"
-		</IfModule>
-
-		<IfModule mod_setenvif.c>
-			<IfModule mod_headers.c>
-				<FilesMatch "\.(cur|gif|ico|jpe?g|png|svgz?|webp)$">
-					SetEnvIf Origin ":" IS_CORS
-					Header set Access-Control-Allow-Origin "*" env=IS_CORS
-				</FilesMatch>
-			</IfModule>
-		</IfModule>
-
-		<IfModule mod_headers.c>
-			<FilesMatch "\.(eot|otf|tt[cf]|woff)$">
-				Header set Access-Control-Allow-Origin "*"
-			</FilesMatch>
+			Header set Access-Control-Allow-Origin "https://jump.wtf"
 		</IfModule>
 
 		<IfModule mod_headers.c>
@@ -132,9 +93,6 @@ SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
 
 		<IfModule mod_headers.c>
 			Header set X-Frame-Options "DENY"
-			<FilesMatch "\.(appcache|atom|crx|css|cur|eot|f4[abpv]|flv|gif|htc|ico|jpe?g|js|json(ld)?|m4[av]|manifest|map|mp4|oex|og[agv]|opus|otf|pdf|png|rdf|rss|safariextz|svgz?|swf|tt[cf]|vcf|vtt|webapp|web[mp]|woff|xml|xpi)$">
-				Header unset X-Frame-Options
-			</FilesMatch>
 		</IfModule>
 	
 		# Block access to directories without a default document.
@@ -177,9 +135,6 @@ SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
 				Header unset X-XSS-Protection
 			</FilesMatch>
 		</IfModule>
-	
-	
-	
 	
 		# Compression                                                                |
 		<IfModule mod_deflate.c>
@@ -263,32 +218,3 @@ SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
 			ExpiresByType font/opentype                         "access plus 1 month"
 			ExpiresByType image/svg+xml                         "access plus 1 month"
 		</IfModule>
-	</Directory>
-</VirtualHost>
-
-<VirtualHost *:443>
-	Servername jump.wtf
-	ServerAlias jump.wtf
-
-	ServerAdmin admin@jump.wtf
-
-	KeepAlive on
-
-	ErrorLog /var/log/jump/error.log
-	CustomLog /var/log/jump/access.log combined
-
-	Include jump-ssl.include	
-
-	SSLCertificateFile /etc/ssl/certs/jump.wtf.crt
-	SSLCertificateKeyFile /etc/ssl/private/jump.wtf.key
-	SSLCACertificateFile /etc/ssl/ca-bundle/jump.wtf.ca-bundle
-
-	ProxyPassMatch ^/+cgi-bin(/.*)?$		fcgi://127.0.0.1:9000/var/jump/blackhole/index.hh
-	ProxyPassMatch ^/+admin(/.*)?$			fcgi://127.0.0.1:9000/var/jump/blackhole/index.hh
-	ProxyPassMatch ^/+wp-admin(/.*)?$		fcgi://127.0.0.1:9000/var/jump/blackhole/index.hh
-
-	ProxyPass /h !
-	ProxyPass /m !
-	ProxyPassMatch / fcgi://127.0.0.1:9000/var/jump/main.hh
-</VirtualHost>
-

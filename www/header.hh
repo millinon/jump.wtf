@@ -1,10 +1,10 @@
 <?hh
 
-function gen_head(){
+function gen_head($title="JUMP.WTF"){
 return <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>JUMP.WTF</title>
+        <title>{$title}</title>
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <link rel="shortcut icon" type="image/x-icon" href="https://f.jump.wtf/favicon.ico" />

@@ -11,6 +11,10 @@ require('p/aws.hh');
 
 function g_main(string $uri): void{
 
+    if(strpos($uri, '/') !== false){
+        error_page(404, $uri);
+    }
+
 	$uri = explode(".", $uri)[0];
 
 	$aws = mk_aws();
@@ -30,11 +34,14 @@ function g_main(string $uri): void{
 				));
 
 	if(iterator_count($it) !== 1){
-		header('Location:./');
+		error_page(404, $uri);
+//        header('Location:./');
+        exit();
 	} else {
 		foreach($it as $item){
 			if($item['active']['N'] == 0 || $item['clicks']['N'] == 0){
-				header('Location:.');
+				//header('Location:.');
+		        error_page(404, $uri);
 				exit();
 			}
 

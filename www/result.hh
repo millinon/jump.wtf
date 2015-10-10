@@ -38,7 +38,7 @@ function message(string $action, ?string $url, ?string $err): mixed {
         }
 }
 
-function r_main(): mixed{
+function r_main(): void{
 
 	session_start();
 
