@@ -1,22 +1,13 @@
 		Options +FollowSymLinks
 		#AllowOverride All options=all
 
-		AuthType None
-
-		<Limit GET POST OPTIONS>
-			Require all granted
-		</Limit>
-		<LimitExcept GET POST OPTIONS>
-			Require all denied
-		</LimitExcept>
-
 		AddType text/css .css
 		AddType text/javascript .ja
 
 		DefaultType None
 
 		<IfModule mod_headers.c>
-			Header set Access-Control-Allow-Origin "https://jump.wtf"
+			Header always set Access-Control-Allow-Origin "https://jump.wtf"
 		</IfModule>
 
 		<IfModule mod_headers.c>
