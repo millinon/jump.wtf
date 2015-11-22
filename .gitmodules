@@ -10,3 +10,6 @@
 [submodule "www/vendor/facebook/xhp-lib"]
 	path = www/vendor/facebook/xhp-lib
 	url = https://github.com/facebook/xhp-lib.git
+[submodule "bin/letsencrypt"]
+	path = bin/letsencrypt
+	url = https://github.com/letsencrypt/letsencrypt.git

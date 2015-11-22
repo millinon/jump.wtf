@@ -1,5 +1,10 @@
 	SSLEngine on
 
+#    SSLCertificateFile /etc/letsencrypt/live/www.jump.wtf/cert.pem
+#    SSLCertificateChainFile /etc/letsencrypt/live/www.jump.wtf/chain.pem
+#    SSLCertificateKeyFile /etc/letsencrypt/live/www.jump.wtf/privkey.pem
+
+
 	SSLUseStapling on
 	SSLProtocol all -SSLv2 -SSLv3
 	SSLHonorCipherOrder On
@@ -15,3 +20,5 @@
 	</FilesMatch>
 		
 	Header always set Strict-Transport-Security "max-age=16070400; includeSubdomains"
+
+    # vim: set ft=apache
