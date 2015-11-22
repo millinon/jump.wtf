@@ -1,19 +1,3 @@
-function expire_toggle(){
-		if($("#expires").is(":checked")){
-						$("#clicks").prop("disabled",false);
-						$("#clicks").prop("value",1);
-		} else {
-				$("#clicks").prop("disabled",true);
-				$("#clicks").prop("value","");
-		}
-}
-
-function iframe(){
-	return $('#file_frame').document;
-}
-
-
-
 $(document).ready(function(){
 	
 	$("#new_file").change(function(){
@@ -40,9 +24,6 @@ $(document).ready(function(){
 				$("#new_url").prop("disabled",true);
 				$("#new_url").prop("placeholder","");
 				
-				//$("#new_url").removeAttr('required');
-
-				//$("#new_file").addAttr('required');
 				$("#new_file").prop("disabled",false);
 				$("#file-group").attr("disabled", false);
 				$("#file-button").attr("disabled", false);
@@ -51,12 +32,10 @@ $(document).ready(function(){
 				$("#newsub_glyph").removeClass("glyphicon-link");
 				$("#newsub_glyph").addClass("glyphicon-cloud-upload");
 		} else {
+				$("#new_url").prop("value","");
 				$("#new_url").prop("disabled",false);
 				$("#new_url").prop("placeholder","http://www.example.com/");
 				
-				//$("#new_url").addAttr('required');
-				//$("#new_file").removeAttr('required');
-
 				$("#new_file").prop("disabled",true);
 				$("#file-group").attr("disabled", true);
 				$("#file-button").attr("disabled", true);
@@ -69,9 +48,9 @@ $(document).ready(function(){
 				$("#newsub_glyph").removeClass("glyphicon-cloud-upload");
 				$("#newsub_glyph").addClass("glyphicon-link");
 		}
-});});
+});
 
-function subbutton(){
+    $("#new_submit").submit(function(){
 		type = $("input[name='sub_type']:checked").val();
 		if(type == "file"){
 				$("#newsub").html($("#newsub").html().replace("Submit","Uploading..."));
@@ -79,7 +58,9 @@ function subbutton(){
 		} else if(type == "url"){
 		
 		}	
-}
+
+    });
+});
 
 var currentMousePos = { x: -1, y: -1 };
 $(document).mousemove(function(event) {
@@ -87,39 +68,46 @@ $(document).mousemove(function(event) {
 		currentMousePos.y = event.pageY;
 });
 
-mouseDist = 0;
-lastPos = [0, 0];
-handle = setInterval(function(){
-	mouseDist += Math.sqrt(
-			Math.pow(
-					currentMousePos.x - lastPos[0],
-					2.0
-			) + 
-			Math.pow(
-					currentMousePos.y - lastPos[1],
-					2.0
-			)
-		);
-	lastPos[0] = currentMousePos.x;
-	lastPos[1] = currentMousePos.y;
 
-	if(mouseDist >= 6000){
-		initClippy();
-		window.clearInterval(handle);
-	}
-},200);
+        
+function registerClippy(){
+    mouseDist = 0;
+    lastPos = [0, 0];
 
-function initClippy(){
-		clippy.load('Clippy', function(agent){
-		agent.show();
+    return function(){
+        mouseDist += Math.sqrt(
+                Math.pow(
+                    currentMousePos.x - lastPos[0],
+                    2.0
+                    ) + 
+                Math.pow(
+                    currentMousePos.y - lastPos[1],
+                    2.0
+                    )
+                );
+        lastPos[0] = currentMousePos.x;
+        lastPos[1] = currentMousePos.y;
 
-		(function randAnim(){
-				setTimeout(function(){
-						agent.animate();
-						randAnim();
-				},
-				Math.round(Math.random() * (100000 - 10000)) + 10000);
-				})();
-		});
+        if(mouseDist >= 6000){
+            clippy.load('Clippy', function(agent){
+                agent.show();
+
+                (function randText(){
+                    text = [ "Do you need help?", "This should be simple.", "Please hurry up.", "Make up your mind, already.", "I must not fear. Fear is the mind-killer. Fear is the little-death that brings total obliteration. I will face my fear. I will permit it to pass over me and through me. And when it has gone past I will turn the inner eye to see its path. Where the fear has gone there will be nothing. Only I will remain."];
+
+                    min = 10000;
+                    max = 100000;
+
+                    setTimeout(function(){
+                        agent.animate();
+                        agent.speak(text[Math.floor(Math.random() * text.length)]);
+                        randText();
+                    }, Math.round(Math.random() * (max - min)) + min);
+                })();
+            });
+            window.clearInterval(handle);
+        }
+    };
 }
 
+handle = setInterval(registerClippy(), 200);

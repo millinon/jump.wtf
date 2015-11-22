@@ -10,7 +10,7 @@ class :file_span extends :span {
             <div class="row equalrow">
                 <div class="formgroup col-xs-12 col-sm-12 col-md-4 col-lg-4 col-md-offset-1 col-lg-offset-1 equal">
                     <h2>Submit a Link or File</h2>
-                    <form id="new_submit" action="s" method="post"  enctype="multipart/form-data" onsubmit="subbutton()" autocomplete="off">
+                    <form id="new_submit" action="s" method="post"  enctype="multipart/form-data" autocomplete="off">
                         <div class="input-group" style="width:80%">
                             <span class="input-group-addon" style="width:6em; text-align:left">
                                 <input type="radio" name="sub_type" value="url" id="url" checked={true} />&nbsp;URL:
