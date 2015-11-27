@@ -117,7 +117,23 @@ $(document).ready(function(){
         "The only thing necessary for the triumph of evil is that good men do nothing.",
         "There are countless ingredients that make up the human body and mind, like all the components that make up me as an individual with my own personality. Sure, I have a face and voice to distinguish myself from others, but my thoughts and memories are unique only to me, and I carry a sense of my own destiny. Each of those things are just a small part of it. I collect information to use in my own way. All of that blends to create a mixture that forms me and gives rise to my conscience.",
         "I reject your reality and substitute my own.",
-        "In this moment, I am euphoric. Not because of any phony god’s blessing. But because, I am enlightened by my intelligence."
+        "In this moment, I am euphoric. Not because of any phony god’s blessing. But because, I am enlightened by my intelligence.",
+        "you're a dirty memer, aren't you",
+        "look out, here comes the jews",
+        "omg, gmos!",
+        "loading unloader",
+        "memeing maymays",
+        "from whence comes the realization that not only do we live, but we live as individuals?",
+        "lol philosomemes",
+        "yes",
+        "aoh no, we're all out of bacon!",
+        "if things get bad, always remember someone, somewhere loves you.",
+        "gods fall and thrones fall, with laws of nature and man crumble at the world's end",
+        "if memes can be dreams, so can spleens (and dreams)",
+        "reticulating spleens",
+        "three times a day, you realize you're breathing manually. this is one of those times",
+        "if you sneeze hard enough, can you turn yourself inside out?,"
+
             ];
 
     var speech_anims = [
