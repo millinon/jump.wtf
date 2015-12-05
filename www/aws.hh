@@ -1,7 +1,7 @@
 <?hh
 
 //require("aws.phar"); // HHVM doesn't like this?
-require("aws-phar/aws-autoloader.php");
+require ("aws-phar/aws-autoloader.php");
 
 use Aws\Common\Aws;
 
@@ -10,6 +10,6 @@ use Aws\Glacier\Exception\GlacierException;
 use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\CloudFront\Exception\CloudFrontException;
 
-function mk_aws(){
-    return Aws::factory('config/aws.json');
+function mk_aws() {
+  return Aws::factory('config/aws.json');
 }
