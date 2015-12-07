@@ -222,10 +222,11 @@ function s_main($action): void {
       $_SESSION['action'] = 'file_success';
     }
     $_SESSION['new_link'] =
-      (($type === 'url' || $clicks !== -1)
+      /*(($type === 'url' || $clicks !== -1)
          ? jump_config::BASEURL
-         : jump_config::FBASEURL).
-      $new_key.
+         : jump_config::FBASEURL).*/
+      jump_config::BASEURL . 
+      $new_key .
       $ext;
     header('location:r');
   } else if ($action === 'del') {

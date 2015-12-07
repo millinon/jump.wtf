@@ -1,8 +1,8 @@
 <?hh
 
 class jump_config {
-    const BASEURL = "https://jump.wtf/"; /* URL to private file uploads */
-    const FBASEURL = "https://f.jump.wtf/"; /* URL to public file uploads: I use a CDN for this */
+    const BASEURL = "https://jump.wtf/"; /* prefix of generated links */
+    const FILE_HOST = "https://some-cloudfront-domain.cloudfront.net/" /* CNAME for the cloudfront distribution backing the public S3 bucket */
 
     const UBASEDIR = "/var/tmp/some/directory"; /* directory where uploads are moved temporarily */
 

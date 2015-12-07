@@ -47,7 +47,7 @@ function g_main(string $uri): void {
             '+15 minutes',
           );
         } else {
-          $s = jump_config::FBASEURL.$item['filename']['S'];
+          $s = jump_config::FILE_HOST . $item['filename']['S'];
         }
         header('Location:'.$s);
       } else {
