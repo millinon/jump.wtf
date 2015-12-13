@@ -19,6 +19,7 @@ require ('go.hh');
 require ('submit.hh');
 require ('result.hh');
 require ('error.hh');
+require ('api.hh');
 
 function main(): void {
 
@@ -36,7 +37,10 @@ function main(): void {
 
   $body = null;
 
-  if ($uri === 's') {
+  if ($uri === 'a') {
+      error_log('api');
+      apiHandler::handle();
+  } else if ($uri === 's') {
     error_log("s_main");
     s_main($_POST['action']);
   } else if ($uri === 'r') {
