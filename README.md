@@ -1,6 +1,8 @@
 # jump.wtf
 A link shortening and file hosting service using AWS resources through PHP / Hack
 
+This version was an attempt to solve file upload timeouts, in case HHVM was at fault. However, it turns out that Google's mod_spdy was the culprit. This branch is no longer used.
+
 ---
 
 ## Introduction
