@@ -1,5 +1,7 @@
 <?hh
 
+require_once('aws.hh');
+
 function g_main(string $uri): void {
 
   if (strpos($uri, '/') !== false) {
@@ -8,9 +10,8 @@ function g_main(string $uri): void {
 
   $uri = explode(".", $uri)[0];
 
-  $aws = mk_aws();
-  $dyclient = $aws->get('DynamoDb');
-  $s3client = $aws->get('S3');
+  $dyclient = awsHelper::dydb_client();
+  $s3client = awsHelper::s3_client();
 
   $it = $dyclient->getIterator(
     'Query',

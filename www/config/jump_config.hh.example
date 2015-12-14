@@ -6,13 +6,13 @@ class jump_config {
 
     const UBASEDIR = "/var/tmp/some/directory"; /* directory where uploads are moved temporarily */
 
-    const SAVE_BACKUP = TRUE; /* set to false to skip backups of user-uploaded files */
-
     const DO_LOG = FALSE; /* set to false to disable IP logging */
 
     const MAX_CLICKS = 1000; /* maximum expiration clicks */
     const MAX_URL_LEN = 128; /* maximum URL length */
     const MAX_PASS_LEN = 20; /* maximum password length */
+
+    const SAVE_BACKUP = TRUE; /* set to false to skip backups of user-uploaded files */
 
     const CDN_HOST = "//static.jump.wtf"; /* Where clients should download HTML resources from */
 

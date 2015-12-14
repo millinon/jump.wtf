@@ -1,5 +1,7 @@
 <?hh
 
+require_once('aws.hh');
+
 function err($s): void {
   $_SESSION['action'] = 'error';
   $_SESSION['problem'] = $s;
@@ -11,11 +13,10 @@ function s_main($action): void {
 
   session_start();
 
-  $aws = mk_aws();
-  $dyclient = $aws->get('DynamoDb');
-  $s3client = $aws->get('S3');
-  $cfclient = $aws->get('CloudFront');
-  $glclient = $aws->get('Glacier');
+  $dyclient = awsHelper::dydb_client();
+  $s3client = awsHelper::s3_client();
+  $cfclient = awsHelper::cf_client();
+  $glclient = awsHelper::gl_client();
 
   if ($action === 'new') {
     error_log('action = new');

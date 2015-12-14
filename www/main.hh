@@ -8,9 +8,6 @@ require_once ('header.hh');
 require_once ('forms.hh');
 require_once ('footer.hh');
 
-require_once ('aws.hh');
-
-require_once ('config/aws_config.hh');
 require_once ('config/jump_config.hh');
 require_once ('config/key_config.hh');
 

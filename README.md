@@ -1,6 +1,12 @@
 # jump.wtf
 A link shortening and file hosting service using AWS resources through PHP / Hack
 
+This branch is an attempt to migrate to the newer version of the AWS SDK. At this time, when HHVM tries to execute `aws.phar` as provided by Amazon, it generates this error:
+`Fatal error: syntax error, unexpected T_YIELD in phar://aws-3.11.5.phar/Aws/S3/S3Client.php on line 562`
+which appears to be a problem with how HHVM interprets the `yield` keyword. This is probably related to [HHVM#538](https://github.com/guzzle/guzzle/issues/538).
+
+This branch should be merged into master once HHVM is fixed.
+
 ---
 
 ## Introduction

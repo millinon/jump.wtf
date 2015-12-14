@@ -1,5 +1,7 @@
 <?hh
 
+require_once('api.hh');
+
 class jump_api {
 
     public static function genUploadURL($input): ?array {
@@ -7,7 +9,7 @@ class jump_api {
         $private = isset($input["private"]) ? $input["private"] : false;
         $content_type = isset($input["content_type"]) ? $input["content_type"] : false;
 
-        $s3client = mk_aws()->get('S3');
+        $s3client = awsHelper::s3_URL_client();
         $tmp_id = uniqid(); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
 
         $bucket = ($private ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET);
