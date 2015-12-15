@@ -22,7 +22,7 @@ function heading(string $action): string {
   }
 }
 
-function message(string $action, ?string $url, ?string $err): mixed {
+function message(string $action, ?string $message): mixed {
   switch ($action) {
     case "del_file":
       return <p>Link deleted; file deletion pending.</p>;
@@ -34,11 +34,11 @@ function message(string $action, ?string $url, ?string $err): mixed {
       return
         <p>
           Your link has been generated:
-          <a id="newlink" href={$url} target="_blank">{$url}</a>
+          <a id="newlink" href={$message} target="_blank">{$message}</a>
         </p>;
 
     case "error":
-      return <p>{$err}</p>;
+      return <p>{$message}</p>;
   }
 }
 
@@ -47,6 +47,7 @@ function r_main(): void {
   session_start();
 
   error_log('action = '.$_SESSION['action']);
+  $msg = isset($_SESSION['message']) ? $_SESSION['message'] : "";
 
   echo
     <x:doctype>
@@ -59,8 +60,7 @@ function r_main(): void {
               <h2>{heading($_SESSION['action'])}</h2>
               {message(
                 $_SESSION['action'],
-                isset($_SESSION['new_link']) ? $_SESSION['new_link'] : "",
-                $_SESSION['problem'],
+                $msg,
               )}
               <button
                 style=
@@ -71,7 +71,7 @@ function r_main(): void {
                 id="copybutton"
                 class="btn btn-default"
                 data-clipboard-text=
-                  {isset($_SESSION['new_link']) ? $_SESSION['new_link'] : ""}>
+                  {isset($_SESSION['message']) ? $_SESSION['message'] : ""}>
                 <span class="glyphicon glyphicon-share" aria-hidden="true">
                 </span>
                 Copy to clipboard

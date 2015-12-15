@@ -12,23 +12,23 @@ function gen_footer(): mixed {
 function gen_footer_scripts(): mixed {
   return
     <p>
-      <script src={jump_config::CDN_HOST."/vendor/jquery-1.11.1.min.js"}>
+      <script src={"//".jump_config::CDN_HOST."/vendor/jquery-1.11.1.min.js"}>
       </script>
       <script
         src=
-          {jump_config::CDN_HOST."/vendor/clipboard.js/dist/clipboard.min.js"}>
+          {"//".jump_config::CDN_HOST."/vendor/clipboard.js/dist/clipboard.min.js"}>
       </script>
       <script
         src=
-          {jump_config::CDN_HOST."/vendor/bootstrap/dist/js/bootstrap.min.js"}>
+          {"//".jump_config::CDN_HOST."/vendor/bootstrap/dist/js/bootstrap.min.js"}>
       </script>
       <script
-        src={jump_config::CDN_HOST."/vendor/clippy.js/build/clippy.min.js"}>
+        src={"//".jump_config::CDN_HOST."/vendor/clippy.js/build/clippy.min.js"}>
       </script>
       <script
         async={true}
         src=
-          {jump_config::CDN_HOST.
+          {"//".jump_config::CDN_HOST.
           "/js/".
           file_get_contents("htdocs/js/main.js.latest")}>
       </script>

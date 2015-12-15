@@ -12,7 +12,7 @@ class jump_config {
     const MAX_URL_LEN = 128; /* maximum URL length */
     const MAX_PASS_LEN = 20; /* maximum password length */
 
-    const CDN_HOST = "//static.jump.wtf"; /* Where clients should download HTML resources from */
+    const CDN_HOST = "static.jump.wtf"; /* Where clients should download HTML resources from */
 
     const MAX_FILE_SIZE = 67108864;
 

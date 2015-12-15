@@ -2,7 +2,7 @@
 
 function err($s): void {
   $_SESSION['action'] = 'error';
-  $_SESSION['problem'] = $s;
+  $_SESSION['message'] = $s;
   header('location:r');
   die();
 }
@@ -221,7 +221,7 @@ function s_main($action): void {
     } else if ($type === 'file') {
       $_SESSION['action'] = 'file_success';
     }
-    $_SESSION['new_link'] =
+    $_SESSION['message'] =
       /*(($type === 'url' || $clicks !== -1)
          ? jump_config::BASEURL
          : jump_config::FBASEURL).*/

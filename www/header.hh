@@ -19,18 +19,18 @@ function gen_head($title = "JUMP.WTF") {
       <link
         rel="stylesheet"
         href=
-          {jump_config::CDN_HOST.
+          {"//".jump_config::CDN_HOST.
           "/vendor/bootstrap/dist/css/bootstrap.min.css"}
       />
       <link
         rel="stylesheet"
         href=
-          {jump_config::CDN_HOST.
+          {"//".jump_config::CDN_HOST.
           "/vendor/bootstrap/dist/css/bootstrap-theme.min.css"}
       />
       <link
         rel="stylesheet"
-        href={jump_config::CDN_HOST."/vendor/clippy.js/build/clippy.css"}
+        href={"//".jump_config::CDN_HOST."/vendor/clippy.js/build/clippy.css"}
         media="all"
       />
       <link
@@ -42,7 +42,7 @@ function gen_head($title = "JUMP.WTF") {
       <link
         rel="stylesheet"
         href=
-          {jump_config::CDN_HOST.
+          {"//".jump_config::CDN_HOST.
           "/css/".
           file_get_contents("htdocs/css/main.css.latest")}
       />
