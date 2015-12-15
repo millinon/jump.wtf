@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 # this needs to be run as root and is probably not reliable, I just don't want to have to figure it out every time
-# can I pass the domain names as letsencrypt command line options?
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/letsencrypt"
 
-./letsencrypt-auto --agree-dev-preview --server https://acme-v01.api.letsencrypt.org/directory --rsa-key-size 4096 auth
+./letsencrypt-auto certonly --renew-by-default --rsa-key-size 4096 --agree-tos -d jump.wtf -d www.jump.wtf
 
 # get certs, keys for www.jump.wtf, jump.wtf
 # when more subdomains are whitelisted, static. and cdn. too?
