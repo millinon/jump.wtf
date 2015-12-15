@@ -5,7 +5,7 @@ var compressor = require('node-minify'),
     fs = require('fs'),
     path = require('path'),
     ifname = "",
-    verbose,
+    vprint,
     argv,
     extensions = ["css", "js"];
 
@@ -14,25 +14,19 @@ function usage_exit() {
     process.exit();
 }
 
-function vprint(s) {
-    if (verbose) {
-        console.log(s);
-    }
-}
-
 // check for optional verbose option
 if (process.argv[2] === "-v") {
-    verbose = true;
+    vprint = console.log;
     argv = process.argv.slice(3);
 } else {
     argv = process.argv.slice(2);
+    vprint = function(){}
 }
 
 // at least one filename is required
 if (argv.length <= 0) {
     usage_exit();
 }
-
 
 argv.forEach(function (ifname) {
     
