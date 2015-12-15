@@ -59,7 +59,7 @@ function r_main(): void {
               <h2>{heading($_SESSION['action'])}</h2>
               {message(
                 $_SESSION['action'],
-                $_SESSION['new_link'],
+                isset($_SESSION['new_link']) ? $_SESSION['new_link'] : "",
                 $_SESSION['problem'],
               )}
               <button
