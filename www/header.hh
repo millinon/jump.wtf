@@ -14,7 +14,7 @@ function gen_head($title = "JUMP.WTF") {
       <link
         rel="shortcut icon"
         type="image/x-icon"
-        href="https://f.jump.wtf/favicon.ico"
+        href="https://jump.wtf/favicon.ico"
       />
       <link
         rel="stylesheet"
