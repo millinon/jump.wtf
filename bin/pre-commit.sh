@@ -1,22 +1,25 @@
 #!/bin/sh
 
-GIT_DIR=`git rev-parse --show-toplevel`
+echo "Pre-commit starting"
 
-cd "$GIT_DIR"
+git diff --cached --name-only -- '*.hh'|while read ifname; do
+    echo "Checking ${ifname}..."
+    if hh_client check "${ifname}"; then
+        echo 'Check failed, aborting commit'
+        git stash pop -q
+        exit 1
+    fi
 
-git stash -q --keep-index
+    echo "Linting ${ifname}..."
+    if hh_client check --lint "${ifname}"; then
+        echo 'Lint died, aborting commit'
+        git stash pop -q
+        exit 1
+    fi
+    
+    echo "Formatting ${ifname}..."
+    hh_format "${ifname}"
+    git add "${ifname}"
+done
 
-echo "Linting..."
-
-touch "$GIT_DIR/.hhconfig"
-
-if hh_client check --lint "${GIT_DIR}/www/"
-then
-    echo "Formatting..."
-    hh_format --root "${GIT_DIR}/www/"
-    git stash pop -q
-else
-    git stash pop -q
-    exit 1
-fi
-
+echo "Pre-commit done"
