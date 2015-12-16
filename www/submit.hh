@@ -185,11 +185,9 @@ function s_main($action): void {
                           ? hash('sha256', $password.$new_key)
                           : 'nopass',
                     ),
-                  'hits' => array('N' => 0),
                   'active' => array('N' => 1),
                   'clicks' => array('N' => $clicks),
                   'isPrivate' => array('N' => ($clicks > 0 ? 1 : 0)),
-                  'IP' => array('S' => $IP),
                   'time' => array('S' => date(DateTime::W3C)),
                   'isFile' => array('N' => ($type === 'url' ? 0 : 1)),
                 ),
@@ -197,7 +195,6 @@ function s_main($action): void {
                   ? array()
                   : array(
                     'filename' => array('S' => $new_key.$ext),
-                    'origname' => array('S' => $filename),
                     'ext' => array('S' => ($ext === '' ? '_' : $ext)),
                     'filesize' => array('N' => $filesize),
                   ),
@@ -222,9 +219,6 @@ function s_main($action): void {
       $_SESSION['action'] = 'file_success';
     }
     $_SESSION['message'] =
-      /*(($type === 'url' || $clicks !== -1)
-         ? jump_config::BASEURL
-         : jump_config::FBASEURL).*/
       jump_config::BASEURL . 
       $new_key .
       $ext;

@@ -54,7 +54,7 @@ function g_main(string $uri): void {
         header('Location:'.$item['url']['S']);
       }
 
-      if ($item['clicks']['N'] > 0) {
+      if ($item['isPrivate']['N'] === 1) {
         $dyclient->updateItem(
           array(
             'TableName' => aws_config::LINK_TABLE,
