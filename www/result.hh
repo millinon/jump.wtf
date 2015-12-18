@@ -84,7 +84,7 @@ function r_main(): void {
           {gen_footer_scripts()}
           <script
             src=
-              {jump_config::CDN_HOST.
+              {"//".jump_config::CDN_HOST.
               "/js/".
               file_get_contents("htdocs/js/clip.js.latest")}>
           </script>
