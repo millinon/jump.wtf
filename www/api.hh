@@ -17,6 +17,111 @@ class ValidationException extends Exception {
 
 class jump_api {
 
+  protected static $doc = api_documentation::api_doc();
+  private static function validate(array $input): array {
+    // validating the API against the documentation is terrible, but I spent a bunch
+    // of time on the documentation in a format that's PHP-readable, so I'll use it
+
+    if (!isset($input['action'])) {
+      throw new ValidationException('Missing action parameter');
+    }
+
+    $func = $input['action'];
+    if (!in_array($func, array_keys(self::$doc))) {
+      throw new ValidationException("Unknown action $func");
+    }
+
+    $action_ref = jump_api::$doc[$func];
+    $params = $action_ref['params'];
+
+    foreach (array_keys($params) as $param) {
+
+      $param_ref = $params[$param];
+
+      // check if param is required, or supply the default value
+      if (!isset($input[$param])) {
+        if ($param_ref['optional']) {
+          $input[$param] = $param_ref['default'];
+        } else {
+          throw new ValidationException(
+            "missing $param ({$param_ref['type']}) parameter",
+          );
+        }
+      } else {
+        $val = $input[$param];
+
+        // check param constraints
+        foreach ($param_ref['requires-params'] as $constraint) {
+          if (!isset($input[$constraint])) {
+            throw new ValidationException(
+              "$param requires $constraint to be set",
+            );
+          }
+
+          // check param type
+          if (gettype($input[$param]) !== $param_ref['type']) {
+            throw new ValidationException(
+              "bad type for $param parameter, expected {$param_ref['type']}",
+            );
+          }
+
+          // check param bounds
+          if ($param_ref['type'] === 'int') {
+            if (isset($param_ref['max-value']) &&
+                intval($val) > $param_ref['max-value']) {
+              throw new ValidationException("bad value for $param parameter");
+            } else if (isset($param_ref['min-value']) &&
+                       intval($input[$param]) < $param_ref['min-value']) {
+              throw new ValidationException("bad value for $param parameter");
+            }
+          } else if ($action_ref[$param]['type'] === 'string') {
+            if (isset($param_ref['min-length']) &&
+                strlen($val) < $param_ref['min-length']) {
+              throw new ValidationException(
+                "value for $param parameter out of range",
+              );
+            } else if (isset($param_ref['max-length']) &&
+                       strlen($val) > $param_ref['max-length']) {
+              throw new ValidationException(
+                "value for $param parameter out of range",
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // check for missing required parameters -- these are validated as exclusive sets
+    foreach ($action_ref['required-params'] as $param_set) {
+      $total = 0;
+      foreach ($param_set as $param) {
+        $total = $total + 1;
+      }
+      if ($total === 0) {
+        throw new ValidationException(
+          'One of ['.array_implode($param_set, ' ').'] must be set',
+        );
+      } else if ($total > 1) {
+        throw new ValidationException(
+          'Only one of ['.array_implode($param_set, ' ').'] may be set',
+        );
+      }
+    }
+
+    // check for unknown parameters
+    foreach (array_keys($input) as $in_param) {
+      if ($in_param === 'action')
+        continue;
+      if (!isset($action_ref['params'][$in_param])) {
+        throw new ValidationException("Unknown parameter $in_param");
+      }
+    }
+
+    // /paramarama
+
+    return $input;
+  }
+
   public static function error(string $message): array {
     return array('success' => false, 'message' => $message);
   }
@@ -25,11 +130,12 @@ class jump_api {
     return array_merge(array('success' => true), $data);
   }
 
-  public static function genUploadURL($input): ?array {
+  public static function genUploadURL(array $input): ?array {
 
-    $private = isset($input["private"]) ? $input["private"] : false;
-    $content_type =
-      isset($input["content_type"]) ? $input["content_type"] : false;
+    $input = self::validate($input);
+
+    $private = $input['private'];
+    $content_type = $input['content-type'];
 
     $s3client = mk_aws()->get('S3');
     $tmp_id = uniqid(); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
@@ -69,6 +175,8 @@ class jump_api {
           array(
             'URL' => $command->createPresignedUrl('+5 minutes'),
             'expires' => $expires->format(DateTime::ATOM),
+            'tmp-key' => $tmp_id,
+            'max-length' => jump_config::MAX_FILE_LENGTH,
           ),
         );
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
@@ -103,76 +211,6 @@ class jump_api {
 class apiHandler {
 
   protected static $doc;
-
-  private static function validate(string $func, array $input): array {
-    // validating the API against the documentation is terrible, but I spent a bunch
-    // of time on the documentation in a format that's PHP-readable, so I'll use it
-
-    $ref = apiHandler::$doc[$func];
-    $params = $ref['params'];
-
-    foreach (array_keys($params) as $param) {
-
-      // check if param is required, or supply the default value
-      if (!isset($input[$param])) {
-        if ($params[$param]['optional']) {
-          $input[$param] = $params[$param]['default'];
-        } else {
-          throw new ValidationException("missing $param parameter");
-        }
-      } else {
-        $val = $input[$param];
-
-        // check param dependencies
-        foreach ($params['requires-params'] as $dep) {
-          $sign = substr($dep, 0, 1);
-          $param2 = substr($dep, 1);
-
-          if ($sign === '+' && !isset($input[$param2])) {
-            throw new ValidationException(
-              "$param requires $param2 to be set",
-            );
-          } else if ($sign === '-' && isset($input[$param2])) {
-            throw new ValidationException(
-              "only one of $param and $param2 may be specified",
-            );
-          }
-        }
-
-        // check param type
-        if (gettype($input[$param]) !== $params[$param]['type']) {
-          throw new ValidationException("bad value for $param parameter");
-        }
-
-        // check param size
-        if ($params[$param]['type'] === 'int') {
-          if (isset($ref[$param]['max-value']) &&
-              intval($val) > $params[$param]['max-value']) {
-            throw new ValidationException("bad value for $param parameter");
-          } else if (isset($params[$param]['min-value']) &&
-                     intval($input[$param]) < $params[$param]['min-value']) {
-            throw new ValidationException("bad value for $param parameter");
-          }
-        } else if ($ref[$param]['type'] === 'string') {
-          if (isset($params[$param]['min-length']) &&
-              strlen($val) > $params[$param]['min-length']) {
-            throw new ValidationException(
-              "value for $param parameter out of range",
-            );
-          } else if (isset($params[$param]['max-length']) &&
-                     strlen($val) > $params[$param]['max-length']) {
-            throw new ValidationException(
-              "value for $param parameter out of range",
-            );
-          }
-        }
-
-      }
-
-    }
-
-    return $input;
-  }
 
   private static function error(string $msg): void {
     echo jump_api::error($msg);
@@ -251,7 +289,7 @@ class apiHandler {
   }
 
   public static function handle(): void {
-    self::$doc = api_documentation::api_doc();
+    //    self::$doc = api_documentation::api_doc();
 
     $input = NULL;
 
@@ -293,65 +331,35 @@ class apiHandler {
 
       $action = $input["action"];
 
-      try {
+      switch ($action) {
 
-        switch ($action) {
+        case 'genUploadURL':
+          echo json_encode(jump_api::genUploadURL($input));
+          break;
 
-          case 'genUploadURL':
-            echo
-              json_encode(
-                jump_api::genUploadURL(
-                  apiHandler::validate('genUploadURL', $input),
-                ),
-              )
-            ;
-            break;
+        case 'genFileURL':
+          echo json_encode(jump_api::genFileURL($input));
+          break;
 
-          case 'genFileURL':
-            echo
-              json_encode(
-                jump_api::genFileURL(
-                  apiHandler::validate('genFileURL', $input),
-                ),
-              )
-            ;
-            break;
+        case 'genURL':
+          echo json_encode(jump_api::genURL($input));
+          break;
 
-          case 'genURL':
-            echo
-              json_encode(
-                jump_api::genURL(apiHandler::validate('genURL', $input)),
-              )
-            ;
-            break;
+        case 'delURL':
+          echo json_encode(jump_api::delURL($input));
+          break;
 
-          case 'delURL':
-            echo
-              json_encode(
-                jump_api::delURL(apiHandler::validate('genURL', $input)),
-              )
-            ;
-            break;
+        case 'jumpTo':
+          echo json_encode(jump_api::jumpTo($input));
+          break;
 
-          case 'jumpTo':
-            echo
-              json_encode(
-                jump_api::jumpTo(apiHandler::validate('jumpTo', $input)),
-              )
-            ;
-            break;
+        case 'help':
+          self::help($input);
+          break;
 
-          case 'help':
-            self::help($input);
-            break;
-
-          default:
-            apiHandler::error('Unsupported action; try {action:"help"}');
-            break;
-        }
-
-      } catch (ValidationException $ve) {
-        apiHandler::error((string) $ve);
+        default:
+          apiHandler::error('Unsupported action; try {action:"help"}');
+          break;
       }
 
     }

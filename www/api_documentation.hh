@@ -43,7 +43,7 @@ class api_documentation {
       'default' => 1,
       'min-value' => '1',
       'max-value' => jump_config::MAX_CLICKS,
-      'requires-params' => ['+private'],
+      'requires-params' => ['private'],
     ];
 
     $password_param = [
@@ -62,8 +62,7 @@ class api_documentation {
               'Generate an S3 upload URL valid for a HTTP POST file upload',
             'params' =>
               [
-                'private' =>
-                  $private_param,
+                'private' => $private_param,
                 'content-type' =>
                   [
                     'description' =>
@@ -74,14 +73,15 @@ class api_documentation {
                     'requires-params' => [],
                   ],
               ],
+            'required-params' =>
+              [],
             'returns' =>
               [
-                'success' =>
-                  $success_retval,
+                'success' => $success_retval,
                 'URL' =>
                   [
                     'description' =>
-                      'S3 URL that a file can be uploaded to with HTTP POST',
+                      'URL that a file can be uploaded to with HTTP POST',
                     'type' => 'string',
                   ],
                 'tmp-key' =>
@@ -110,17 +110,15 @@ class api_documentation {
               'Generate a jump.wtf URL for a file',
             'params' =>
               [
-                'private' =>
-                  $private_param,
-                'clicks' =>
-                  $clicks_param,
+                'private' => $private_param,
+                'clicks' => $clicks_param,
                 'tmp-key' =>
                   [
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
                     'optional' => false,
-                    'required-params' => ['-filedata'],
+                    'required-params' => [],
                   ],
                 'filedata' =>
                   [
@@ -129,7 +127,17 @@ class api_documentation {
                     'type' => 'string',
                     'optional' => false,
                     'max-length' => jump_config::MAX_FILE_SIZE / 4, // local file transfer takes more time, so limit the size
-                    'required-params' => ['-tmp-key'],
+                    'required-params' => [],
+                  ],
+                'filepath' =>
+                  [
+                    'description' =>
+                      'Local filesystem path of file to upload to S3',
+                    'note' => 'For internal use only',
+                    'type' => 'string',
+                    'optional' => false,
+                    'required-params' => [],
+                    'max-length' => 128,
                   ],
                 'save-backup' =>
                   [
@@ -139,9 +147,10 @@ class api_documentation {
                     'optional' => true,
                     'default' => true,
                   ],
-                'password' =>
-                  $password_param,
+                'password' => $password_param,
               ],
+            'required-params' =>
+              [['filedata', 'filepath', 'tmp-key']],
             'returns' =>
               $file_retval,
           ],
@@ -159,13 +168,12 @@ class api_documentation {
                     'max-length' => jump_config::MAX_URL_LEN,
                     'requires-params' => [],
                   ],
-                'private' =>
-                  $private_param,
-                'clicks' =>
-                  $clicks_param,
-                'password' =>
-                  $password_param,
+                'private' => $private_param,
+                'clicks' => $clicks_param,
+                'password' => $password_param,
               ],
+            'required-params' =>
+              [['input-url']],
             'returns' =>
               $url_retval,
           ],
@@ -181,29 +189,30 @@ class api_documentation {
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
                     'type' => 'string',
                     'optional' => false,
-                    'requires-params' => ['-jump-url'],
+                    'requires-params' => ['jump-url'],
                   ],
-                'jump-url' =>
+                'jump-url' => [
+                  'description' => 'jump.wtf link to jump to',
+                  'type' => 'string',
+                  'optional' => false,
+                  'requires-params' => ['jump-key'],
+                ],
+              ],
+            'required-params' =>
+              [['jump-key', 'jump-url']],
+            'returns' =>
+              [
+                'url' =>
                   [
-                    'description' => 'jump.wtf link to jump to',
+                    'description' =>
+                      'Long-form URL associated with the given key',
                     'type' => 'string',
-                    'optional' => false,
-                    'requires-params' => ['-jump-key'],
                   ],
-                'returns' =>
+                'is-file' =>
                   [
-                    'url' =>
-                      [
-                        'description' =>
-                          'Long-form URL associated with the given key',
-                        'type' => 'string',
-                      ],
-                    'is-file' =>
-                      [
-                        'description' =>
-                          'Whether or not the link goes to a jump.wtf hosted file',
-                        'type' => 'boolean',
-                      ],
+                    'description' =>
+                      'Whether or not the link goes to a jump.wtf hosted file',
+                    'type' => 'boolean',
                   ],
               ],
           ],
@@ -219,31 +228,27 @@ class api_documentation {
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
                     'type' => 'string',
                     'optional' => false,
-                    'requires-params' => ['-jump-url'],
-                  ],
-                'jump-url' =>
-                  [
-                    'description' => 'jump.wtf link to jump to',
-                    'type' => 'string',
-                    'optional' => false,
-                    'requires-params' => ['-jump-key'],
-                  ],
-                'password' =>
-                  [
-                    'description' =>
-                      'Password to delete the jump.wtf URL',
-                    'type' => 'string',
-                    'optional' => false,
                     'requires-params' => [],
                   ],
+                'jump-url' => [
+                  'description' => 'jump.wtf link to jump to',
+                  'type' => 'string',
+                  'optional' => false,
+                  'requires-params' => [],
+                ],
+                'password' => [
+                  'description' => 'Password to delete the jump.wtf URL',
+                  'type' => 'string',
+                  'optional' => false,
+                  'requires-params' => [],
+                ],
               ],
+            'required-params' =>
+              [['jump-key', 'jump-url']],
             'returns' =>
-              [
-                'success' =>
-                  $success_retval,
-              ],
+              ['success' => $success_retval],
           ],
-        'help' =>
+        'getHelp' =>
           [
             'description' =>
               'Show help information for the API',
@@ -266,7 +271,7 @@ class api_documentation {
                           'Generate a jump.wtf link from a web URL',
                         'delURL' => 'Delete an existing jump.wtf link',
                         'jumpTo' => 'Resolve a jump.wtf link',
-                        'help' => 'Show help information',
+                        'getHelp' => 'Show help information',
                       ],
                     'examples' => [
                       ['action' => 'help'],
@@ -275,6 +280,8 @@ class api_documentation {
                     'requires-params' => [],
                   ],
               ],
+            'required-params' =>
+              [],
           ],
       ];
   }
