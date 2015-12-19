@@ -6,7 +6,7 @@ cd `git rev-parse --show-toplevel`
 
 for file in aws.json aws_config.hh jump_config.hh; do
 
-    if [[ ! -f "./www/config/${file}" ]] then
+    if [ ! -f "./www/config/${file}" ] then
         cp "./www/config/${file}.example" "./www/config/${file}"
     fi
 done
