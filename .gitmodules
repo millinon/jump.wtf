@@ -1,15 +1,20 @@
 [submodule "www/htdocs/vendor/bootstrap"]
 	path = www/htdocs/vendor/bootstrap
-	url = https://github.com/twbs/bootstrap.git
+    url = https://github.com/twbs/bootstrap.git
+    ignore = dirty
 [submodule "www/htdocs/vendor/clipboard.js"]
 	path = www/htdocs/vendor/clipboard.js
-	url = https://github.com/zenorocha/clipboard.js.git
+    url = https://github.com/zenorocha/clipboard.js.git
+    ignore = dirty
 [submodule "www/htdocs/vendor/clippy.js"]
 	path = www/htdocs/vendor/clippy.js
-	url = https://github.com/smore-inc/clippy.js.git
+    url = https://github.com/smore-inc/clippy.js.git
+    ignore = dirty
 [submodule "www/vendor/facebook/xhp-lib"]
 	path = www/vendor/facebook/xhp-lib
-	url = https://github.com/facebook/xhp-lib.git
+    url = https://github.com/facebook/xhp-lib.git
+    ignore = dirty
 [submodule "bin/letsencrypt"]
 	path = bin/letsencrypt
-	url = https://github.com/letsencrypt/letsencrypt.git
+    url = https://github.com/letsencrypt/letsencrypt.git
+    ignore = dirty

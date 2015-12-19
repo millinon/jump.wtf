@@ -20,7 +20,7 @@ git diff --cached --name-only -- '*.hh'|while read ifname; do
     fi
     
     echo "Formatting ${ifname}..."
-    hh_format "${ifname}"
+    hh_format -i "${ifname}"
     git add "${ifname}"
 done
 
