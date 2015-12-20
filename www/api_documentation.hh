@@ -248,37 +248,33 @@ class api_documentation {
             'returns' =>
               ['success' => $success_retval],
           ],
-        'getHelp' =>
+        'help' =>
           [
             'description' =>
               'Show help information for the API',
             'params' =>
               [
-                'topic' =>
-                  [
-                    'description' => 'API action to show help text for',
-                    'type' => 'string',
-                    'optional' => true,
-                    'default' => 'help',
-                    'topics' =>
-                      [
-                        'all' => 'Show all help information',
-                        'genUploadURL' =>
-                          'Generate temporary file upload URL',
-                        'genFileURL' =>
-                          'Generate a jump.wtf link from a file',
-                        'genURL' =>
-                          'Generate a jump.wtf link from a web URL',
-                        'delURL' => 'Delete an existing jump.wtf link',
-                        'jumpTo' => 'Resolve a jump.wtf link',
-                        'getHelp' => 'Show help information',
-                      ],
-                    'examples' => [
-                      ['action' => 'help'],
-                      ['action' => 'help', 'topic' => 'help'],
-                    ],
-                    'requires-params' => [],
+                'topic' => [
+                  'description' => 'API action to show help text for',
+                  'type' => 'string',
+                  'optional' => true,
+                  'default' => 'help',
+                  'examples' => [
+                    ['action' => 'help'],
+                    ['action' => 'help', 'topic' => 'help'],
                   ],
+                  'requires-params' => [],
+                ],
+              ],
+            'topics' =>
+              [
+                'all' => 'Show all help information',
+                'genUploadURL' => 'Generate temporary file upload URL',
+                'genFileURL' => 'Generate a jump.wtf link from a file',
+                'genURL' => 'Generate a jump.wtf link from a web URL',
+                'delURL' => 'Delete an existing jump.wtf link',
+                'jumpTo' => 'Resolve a jump.wtf link',
+                'help' => 'Show help information',
               ],
             'required-params' =>
               [],

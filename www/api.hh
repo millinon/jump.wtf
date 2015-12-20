@@ -17,7 +17,12 @@ class ValidationException extends Exception {
 
 class jump_api {
 
-  protected static $doc = api_documentation::api_doc();
+  public static $doc;
+
+  public function init(): void {
+    self::$doc = api_documentation::api_doc();
+  }
+
   private static function validate(array $input): array {
     // validating the API against the documentation is terrible, but I spent a bunch
     // of time on the documentation in a format that's PHP-readable, so I'll use it
@@ -132,8 +137,11 @@ class jump_api {
 
   public static function genUploadURL(array $input): ?array {
 
-    $input = self::validate($input);
-
+    try {
+      $input = self::validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
     $private = $input['private'];
     $content_type = $input['content-type'];
 
@@ -159,25 +167,23 @@ class jump_api {
       $command = $s3client->getCommand(
         'PutObject',
         array(
+          'ACL' => 'private',
           'Bucket' => "$bucket",
           'Key' => "tmp/".$tmp_id,
-          'Content-Type' =>
-            ($content_type == null
-               ? "application/octet-stream"
-               : $content_type),
+          'Content-Type' => $content_type,
           'Policy' => base64_encode(json_encode($policy)),
+          'StorageClass' => 'REDUCED_REDUNDANCY',
           'Body' => '',
         ),
       );
 
       try {
-        return success(
-          array(
-            'URL' => $command->createPresignedUrl('+5 minutes'),
-            'expires' => $expires->format(DateTime::ATOM),
-            'tmp-key' => $tmp_id,
-            'max-length' => jump_config::MAX_FILE_LENGTH,
-          ),
+        return array(
+          'success' => true,
+          'URL' => $command->createPresignedUrl('+5 minutes'),
+          'expires' => $expires->format(DateTime::ATOM),
+          'tmp-key' => $tmp_id,
+          'max-length' => jump_config::MAX_FILE_SIZE,
         );
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
         error_log($iae);
@@ -210,10 +216,8 @@ class jump_api {
 
 class apiHandler {
 
-  protected static $doc;
-
   private static function error(string $msg): void {
-    echo jump_api::error($msg);
+    echo json_encode(jump_api::error($msg));
     die();
   }
 
@@ -239,7 +243,9 @@ class apiHandler {
         break;
 
       case "POST":
-        return json_decode(file_get_contents("php://input"), true);
+        $in = file_get_contents('php://input', 'r');
+        echo 'input: '.$in.' --> ';
+        return json_decode($in, true);
         break;
 
       default:
@@ -256,17 +262,17 @@ class apiHandler {
 
     $out = NULL;
 
-    if (!isset(self::$doc[$topic])) {
+    if (!isset(jump_api::$doc['help']['topics'][$topic])) {
       self::error("Help topic '$topic' not found");
     } else if ($topic === 'all') {
-      $out = json_encode(self::$doc, JSON_PRETTY_PRINT);
+      $out = json_encode(jump_api::$doc, JSON_PRETTY_PRINT);
     } else {
-      $out = json_encode(self::$doc[$topic], JSON_PRETTY_PRINT);
+      $out = json_encode(jump_api::$doc[$topic], JSON_PRETTY_PRINT);
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-      foreach (array_keys(self::$doc) as $key) {
+      foreach (array_keys(jump_api::$doc) as $key) {
         error_log($key);
         $out = preg_replace(
           "/\"$key\"/",
@@ -312,7 +318,7 @@ class apiHandler {
       if (!isset($_GET['topic'])) {
         header('Location: /a/?action=help&topic=help');
         die();
-      } else if (!in_array($_GET['topic'], array_keys(apiHandler::$doc))) {
+      } else if (!in_array($_GET['topic'], array_keys(jump_api::$doc))) {
         self::error('Invalid help topic');
       }
 
@@ -367,3 +373,4 @@ class apiHandler {
 
 }
 
+jump_api::init();
