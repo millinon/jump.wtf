@@ -27,13 +27,16 @@ function main(): void {
 
   $uri = "";
 
-  // trap bad bots or vuln scanning 
-  if (preg_match("~^/+(cgi-bin|admin|wp-admin|blackhole)/~", $_SERVER['REQUEST_URI']) === 1) {
-      include('blackhole/index.hh');
+  // trap bad bots or vuln scanning
+  if (preg_match(
+        "~^/+(cgi-bin|admin|wp-admin|blackhole)/~",
+        $_SERVER['REQUEST_URI'],
+      ) ===
+      1) {
+    include ('blackhole/index.hh');
   }
 
-
-  if (!preg_match("|/([^/]*)|", $_SERVER['REQUEST_URI'], $matches)) {
+  if (!preg_match("~/([^/]*)(\?.*)?~", $_SERVER['REQUEST_URI'], $matches)) {
     i_main();
   } else {
     $uri = $matches[1];
@@ -42,7 +45,7 @@ function main(): void {
   $body = null;
 
   if ($uri === 'a') {
-      apiHandler::handle();
+    apiHandler::handle();
   } else if ($uri === 's') {
     s_main($_POST['action']);
   } else if ($uri === 'r') {
