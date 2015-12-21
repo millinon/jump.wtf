@@ -236,7 +236,7 @@ class jump_api {
       return self::error((string) $ve);
     }
 
-    if (filter_var($input['input-url'], FILTER_VALIDATE_URL)) {
+    if (!filter_var($input['input-url'], FILTER_VALIDATE_URL)) {
       return self::error("Invalid URL detected.");
     }
 
@@ -335,7 +335,7 @@ class apiHandler {
 
       case "POST":
         $in = file_get_contents('php://input', 'r');
-        echo 'input: '.$in.' --> ';
+//        echo 'input: '.$in.' --> ';
         return json_decode($in, true);
         break;
 
