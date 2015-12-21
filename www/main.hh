@@ -36,13 +36,11 @@ function main(): void {
     include ('blackhole/index.hh');
   }
 
-  if (!preg_match("~/([^/]*)(\?.*)?~", $_SERVER['REQUEST_URI'], $matches)) {
+  if (!preg_match("~/([^/?]*)(\?.*)?~", $_SERVER['REQUEST_URI'], $matches)) {
     i_main();
   } else {
     $uri = $matches[1];
   }
-
-  $body = null;
 
   if ($uri === 'a') {
     apiHandler::handle();
@@ -52,9 +50,9 @@ function main(): void {
     r_main();
   } else if ($uri === '404') {
     error_page(404, $uri);
-  } else if ($uri !== "") {
+  } else if ($uri !== '') {
     g_main($uri);
-  } else if ($uri === "") {
+  } else /*if ($uri === "")*/ {
     i_main();
   }
 }
