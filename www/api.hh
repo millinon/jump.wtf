@@ -273,7 +273,7 @@ class jump_api {
                   'S' =>
                     $input['password'] === ""
                       ? 'nopass'
-                      : $input['password'].$salt,
+                      : hash("sha256", $input['password'].$salt),
                 ],
               'salt' =>
                 ['S' => $salt],
@@ -335,7 +335,7 @@ class apiHandler {
 
       case "POST":
         $in = file_get_contents('php://input', 'r');
-//        echo 'input: '.$in.' --> ';
+        //        echo 'input: '.$in.' --> ';
         return json_decode($in, true);
         break;
 
