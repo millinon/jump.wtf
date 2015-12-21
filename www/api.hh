@@ -364,7 +364,6 @@ class apiHandler {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
       foreach (array_keys(jump_api::$doc) as $key) {
-        error_log($key);
         $out = preg_replace(
           "/\"$key\"/",
           "\"<a href=\"https://jump.wtf/a/?topic=$key\">$key</a>\"",

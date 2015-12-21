@@ -20,7 +20,7 @@
 $version = '2.0';
 
 // variables
-$filename = 'blackhole.dat';
+$filename = 'blackhole/blackhole.dat';
 $badbot = 0;
 
 $request = sanitize($_SERVER['REQUEST_URI']);

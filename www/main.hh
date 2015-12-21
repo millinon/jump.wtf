@@ -27,15 +27,6 @@ function main(): void {
 
   $uri = "";
 
-  // trap bad bots or vuln scanning
-  if (preg_match(
-        "~^/+(cgi-bin|admin|wp-admin|blackhole)/~",
-        $_SERVER['REQUEST_URI'],
-      ) ===
-      1) {
-    include ('blackhole/index.hh');
-  }
-
   if (!preg_match("~/([^/?]*)(\?.*)?~", $_SERVER['REQUEST_URI'], $matches)) {
     i_main();
   } else {

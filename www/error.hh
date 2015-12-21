@@ -12,7 +12,7 @@ function error_message(int $status): mixed {
     case 404:
       return
         <p>
-          The link you were looking for couldn't be found.<br />
+          The link you were looking for could not be found.<br />
           Sorry about that!<br />
         </p>;
 
@@ -23,7 +23,7 @@ function error_message(int $status): mixed {
 
 function error_page(int $status, string $uri): void {
 
-  error_log("Generated status ".$status." for uri: \"".$uri);
+  error_log("Generated status $status for uri: $uri");
 
   http_response_code($status);
 
