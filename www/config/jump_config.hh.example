@@ -14,6 +14,7 @@ class jump_config {
 
     const CDN_HOST = "static.jump.wtf"; /* Where clients should download HTML resources from */
 
-    const MAX_FILE_SIZE = 67108864;
-
+    const MAX_FILE_SIZE = 1024*1024*128; // 128 MiB
+    const MAX_LOCAL_FILE_SIZE = 1024*1024*16; // 16 MiB
+    const MAX_EXT_LENGTH = 16;
 }

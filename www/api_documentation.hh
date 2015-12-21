@@ -1,5 +1,7 @@
 <?hh
 
+require_once ('config/jump_config.hh'); // to enable validation
+
 class api_documentation {
 
   public static function api_doc(): array {
@@ -31,17 +33,16 @@ class api_documentation {
       'description' =>
         'Generated link should expire after a certain number of accesses',
       'type' => 'boolean',
-      'optional' => true,
       'default' => false,
       'requires-params' => [],
     ];
 
     $clicks_param = [
-      'description' => 'Number of clicks after which the link should expire',
+      'description' =>
+        'Number of accesses after which the link should expire',
       'type' => 'integer',
-      'optional' => true,
       'default' => 1,
-      'min-value' => '1',
+      'min-value' => 1,
       'max-value' => jump_config::MAX_CLICKS,
       'requires-params' => ['private'],
     ];
@@ -49,11 +50,10 @@ class api_documentation {
     $password_param = [
       'description' => 'Password to delete the URL',
       'type' => 'string',
-      'optional' => 'true',
       'default' => '',
       'max-length' => jump_config::MAX_PASS_LEN,
-      'required-params' => [],
     ];
+
     return
       [
         'genUploadURL' =>
@@ -68,9 +68,6 @@ class api_documentation {
                     'description' =>
                       'Content type that should be associated with the uploaded file',
                     'type' => 'string',
-                    'optional' => true,
-                    'default' => 'application/octet-stream',
-                    'requires-params' => [],
                   ],
               ],
             'required-params' =>
@@ -103,6 +100,11 @@ class api_documentation {
                     'type' => 'integer',
                   ],
               ],
+            'examples' =>
+              [
+                ['action' => 'genUploadURL'],
+                ['action' => 'genUploadURL', 'private' => true],
+              ],
           ],
         'genFileURL' =>
           [
@@ -117,42 +119,57 @@ class api_documentation {
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
-                    'optional' => false,
-                    'required-params' => [],
+                    'regex' => '/^[0-9a-f]{14}\.[0-9]{8}$/',
                   ],
-                'filedata' =>
+                'file-data' =>
                   [
                     'description' =>
                       'Base64-encoded file data to store as a file and upload to S3',
                     'type' => 'string',
-                    'optional' => false,
-                    'max-length' => jump_config::MAX_FILE_SIZE / 4, // local file transfer takes more time, so limit the size
-                    'required-params' => [],
+                    'max-length' => jump_config::MAX_LOCAL_FILE_SIZE, // the base64 encoded version might not be the exact same length as the decoded version, oh well
                   ],
-                'filepath' =>
+                'local-file' => [
+                  'description' => 'Local filename to upload to S3',
+                  'note' => 'For integerernal use only',
+                  'type' => 'string',
+                  'regex' => '/^[0-9a-f]{14}\.[0-9]{8}$/',
+                  'max-length' => 23,
+                ],
+                'extension' =>
                   [
                     'description' =>
-                      'Local filesystem path of file to upload to S3',
-                    'note' => 'For internal use only',
+                      'Extension to be appended to the filename in S3',
                     'type' => 'string',
-                    'optional' => false,
-                    'required-params' => [],
-                    'max-length' => 128,
+                    'default' => 'txt',
+                    'min-length' => 1,
+                    'max-length' => jump_config::MAX_EXT_LENGTH,
+                    'regex' => '/\w+(\.w\+)*/',
                   ],
                 'save-backup' =>
                   [
                     'description' =>
                       'Whether or not to save a backup of the file in Glacier',
                     'type' => 'boolean',
-                    'optional' => true,
                     'default' => true,
                   ],
                 'password' => $password_param,
               ],
             'required-params' =>
-              [['filedata', 'filepath', 'tmp-key']],
+              [['file-data', 'local-file', 'tmp-key']],
             'returns' =>
               $file_retval,
+            'examples' =>
+              [
+                [
+                  'action' => 'genFileURL',
+                  'file-data' => 'aGVsbG8gd29ybGQK',
+                ],
+                [
+                  'action' => 'genFileURL',
+                  'tmp-key' => '567709c438b644.69604071',
+                  'extension' => 'png',
+                ],
+              ],
           ],
         'genURL' =>
           [
@@ -166,7 +183,6 @@ class api_documentation {
                       'Link to generate a shortened jump.wtf URL for',
                     'type' => 'string',
                     'max-length' => jump_config::MAX_URL_LEN,
-                    'requires-params' => [],
                   ],
                 'private' => $private_param,
                 'clicks' => $clicks_param,
@@ -176,11 +192,24 @@ class api_documentation {
               [['input-url']],
             'returns' =>
               $url_retval,
+            'examples' =>
+              [
+                [
+                  'action' => 'genURL',
+                  'input-url' => 'https://example.com/',
+                ],
+                [
+                  'action' => 'genURL',
+                  'input-url' => 'https://jump.wtf',
+                  'private' => true,
+                  'clicks' => 2,
+                ],
+              ],
           ],
         'jumpTo' =>
           [
             'description' =>
-              'Get the long-form URL to the link or file that a jump.wtf link points to',
+              'Get the long-form URL to the link or file that a jump.wtf link pointegers to',
             'params' =>
               [
                 'jump-key' =>
@@ -188,14 +217,11 @@ class api_documentation {
                     'description' =>
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
                     'type' => 'string',
-                    'optional' => false,
-                    'requires-params' => ['jump-url'],
+                    'requires-params' => [],
                   ],
                 'jump-url' => [
                   'description' => 'jump.wtf link to jump to',
                   'type' => 'string',
-                  'optional' => false,
-                  'requires-params' => ['jump-key'],
                 ],
               ],
             'required-params' =>
@@ -215,6 +241,14 @@ class api_documentation {
                     'type' => 'boolean',
                   ],
               ],
+            'examples' =>
+              [
+                [
+                  'action' => 'jumpTo',
+                  'jump-url' => 'https://jump.wtf/fooBar',
+                ],
+                ['action' => 'jumpTo', 'jump-key' => 'fooBar'],
+              ],
           ],
         'delURL' =>
           [
@@ -227,26 +261,34 @@ class api_documentation {
                     'description' =>
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
                     'type' => 'string',
-                    'optional' => false,
-                    'requires-params' => [],
                   ],
                 'jump-url' => [
                   'description' => 'jump.wtf link to jump to',
                   'type' => 'string',
-                  'optional' => false,
-                  'requires-params' => [],
                 ],
                 'password' => [
                   'description' => 'Password to delete the jump.wtf URL',
                   'type' => 'string',
-                  'optional' => false,
-                  'requires-params' => [],
+                  'max-len' => jump_config::MAX_PASS_LEN,
                 ],
               ],
             'required-params' =>
-              [['jump-key', 'jump-url']],
+              [['jump-key', 'jump-url'], ['password']],
             'returns' =>
               ['success' => $success_retval],
+            'examples' =>
+              [
+                [
+                  'action' => 'delURL',
+                  'jump-key' => 'fooBar',
+                  'password' => 'my_secret_password',
+                ],
+                [
+                  'action' => 'delURL',
+                  'jump-url' => 'https://jump.wtf/fooBar.png',
+                  'password' => 'my_secret_password',
+                ],
+              ],
           ],
         'help' =>
           [
@@ -257,13 +299,7 @@ class api_documentation {
                 'topic' => [
                   'description' => 'API action to show help text for',
                   'type' => 'string',
-                  'optional' => true,
                   'default' => 'help',
-                  'examples' => [
-                    ['action' => 'help'],
-                    ['action' => 'help', 'topic' => 'help'],
-                  ],
-                  'requires-params' => [],
                 ],
               ],
             'topics' =>
@@ -276,9 +312,15 @@ class api_documentation {
                 'jumpTo' => 'Resolve a jump.wtf link',
                 'help' => 'Show help information',
               ],
+            'examples' =>
+              [
+                ['action' => 'help'],
+                ['action' => 'help', 'topic' => 'genURL'],
+              ],
             'required-params' =>
               [],
           ],
       ];
   }
+
 }
