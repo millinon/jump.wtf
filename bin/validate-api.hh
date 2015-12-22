@@ -54,10 +54,51 @@ foreach (array_keys($doc) as $action) {
       key_error($action, 'params', $param_name, "is not an array");
     }
 
+    if (isset($param_ref['regex']) && $param_ref['type'] !== 'string') {
+      key_error(
+        $action,
+        'params',
+        $param_name,
+        "has a regex field, but has type ".$param_ref['type'],
+      );
+    } else if (isset($param_ref['min-length']) &&
+               $param_ref['type'] !== 'string') {
+      key_error(
+        $action,
+        'params',
+        $param_name,
+        "has a min-length field, but has type ".$param_ref['type'],
+      );
+    } else if (isset($param_ref['max-length']) &&
+               $param_ref['type'] !== 'string') {
+      key_error(
+        $action,
+        'params',
+        $param_name,
+        "has a max-length field, but has type ".$param_ref['type'],
+      );
+    } else if (isset($param_ref['min-value']) &&
+               $param_ref['type'] !== 'integer') {
+      key_error(
+        $action,
+        'params',
+        $param_name,
+        "has a min-value field, but has type ".$param_ref['type'],
+      );
+    } else if (isset($param_ref['max-value']) &&
+               $param_ref['type'] !== 'integer') {
+      key_error(
+        $action,
+        'params',
+        $param_name,
+        "has a max-value field, but has type ".$param_ref['type'],
+      );
+    }
+
     if (isset($param_ref['default'])) {
       $default_val = $param_ref['default'];
 
-      echo "    Checking $action.default...\n";
+      echo "        Checking default value sanity...\n";
 
       if (gettype($default_val) !== $param_ref['type']) {
         key_error(
@@ -85,7 +126,7 @@ foreach (array_keys($doc) as $action) {
 
     // check required parameters (dependency)
     if (isset($param_ref['requires-params'])) {
-      echo "    Checking $action.$param_name dependencies...\n";
+      echo "        Checking dependencies...\n";
       $requires = $param_ref['requires-params'];
 
       if (gettype($requires) !== 'array') {
@@ -121,7 +162,7 @@ foreach (array_keys($doc) as $action) {
     }
 
     // check min/max ranges
-    echo "    Checking min/max bounds sanity...\n";
+    echo "        Checking min/max bounds sanity...\n";
     if (isset($param_ref['min-value']) &&
         isset($param_ref['max-value']) &&
         ($param_ref['max-value'] - $param_ref['min-value']) <= 0) {
@@ -227,41 +268,47 @@ foreach (array_keys($doc) as $action) {
   echo "Pass\n";
 }
 
-$reject_tests = [
-  [],
-  ["noaction" => true],
-  ["action" => ""],
-  ["action" => "fakeaction"],
-  ["action" => "genURL", "fakeParam" => "test"],
-  ["action" => "genUploadURL", "input-url" => "http://example.com"],
+$reject_tests =
   [
-    "action" => "genURL",
-    "input-url" => "http://example.com",
-    "private" => 5,
-  ],
-  ["action" => "genURL", "input-url" => "http://example.com", "clicks" => 5],
-  [
-    "action" => "genURL",
-    "input-url" => "http://example.com",
-    "private" => true,
-    "clicks" => jump_config::MAX_CLICKS + 1,
-  ],
-  [
-    "action" => "genFileURL",
-    "file-data" => "aGVsbG8K",
-    "tmp-key" => "5677988ddaee51.96624275",
-  ],
-  ["action" => "genFileURL", "tmp-key" => "invalid key"],
-  [
-    "action" => "genURL",
-    "input-url" => "http://example.com",
-    "private" => true,
-    "clicks" => 0,
-],
-["action" => "jumpTo", "jump-url" => "fooBar"],
-["action" => "jumpTo", "jump-key" => "https://jump.wtf/fooBar"],
-["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"]
-];
+    [],
+    ["noaction" => true],
+    ["action" => ""],
+    ["action" => "fakeaction"],
+    ["action" => "genURL", "fakeParam" => "test"],
+    ["action" => "genUploadURL", "input-url" => "http://example.com"],
+    [
+      "action" => "genURL",
+      "input-url" => "http://example.com",
+      "private" => 5,
+    ],
+    //["action" => "genURL", "input-url" => "not a URL"], // URLs aren't tested during validation, since that's done by filter_var
+    [
+      "action" => "genURL",
+      "input-url" => "http://example.com",
+      "clicks" => 5,
+    ],
+    [
+      "action" => "genURL",
+      "input-url" => "http://example.com",
+      "private" => true,
+      "clicks" => jump_config::MAX_CLICKS + 1,
+    ],
+    [
+      "action" => "genFileURL",
+      "file-data" => "aGVsbG8K",
+      "tmp-key" => "5677988ddaee51.96624275",
+    ],
+    ["action" => "genFileURL", "tmp-key" => "invalid key"],
+    [
+      "action" => "genURL",
+      "input-url" => "http://example.com",
+      "private" => true,
+      "clicks" => 0,
+    ],
+    ["action" => "jumpTo", "jump-url" => "fooBar"],
+    ["action" => "jumpTo", "jump-key" => "https://jump.wtf/fooBar"],
+    ["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"],
+  ];
 
 echo "Running tests on invalid input...\n";
 
@@ -269,11 +316,11 @@ foreach ($reject_tests as $test) {
   try {
     jump_api::validate($test);
   } catch (ValidationException $ve) {
-    echo "Pass: ".(string) $ve."\n";
+    echo "    Pass: ".(string) $ve."\n";
     continue;
   }
   echo "Failed on input: ".json_encode($test)."\n";
   exit(1);
 }
 
-echo "All passed\n";
+echo "    All passed\n";
