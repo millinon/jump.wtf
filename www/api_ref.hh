@@ -48,14 +48,8 @@ class api_config {
       'requires-params' => ['private'],
     ];
 
-    $password_param = [
-      'description' => 'Password to delete the URL',
-      'type' => 'string',
-      'default' => '',
-      'max-length' => jump_config::MAX_PASS_LEN,
-    ];
-
-    return [
+    return
+      [
         'genUploadURL' =>
           [
             'description' =>
@@ -152,7 +146,12 @@ class api_config {
                     'type' => 'boolean',
                     'default' => true,
                   ],
-                'password' => $password_param,
+                'password' => [
+                  'description' => 'Optional password to delete the file',
+                  'type' => 'string',
+                  'default' => '',
+                  'max-length' => jump_config::MAX_PASS_LEN,
+                ],
               ],
             'constraints' =>
               [['file-data', 'local-file', 'tmp-key']],
@@ -186,7 +185,12 @@ class api_config {
                   ],
                 'private' => $private_param,
                 'clicks' => $clicks_param,
-                'password' => $password_param,
+                'password' => [
+                  'description' => 'Optional password to delete the URL',
+                  'type' => 'string',
+                  'default' => '',
+                  'max-length' => jump_config::MAX_PASS_LEN,
+                ],
               ],
             'constraints' =>
               [['input-url']],
@@ -216,17 +220,22 @@ class api_config {
                   [
                     'description' =>
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
-                      'type' => 'string',
-                      'min-length' => key_config::MIN_LENGTH,
-                      'max-length' => key_config::MAX_LENGTH,
-                      'regex' => '/' . key_config::regex . '/',
+                    'type' => 'string',
+                    'min-length' => key_config::MIN_LENGTH,
+                    'max-length' => key_config::MAX_LENGTH,
+                    'regex' => '/^'.key_config::regex.'$/',
                   ],
-                'jump-url' => [
-                  'description' => 'jump.wtf link to jump to',
-                  'type' => 'string',
-                  'max-length' => strlen('https://jump.wtf//.') + key_config::length + jump_config::MAX_EXT_LENGTH,
-                  'min-length' => strlen('http://jump.wtf/') + key_config::MIN_LENGTH,
-                ],
+                'jump-url' =>
+                  [
+                    'description' => 'jump.wtf link to jump to',
+                    'type' => 'string',
+                    'max-length' =>
+                      strlen('https://jump.wtf//.') +
+                      key_config::length +
+                      jump_config::MAX_EXT_LENGTH,
+                    'min-length' =>
+                      strlen('http://jump.wtf/') + key_config::MIN_LENGTH,
+                  ],
               ],
             'constraints' =>
               [['jump-key', 'jump-url']],
@@ -243,12 +252,13 @@ class api_config {
                     'description' =>
                       'Whether or not the link goes to a jump.wtf hosted file',
                     'type' => 'boolean',
-                ],
+                  ],
                 'expires' =>
-                [
-                    'description' => 'ISO 8601 Link expiration time for a private file',
-                    'type' => 'string'
-                    ],
+                  [
+                    'description' =>
+                      'ISO 8601 Link expiration time for a private file',
+                    'type' => 'string',
+                  ],
               ],
             'examples' =>
               [
@@ -270,15 +280,17 @@ class api_config {
                     'description' =>
                       'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
                     'type' => 'string',
+                    'regex' => '/^'.key_config::regex.'$/',
                   ],
                 'jump-url' => [
                   'description' => 'jump.wtf link to jump to',
                   'type' => 'string',
                 ],
                 'password' => [
-                  'description' => 'Password to delete the jump.wtf URL',
+                  'description' => 'Optional password to delete the URL',
                   'type' => 'string',
-                  'max-len' => jump_config::MAX_PASS_LEN,
+                  'min-length' => 1,
+                  'max-length' => jump_config::MAX_PASS_LEN,
                 ],
               ],
             'constraints' =>
@@ -289,12 +301,12 @@ class api_config {
               [
                 [
                   'action' => 'delURL',
-                  'jump-key' => 'fooBar',
+                  'jump-key' => 'foo',
                   'password' => 'my_secret_password',
                 ],
                 [
                   'action' => 'delURL',
-                  'jump-url' => 'https://jump.wtf/fooBar.png',
+                  'jump-url' => 'https://jump.wtf/foo',
                   'password' => 'my_secret_password',
                 ],
               ],
@@ -302,43 +314,39 @@ class api_config {
       ];
   }
 
-  public static function api_help():array {
+  public static function api_help(): array {
     $methods = self::api_methods();
-    
-    return array_merge($methods, [
-        'help' =>
-          [
-            'description' =>
-              'Show help information for the API',
-            'params' =>
-              [
-                'topic' => [
-                  'description' => 'API action to show help text for',
-                  'type' => 'string',
-                  'default' => 'help',
-                ],
-              ],
-            'topics' =>
-              [
-                'all' => 'Show all help information',
-                'genUploadURL' => 'Generate temporary file upload URL',
-                'genFileURL' => 'Generate a jump.wtf link from a file',
-                'genURL' => 'Generate a jump.wtf link from a web URL',
-                'delURL' => 'Delete an existing jump.wtf link',
-                'jumpTo' => 'Resolve a jump.wtf link',
-                'constraints' => 'How to read the constraints',
-                'help' => 'Show help information',
-              ],
-            'examples' =>
-              [
-                ['action' => 'help'],
-                ['action' => 'help', 'topic' => 'genURL'],
-              ],
-            'constraints' =>
-              [],
-          ],
 
-        ]);
+    return array_merge(
+      $methods,
+      [
+        'help' => [
+          'description' => 'Show help information for the API',
+          'params' => [
+            'topic' => [
+              'description' => 'API action to show help text for',
+              'type' => 'string',
+              'default' => 'help',
+            ],
+          ],
+          'topics' => [
+            'all' => 'Show all help information',
+            'genUploadURL' => 'Generate temporary file upload URL',
+            'genFileURL' => 'Generate a jump.wtf link from a file',
+            'genURL' => 'Generate a jump.wtf link from a web URL',
+            'delURL' => 'Delete an existing jump.wtf link',
+            'jumpTo' => 'Resolve a jump.wtf link',
+            'constraints' => 'How to read the constraints',
+            'help' => 'Show help information',
+          ],
+          'examples' => [
+            ['action' => 'help'],
+            ['action' => 'help', 'topic' => 'genURL'],
+          ],
+          'constraints' => [],
+        ],
+      ],
+    );
   }
 
 }

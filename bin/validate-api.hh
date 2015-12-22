@@ -305,9 +305,14 @@ $reject_tests =
       "private" => true,
       "clicks" => 0,
     ],
-    ["action" => "jumpTo", "jump-url" => "fooBar"],
     ["action" => "jumpTo", "jump-key" => "https://jump.wtf/fooBar"],
     ["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"],
+    [
+      "action" => "delURL",
+      "password" => "a password",
+      "jump-key" => "https://jump.wtf/fooBar",
+    ],
+    ["action" => "delURL", "password" => "", "jump-key" => "foo"],
   ];
 
 echo "Running tests on invalid input...\n";
@@ -319,7 +324,8 @@ foreach ($reject_tests as $test) {
     echo "    Pass: ".(string) $ve."\n";
     continue;
   }
-  echo "Failed on input: ".json_encode($test)."\n";
+  echo "Failed on input: ";
+  var_dump($test); //.json_encode($test)."\n";
   exit(1);
 }
 

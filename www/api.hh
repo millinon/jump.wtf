@@ -146,10 +146,6 @@ class jump_api {
       }
     }
 
-    // check for unknown parameters
-    foreach (array_keys($input) as $in_param) {
-    }
-
     // /paramarama
 
     return $input;
@@ -226,6 +222,12 @@ class jump_api {
   }
 
   public static function genFileURL($input): ?array {
+    try {
+      $input = validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
+
     return NULL;
   }
 
@@ -297,7 +299,136 @@ class jump_api {
   }
 
   public static function delURL($input): ?array {
-    return NULL;
+
+    try {
+      $input = validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
+
+    $aws = mk_aws();
+    $dyclient = $aws->get('DynamoDb');
+    $cfclient = $aws->get('CloudFront');
+    $s3client = $aws->get('S3');
+
+    $key = "";
+    $filename = "";
+    $isPrivate = false;
+    $check = "";
+    $table_pass = "";
+    $salt = "";
+    $isFile = false;
+
+    if (isset($input['jump-url'])) {
+      if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
+        return self::error("URL validation faield");
+      } else {
+        $toks = parse_url($input['jump-url']);
+        if (!$toks) {
+          return self::error("Problem with URL specified", 400);
+        }
+        $matches = [];
+        if (!preg_match(
+              "~^/(".
+              key_config::regex.
+              ")(\.[\w.]{1,".
+              jump_config::MAX_EXT_LENGTH.
+              "})$",
+              $toks['path'],
+              $matches,
+            )) {
+          return self::error("Invalid URL specified", 400);
+        } else {
+          $key = $matches[1];
+        }
+      }
+    } else {
+      $key = $input['jump-key'];
+    }
+
+    try {
+      $it = $dyclient->getIterator(
+        'Query',
+        [
+          'TableName' => aws_config::LINK_TABLE,
+          'ConsistentReat' => true,
+          'KeyConditions' => [
+            'Object ID' => [
+              'AttributeValueList' => [['S' => $key]],
+              'ComparisonOperator' => 'EQ',
+            ],
+          ],
+        ],
+      );
+
+      if (iterator_count($it) !== 1) {
+        return self::error("Key lookup failed", 400);
+      }
+
+      foreach ($it as $item) {
+        $table_pass = $item['pass']['s'];
+        $isFile = $item['isFile']['N'];
+        if ($isFile) {
+          $filename = $item['filename']['S'];
+        }
+        $isPrivate = $item['isPrivate']['N'];
+        $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
+        $check = $item['Checksum'];
+      }
+    } catch (DynamoDbException $dde) {
+      return self::error("DynamoDb lookup failed");
+    }
+
+    if (hash('sha256', $input['password'].$salt) === $table_pass) {
+      try {
+        $dyclient->updateItem(
+          [
+            'TableName' => aws_config::LINK_TABLE,
+            'Key' => [
+              'Object ID' => ['S' => $key],
+              'Checksum' => ['S' => $check],
+            ],
+            'AttributeUpdates' => [
+              'active' => ['Ation' => 'PUT', 'Value' => ['N' => '0']],
+            ],
+          ],
+        );
+      } catch (DynamoDbException $dde) {
+        error_log("Failed to delete item $key: ".(string) $dde);
+        return self::error("Failed to delete item", 500);
+      }
+
+      if ($isFile) {
+        $bucket =
+          $isPrivate ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
+        try {
+          $s3client->deleteObject(['Bucket' => $bucket, 'Key' => $filename]);
+        } catch (S3Exception $s3e) {
+          error_log("Failed to delete file $key");
+        }
+
+        if ($isPrivate && aws_config::CF_DIST_ID !== "") {
+          try {
+            $cfclient->createInvalidation(
+              [
+                'DistributionId' => aws_config::CF_DIST_ID,
+                'CallerReference' =>
+                  'jump.wtf-delete-'.$filename.'.'.rand(0, 8),
+                'Paths' => ['Quantity' => 1, 'Items' => ['/'.$filename]],
+              ],
+            );
+          } catch (CloudfrontException $ce) {
+            error_log("Failed to purge $filename");
+          }
+        }
+      }
+
+      return self::success(['note' => "Item deleted"]);
+    } else {
+      return self::error("Incorrect key or password", 500);
+    }
+
+    return self::error("Deletion failed", 503);
   }
 
   public static function jumpTo($input): ?array {
@@ -319,7 +450,7 @@ class jump_api {
     if (isset($input['jump-key'])) {
       $key = $input['jump-key'];
     } else if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
-      return self::error("Invalid URL specified");
+      return self::error("Invalid URL specified", 400);
     } else {
       $toks = parse_url($input['jump-url']);
       if (!$toks) {
@@ -401,7 +532,10 @@ class jump_api {
                     'Checksum' => ['S' => $item['Checksum']['S']], // this is totally useless but I can't remove it at this point
                   ],
                 'AttributeUpdate' => [
-                  'clicks' => ['Action' => 'ADD', 'Value' => ['N' => -1]],
+                  'clicks' => [
+                    'Action' => 'ADD',
+                    'Value' => ['N' => '-1'],
+                  ],
                 ],
               ],
             );
