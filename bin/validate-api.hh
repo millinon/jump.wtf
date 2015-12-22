@@ -2,13 +2,13 @@
 
 require (__DIR__."/../www/config/jump_config.hh");
 
-require (__DIR__."/../www/api_documentation.hh");
+require (__DIR__."/../www/api_ref.hh");
 require (__DIR__."/../www/api.hh");
 
 /*  The documentation / API validation is pretty solid, but it's fairly complex in terms of hierarchy, so it's easy to mistakenly add a field to the API in the wrong place. This file will verify that for each action defined for the API, the action's fields are well defined. If the API as defined in api_documentation.hh is provably correct, and the validation provably evaluates the API correctly, then the output of the validator will be correct or will throw an exception.
  */
 
-$doc = api_documentation::api_doc();
+$doc = api_config::api_methods();
 
 function key_error($action, $field, $key, $error) {
   echo "\n{$action}[$field][$key] -- $error\n\n";
@@ -143,12 +143,12 @@ foreach (array_keys($doc) as $action) {
     }
   }
 
-  if (!isset($action_ref['required-params'])) {
-    key_error($action, 'required-params', 'NULL', 'field missing');
+  if (!isset($action_ref['constraints'])) {
+    key_error($action, 'constraints', 'NULL', 'field missing');
   }
 
   echo "    Checking constraint sets...\n";
-  foreach ($action_ref['required-params'] as $constraint_set) {
+  foreach ($action_ref['constraints'] as $constraint_set) {
     $set_str = '['.implode($constraint_set, ' ').']';
     echo "        Checking $set_str...\n";
 
@@ -156,7 +156,7 @@ foreach (array_keys($doc) as $action) {
       if (!isset($action_ref['params'][$param])) {
         key_error(
           $action,
-          'required-params',
+          'constraints',
           $set_str,
           "includes on non-existent parameter $param",
         );
@@ -176,14 +176,14 @@ foreach (array_keys($doc) as $action) {
         if (isset($param_ref['default'])) {
           key_error(
             $action,
-            'required-params',
+            'constraints',
             $param_name,
             "parameter has a default value",
           );
         } else if (isset($param2_ref['default'])) {
           key_error(
             $action,
-            'required-params',
+            'constraints',
             $param_name,
             "parameter has a default value",
           );
@@ -194,7 +194,7 @@ foreach (array_keys($doc) as $action) {
                    )) {
           key_error(
             $action,
-            'required-params',
+            'constraints',
             $set_str,
             "set members are mutually exclusive but $param_name depends on $param2_name",
           );
@@ -205,7 +205,7 @@ foreach (array_keys($doc) as $action) {
                    )) {
           key_error(
             $action,
-            'required-params',
+            'constraints',
             $set_str,
             "set members are mutually exclusive but $param2_name depends on $param_name",
           );
@@ -257,7 +257,10 @@ $reject_tests = [
     "input-url" => "http://example.com",
     "private" => true,
     "clicks" => 0,
-  ],
+],
+["action" => "jumpTo", "jump-url" => "fooBar"],
+["action" => "jumpTo", "jump-key" => "https://jump.wtf/fooBar"],
+["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"]
 ];
 
 echo "Running tests on invalid input...\n";

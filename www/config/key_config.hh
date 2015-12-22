@@ -1,76 +1,21 @@
 <?hh
 
 class key_config {
-  const length = 4;
+
+    const MIN_LENGTH = 3;
+    const MAX_LENGTH = 5;
+
+    const length = 4;
+    const regex = '[A-Za-z0-9]{3,4}';
   static function gen_charset() {
-    return array(
-      '0',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-      'f',
-      'g',
-      'h',
-      'i',
-      'j',
-      'k',
-      'l',
-      'm',
-      'n',
-      'o',
-      'p',
-      'q',
-      'r',
-      's',
-      't',
-      'u',
-      'v',
-      'w',
-      'x',
-      'y',
-      'z',
-      'A',
-      'B',
-      'C',
-      'D',
-      'E',
-      'F',
-      'G',
-      'H',
-      'I',
-      'J',
-      'K',
-      'L',
-      'M',
-      'N',
-      'O',
-      'P',
-      'Q',
-      'R',
-      'S',
-      'T',
-      'U',
-      'V',
-      'W',
-      'X',
-      'Y',
-      'Z',
-    );
+    return array_merge(range('a','z'),
+        array_merge(range('A','Z'),
+        range('0','9')));
   }
 
-  // No, I'm not dumb. You can use words instead of characters, resulting in longer but valid keys,
-  // as long as no element of the charset is a prefix of another
+  // You can use words instead of characters, resulting in longer but valid keys,
+  // as long as no element of the charset is a prefix of another.
+  // I'm using single characters since I want to generate short links
 
   static function generate_key(): string {
     $dyclient = mk_aws()->get('DynamoDb');
