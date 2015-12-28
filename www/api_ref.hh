@@ -111,7 +111,8 @@ class api_config {
                   [
                     'description' =>
                       'Base64-encoded file data to store as a file and upload to S3',
-                    'type' => 'string',
+                      'type' => 'string',
+                      'min-length' => 1,
                     'max-length' => jump_config::MAX_LOCAL_FILE_SIZE, // the base64 encoded version might not be the exact same length as the decoded version, oh well
                   ],
                 'local-file' => [
@@ -126,18 +127,18 @@ class api_config {
                     'description' =>
                       'Extension to be appended to the filename in S3',
                     'type' => 'string',
-                    'default' => 'txt',
+                    'default' => '.txt',
                     'min-length' => 1,
                     'max-length' => jump_config::MAX_EXT_LENGTH,
-                    'regex' => '/^\\w+(\\.\\w+)*$/',
+                    'regex' => '/^\.\\w+(\\.\\w+)*$/',
                   ],
-                'save-backup' =>
+                /*'save-backup' =>
                   [
                     'description' =>
                       'Whether or not to save a backup of the file in Glacier',
                     'type' => 'boolean',
                     'default' => true,
-                  ],
+                ],*/
                 'password' => [
                   'description' => 'Optional password to delete the file',
                   'type' => 'string',
@@ -145,11 +146,11 @@ class api_config {
                   'max-length' => jump_config::MAX_PASS_LEN,
                 ],
                 'content-type' => [
-                  'description' => 'Content type of file',
+                  'description' => 'Content type of file -- default is detected from the extension, and falls back to application/octet-stream',
                   'type' => 'string',
-                  'default' => 'application/octet-stream',
+                  //'default' => 'application/octet-stream',
                   'max-length' => 40,
-                  'regex' => '/^[\\w-.]+/[\\w-.]$/',
+                  'regex' => '/^[\\w.-]+\/[\\w.-]+$/',
                 ],
               ],
             'constraints' =>

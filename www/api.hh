@@ -1,6 +1,7 @@
 <?hh
 
-require ('api_ref.hh');
+require_once('api_ref.hh');
+require_once('mimes.hh');
 
 class ValidationException extends Exception {
   protected $msg;
@@ -16,6 +17,10 @@ class ValidationException extends Exception {
 }
 
 class jump_api {
+
+  public static function get_mime(string $extension): string {
+      return mimes::$mime_types[substr($extension, 1)] ?: "application/octet-stream";
+  }
 
   public static $doc;
 
@@ -225,8 +230,8 @@ class jump_api {
   }
 
   public static function genFileURL($input): ?array {
-    try {
-      $input = validate($input);
+      try {
+      $input = self::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve);
     }
@@ -241,7 +246,9 @@ class jump_api {
       $input['private'] ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
     $result = NULL;
     $tmp_file = NULL;
-    $extension = '.'.$input['extension'];
+    $extension = $input['extension'];
+
+    $content_type = $input['content-type'] ?: self::get_mime($extension);
 
     if (isset($input['tmp-key'])) {
       try {
@@ -253,6 +260,8 @@ class jump_api {
           'File tmp/'.$input['tmp-key'].' not found in S3 bucket',
           400,
         );
+      } catch(AccessDeniedException $ade){
+        return self::error('Internal exception', 503);
       }
 
       $tmp_file = 'tmp/'.$input['tmp-key'];
@@ -276,6 +285,7 @@ class jump_api {
             'ACL' => 'private',
             'Body' => $body,
             'Key' => $tmp_file,
+            'StorageClass' => 'REDUCED_REDUNDANCY',
           ],
         );
       } catch (S3Exception $s3e) {
@@ -313,23 +323,37 @@ class jump_api {
 
     $new_key = key_config::generate_key();
 
+
+    try {
+        $s3client->waitUntilObjectExists([
+            'Bucket' => $dest_bucket,
+            'Key' => $tmp_file]
+            );
+    } catch(S3Exception $s3e){
+        error_log("waitUntil failed: " . (string) $s3e);
+        return self::error('Failed to copy file', 503);
+    }
+
     // copy the temporary file to its new home
     try {
       $result = $s3client->copyObject(
         [
           'ACL' => $input['private'] ? 'private' : 'public-read',
           'Bucket' => $dest_bucket,
-          'CopySource' => urlencode($tmp_file),
-          'ContentType' => $input['content-type'],
+          'CopySource' => urlencode($dest_bucket . "/" . $tmp_file),
+          'ContentType' => $content_type,
           'Key' => $new_key.$extension,
           'StorageClass' => 'REDUCED_REDUNDANCY',
           'Metadata' => ['IP' => $_SERVER['REMOTE_ADDR']],
+          'MetadataDirective' => 'REPLACE'
         ],
       );
 
     } catch (S3Exception $s3e) {
       error_log('S3 copyObject failed: '.(string) $s3e);
       return self::error('Failed to copy S3 object', 503);
+      } catch (AccessDeniedException $ade){
+        return self::error('Internal exception 3', 503);
     }
 
     $salt = uniqid('', true);
@@ -369,10 +393,9 @@ class jump_api {
     return self::success(
       array_merge(
         ['url' => jump_config::BASEURL.$new_key],
-        $input['private'] ? [] : ['cdn-url' => jump_config::FILE_HOST],
+        $input['private'] ? [] : ['cdn-url' => jump_config::FILE_HOST . $new_key.$extension],
       ),
     );
-
   }
 
   public static function genURL($input): ?array {

@@ -305,7 +305,7 @@ $reject_tests =
       "private" => true,
       "clicks" => 0,
     ],
-    ["action" => "jumpTo", "jump-key" => "https://jump.wtf/fooBar"],
+    ["action" => "jumpTo", "jump-key" => "https://jump.wtf/foo"],
     ["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"],
     [
       "action" => "delURL",
