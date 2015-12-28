@@ -175,7 +175,6 @@ class jump_api {
     }
 
     $private = $input['private'];
-    $content_type = $input['content-type'];
 
     $s3client = mk_aws()->get('S3');
     $tmp_id = uniqid('', true); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
@@ -185,13 +184,13 @@ class jump_api {
     $expires = (new DateTime())->modify("+5 minutes");
 
     $policy = [
-      'expiration' => $expires->format(DateTime::ATOM),
       'conditions' => [
-        ['bucket' => "$bucket"],
         ['acl' => 'private'],
+        ['bucket' => "$bucket"],
         ['starts-with', "\$key", "tmp/"],
-        ["content-length-range", 0, jump_config::MAX_FILE_SIZE],
-      ] // /conditions
+        ['content-length-range', 0, jump_config::MAX_FILE_SIZE],
+      ], // /conditions
+      'expiration' => $expires->format(DateTime::ATOM),
     ]; // /policy
 
     try {
@@ -200,12 +199,11 @@ class jump_api {
         'PutObject',
         [
           'ACL' => 'private',
-          'Bucket' => "$bucket",
-          'Key' => "tmp/".$tmp_id,
-          'Content-Type' => $content_type,
-          'Policy' => base64_encode(json_encode($policy)),
-          'StorageClass' => 'REDUCED_REDUNDANCY',
           'Body' => '',
+          'Bucket' => $bucket,
+          'ContentType' => 'application/octet-stream',
+          'Key' => "tmp/".$tmp_id,
+          'Policy' => base64_encode(json_encode($policy)),
         ],
       );
 
@@ -262,6 +260,13 @@ class jump_api {
         );
       } catch(AccessDeniedException $ade){
         return self::error('Internal exception', 503);
+      }
+
+      if($result['ContentLength'] > jump_config::MAX_FILE_SIZE){
+        $s3client->deleteObject([
+            'Bucket' => $dest_bucket, 'Key' => 'tmp/' . $input['tmp-key']
+        ]);
+        return self::error('File too large', 400);
       }
 
       $tmp_file = 'tmp/'.$input['tmp-key'];
@@ -389,6 +394,8 @@ class jump_api {
       error_log('DynamoDb died: '.(string) $dydbe);
       return self::error('Failed to create new URL', 503);
     }
+        $s3client->deleteObject([
+            'Bucket' => $dest_bucket, 'Key' => $tmp_file]);
 
     return self::success(
       array_merge(
