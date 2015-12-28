@@ -81,6 +81,7 @@ class jump_api {
             "bad type for $param parameter, expected {$param_ref['type']}",
           );
         } else if ($param_ref['type'] === 'integer') {
+
           // check param bounds
           if (isset($param_ref['max-value']) &&
               intval($val) > $param_ref['max-value']) {
@@ -89,6 +90,7 @@ class jump_api {
                      intval($input[$param]) < $param_ref['min-value']) {
             throw new ValidationException("bad value for $param parameter");
           }
+
         } else if ($param_ref['type'] === 'string') {
 
           if (isset($param_ref['regex'])) {
@@ -152,11 +154,11 @@ class jump_api {
   }
 
   public static function error(string $message, $code = 500): array {
-    return array('success' => false, 'message' => $message);
+    return ['success' => false, 'message' => $message];
   }
 
   public static function success(array $data): array {
-    return array_merge(array('success' => true), $data);
+    return array_merge(['success' => true], $data);
   }
 
   public static function genUploadURL(array $input): ?array {
@@ -166,6 +168,7 @@ class jump_api {
     } catch (ValidationException $ve) {
       return self::error((string) $ve);
     }
+
     $private = $input['private'];
     $content_type = $input['content-type'];
 
@@ -176,21 +179,21 @@ class jump_api {
 
     $expires = (new DateTime())->modify("+5 minutes");
 
-    $policy = array(
+    $policy = [
       'expiration' => $expires->format(DateTime::ATOM),
-      'conditions' => array(
-        array('bucket' => "$bucket"),
-        array('acl' => 'private'),
-        array("starts-with", "\$key", "tmp/"),
-        array("content-length-range", 0, jump_config::MAX_FILE_SIZE),
-      ) // /conditions
-    ); // /policy
+      'conditions' => [
+        ['bucket' => "$bucket"],
+        ['acl' => 'private'],
+        ['starts-with', "\$key", "tmp/"],
+        ["content-length-range", 0, jump_config::MAX_FILE_SIZE],
+      ] // /conditions
+    ]; // /policy
 
     try {
 
       $command = $s3client->getCommand(
         'PutObject',
-        array(
+        [
           'ACL' => 'private',
           'Bucket' => "$bucket",
           'Key' => "tmp/".$tmp_id,
@@ -198,17 +201,17 @@ class jump_api {
           'Policy' => base64_encode(json_encode($policy)),
           'StorageClass' => 'REDUCED_REDUNDANCY',
           'Body' => '',
-        ),
+        ],
       );
 
       try {
-        return array(
+        return [
           'success' => true,
           'URL' => $command->createPresignedUrl('+5 minutes'),
           'expires' => $expires->format(DateTime::ATOM),
           'tmp-key' => $tmp_id,
           'max-length' => jump_config::MAX_FILE_SIZE,
-        );
+        ];
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
         error_log($iae);
         return error('Failed to generate signed URL');
@@ -228,7 +231,148 @@ class jump_api {
       return self::error((string) $ve);
     }
 
-    return NULL;
+    $aws = mk_aws();
+
+    $s3client = $aws->get('S3');
+    $dyclient = $aws->get('DynamoDb');
+    $glclient = $aws->get('Glacier');
+
+    $dest_bucket =
+      $input['private'] ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
+    $result = NULL;
+    $tmp_file = NULL;
+    $extension = '.'.$input['extension'];
+
+    if (isset($input['tmp-key'])) {
+      try {
+        $result = $s3client->headObject(
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$input['tmp-key']],
+        );
+      } catch (S3Exception $s3e) {
+        return self::error(
+          'File tmp/'.$input['tmp-key'].' not found in S3 bucket',
+          400,
+        );
+      }
+
+      $tmp_file = 'tmp/'.$input['tmp-key'];
+
+    } else if (isset($input['file-data'])) {
+      $body = base64_decode($input['file-data'], true);
+
+      $tmp_file = 'tmp/'.uniqid('fd-', true);
+
+      if (!$body) {
+        return self::error(
+          'file-data parameter invalid -- should be base64 encoded',
+          400,
+        );
+      }
+
+      try {
+        $result = $s3client->putObject(
+          [
+            'Bucket' => $dest_bucket,
+            'ACL' => 'private',
+            'Body' => $body,
+            'Key' => $tmp_file,
+          ],
+        );
+      } catch (S3Exception $s3e) {
+        error_log('S3 file upload failed: '.(string) $s3e);
+        return self::error('failed to upload file to S3', 503);
+      }
+    } else if (isset($input['local-file'])) {
+
+      $tmp_file = 'tmp/'.uniqid('lf-', true);
+
+      /* the API regex for this param should check this, but I don't want to take any chances */
+      if (strpos($input['local-file'], '/') !== false) {
+        return self::error(
+          'Invalid local-file parameter -- shenanigans detected',
+          400,
+        );
+      } else if (!file_exists(
+                   jump_config::UBASEDIR.'/'.$input['local-file'],
+                 )) {
+        return self::error('local-file parameter -- file not found', 404);
+      }
+
+      try {
+        $result = $s3client->putObject(
+          ['Bucket' => $dest_bucket, 'ACL' => 'private', 'Key' => $tmp_file],
+        );
+      } catch (S3Exception $s3e) {
+        error_log('S3 file upload failed: '.(string) $s3e);
+        return self::error('failed to upload file to S3', 503);
+      }
+
+    } else {
+      return self::error('Constraint verification failed');
+    }
+
+    $new_key = key_config::generate_key();
+
+    // copy the temporary file to its new home
+    try {
+      $result = $s3client->copyObject(
+        [
+          'ACL' => $input['private'] ? 'private' : 'public-read',
+          'Bucket' => $dest_bucket,
+          'CopySource' => urlencode($tmp_file),
+          'ContentType' => $input['content-type'],
+          'Key' => $new_key.$extension,
+          'StorageClass' => 'REDUCED_REDUNDANCY',
+          'Metadata' => ['IP' => $_SERVER['REMOTE_ADDR']],
+        ],
+      );
+
+    } catch (S3Exception $s3e) {
+      error_log('S3 copyObject failed: '.(string) $s3e);
+      return self::error('Failed to copy S3 object', 503);
+    }
+
+    $salt = uniqid('', true);
+
+    try {
+      $res =
+        $dyclient->putItem(
+          [
+            'TableName' => aws_config::LINK_TABLE,
+            'Item' =>
+              [
+                'Object ID' => ['S' => $new_key],
+                'Checksum' => ['S' => '0'], // checksum field is useless, but I set it as a secondary index, so I have to include it
+                'pass' =>
+                  [
+                    'S' =>
+                      $input['password'] === ""
+                        ? 'nopass'
+                        : hash('sha256', $input['password'].$salt),
+                  ],
+                'salt' => ['S' => $salt],
+                'isPrivate' => ['N' => $input['private'] ? 1 : 0],
+                'active' => ['N' => 1],
+                'isFile' => ['N' => 1],
+                'time' => ['S' => date(DateTime::W3C)],
+                'filename' => ['S' => $new_key.$extension],
+                'ext' => ['S' => $extension],
+                'clicks' => ['N' => $input['clicks'] ?: 0],
+              ],
+          ],
+        );
+    } catch (DynamoDbException $dydbe) {
+      error_log('DynamoDb died: '.(string) $dydbe);
+      return self::error('Failed to create new URL', 503);
+    }
+
+    return self::success(
+      array_merge(
+        ['url' => jump_config::BASEURL.$new_key],
+        $input['private'] ? [] : ['cdn-url' => jump_config::FILE_HOST],
+      ),
+    );
+
   }
 
   public static function genURL($input): ?array {
@@ -244,8 +388,8 @@ class jump_api {
 
     $aws = mk_aws();
     $dyclient = $aws->get('DynamoDb');
-    $s3client = $aws->get('DynamoDb');
-    $glclient = $aws->get('DynamoDb');
+    $s3client = $aws->get('S3');
+    $glclient = $aws->get('Glacier');
 
     $key = "";
 
@@ -282,7 +426,7 @@ class jump_api {
               'active' =>
                 ['N' => 1],
               'clicks' =>
-                ['N' => $input['clicks']],
+                ['N' => $input['clicks'] ?: 0],
               'time' =>
                 ['S' => date(DateTime::W3C)],
               'isFile' =>
@@ -331,7 +475,7 @@ class jump_api {
         if (!preg_match(
               "~^/(".
               key_config::regex.
-              ")(\.[\w.]{1,".
+              ")(\\.[\\w.]{1,".
               jump_config::MAX_EXT_LENGTH.
               "})$",
               $toks['path'],
@@ -460,7 +604,7 @@ class jump_api {
       if (!preg_match(
             "~^/(".
             key_config::regex.
-            ")(\.[\w.]{1,".
+            ")(\\.[\\w.]{1,".
             jump_config::MAX_EXT_LENGTH.
             "})$",
             $toks['path'],

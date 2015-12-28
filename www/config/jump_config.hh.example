@@ -6,7 +6,8 @@ class jump_config {
 
     const UBASEDIR = "/var/tmp/some/directory"; /* directory where uploads are moved temporarily */
 
-    const SAVE_BACKUP = TRUE; /* set to false to skip backups of user-uploaded files */
+    // backups disabled for now
+    //const SAVE_BACKUP = TRUE; /* set to false to skip backups of user-uploaded files */
 
     const MAX_CLICKS = 1000; /* maximum expiration clicks */
     const MAX_URL_LEN = 128; /* maximum URL length */

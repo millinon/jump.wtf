@@ -55,15 +55,7 @@ class api_config {
             'description' =>
               'Generate an S3 upload URL valid for a HTTP POST file upload',
             'params' =>
-              [
-                'private' => $private_param,
-                'content-type' =>
-                  [
-                    'description' =>
-                      'Content type that should be associated with the uploaded file',
-                    'type' => 'string',
-                  ],
-              ],
+              ['private' => $private_param],
             'constraints' =>
               [],
             'returns' =>
@@ -113,7 +105,7 @@ class api_config {
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
-                    'regex' => '/^[0-9a-f]{14}\.[0-9]{8}$/',
+                    'regex' => '/^[0-9a-f]{14}\\.[0-9]{8}$/',
                   ],
                 'file-data' =>
                   [
@@ -126,7 +118,7 @@ class api_config {
                   'description' => 'Local filename to upload to S3',
                   'note' => 'For integerernal use only',
                   'type' => 'string',
-                  'regex' => '/^[0-9a-f]{14}\.[0-9]{8}$/',
+                  'regex' => '/^[0-9a-f]{14}\\.[0-9]{8}$/',
                   'max-length' => 23,
                 ],
                 'extension' =>
@@ -137,7 +129,7 @@ class api_config {
                     'default' => 'txt',
                     'min-length' => 1,
                     'max-length' => jump_config::MAX_EXT_LENGTH,
-                    'regex' => '/\w+(\.w\+)*/',
+                    'regex' => '/^\\w+(\\.\\w+)*$/',
                   ],
                 'save-backup' =>
                   [
@@ -151,6 +143,13 @@ class api_config {
                   'type' => 'string',
                   'default' => '',
                   'max-length' => jump_config::MAX_PASS_LEN,
+                ],
+                'content-type' => [
+                  'description' => 'Content type of file',
+                  'type' => 'string',
+                  'default' => 'application/octet-stream',
+                  'max-length' => 40,
+                  'regex' => '/^[\\w-.]+/[\\w-.]$/',
                 ],
               ],
             'constraints' =>
