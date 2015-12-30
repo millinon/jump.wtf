@@ -85,6 +85,12 @@ class api_config {
                       'Maximum length, in bytes, of the file that can be uploaded',
                     'type' => 'integer',
                   ],
+                'content-type' =>
+                  [
+                    'description' =>
+                      'Content-Type header that must be used for the upload to S3',
+                    'type' => 'string',
+                  ],
               ],
             'examples' =>
               [
@@ -111,8 +117,8 @@ class api_config {
                   [
                     'description' =>
                       'Base64-encoded file data to store as a file and upload to S3',
-                      'type' => 'string',
-                      'min-length' => 1,
+                    'type' => 'string',
+                    'min-length' => 1,
                     'max-length' => jump_config::MAX_LOCAL_FILE_SIZE, // the base64 encoded version might not be the exact same length as the decoded version, oh well
                   ],
                 'local-file' => [
@@ -133,25 +139,27 @@ class api_config {
                     'regex' => '/^\.\\w+(\\.\\w+)*$/',
                   ],
                 /*'save-backup' =>
-                  [
-                    'description' =>
-                      'Whether or not to save a backup of the file in Glacier',
-                    'type' => 'boolean',
-                    'default' => true,
-                ],*/
+                 [
+                 'description' =>
+                 'Whether or not to save a backup of the file in Glacier',
+                 'type' => 'boolean',
+                 'default' => true,
+                 ],*/
                 'password' => [
                   'description' => 'Optional password to delete the file',
                   'type' => 'string',
                   'default' => '',
                   'max-length' => jump_config::MAX_PASS_LEN,
                 ],
-                'content-type' => [
-                  'description' => 'Content type of file -- default is detected from the extension, and falls back to application/octet-stream',
-                  'type' => 'string',
-                  //'default' => 'application/octet-stream',
-                  'max-length' => 40,
-                  'regex' => '/^[\\w.-]+\/[\\w.-]+$/',
-                ],
+                'content-type' =>
+                  [
+                    'description' =>
+                      'Content type of file -- default is detected from the extension, and falls back to application/octet-stream',
+                    'type' => 'string',
+                    'default' => 'application/octet-stream',
+                    'max-length' => 40,
+                    'regex' => '/^[\\w.-]+\/[\\w.-]+$/',
+                  ],
               ],
             'constraints' =>
               [['file-data', 'local-file', 'tmp-key']],
@@ -166,7 +174,7 @@ class api_config {
                 [
                   'action' => 'genFileURL',
                   'tmp-key' => '567709c438b644.69604071',
-                  'extension' => 'png',
+                  'extension' => '.png',
                 ],
               ],
           ],

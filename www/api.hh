@@ -1,7 +1,7 @@
 <?hh
 
-require_once('api_ref.hh');
-require_once('mimes.hh');
+require_once ('api_ref.hh');
+require_once ('mimes.hh');
 
 class ValidationException extends Exception {
   protected $msg;
@@ -19,7 +19,8 @@ class ValidationException extends Exception {
 class jump_api {
 
   public static function get_mime(string $extension): string {
-      return mimes::$mime_types[substr($extension, 1)] ?: "application/octet-stream";
+    return
+      mimes::$mime_types[substr($extension, 1)] ?: "application/octet-stream";
   }
 
   public static $doc;
@@ -214,6 +215,7 @@ class jump_api {
           'expires' => $expires->format(DateTime::ATOM),
           'tmp-key' => $tmp_id,
           'max-length' => jump_config::MAX_FILE_SIZE,
+          'content-type' => 'application/octet-stream',
         ];
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
         error_log($iae);
@@ -228,7 +230,7 @@ class jump_api {
   }
 
   public static function genFileURL($input): ?array {
-      try {
+    try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve);
@@ -258,14 +260,14 @@ class jump_api {
           'File tmp/'.$input['tmp-key'].' not found in S3 bucket',
           400,
         );
-      } catch(AccessDeniedException $ade){
+      } catch (AccessDeniedException $ade) {
         return self::error('Internal exception', 503);
       }
 
-      if($result['ContentLength'] > jump_config::MAX_FILE_SIZE){
-        $s3client->deleteObject([
-            'Bucket' => $dest_bucket, 'Key' => 'tmp/' . $input['tmp-key']
-        ]);
+      if ($result['ContentLength'] > jump_config::MAX_FILE_SIZE) {
+        $s3client->deleteObject(
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$input['tmp-key']],
+        );
         return self::error('File too large', 400);
       }
 
@@ -328,15 +330,13 @@ class jump_api {
 
     $new_key = key_config::generate_key();
 
-
     try {
-        $s3client->waitUntilObjectExists([
-            'Bucket' => $dest_bucket,
-            'Key' => $tmp_file]
-            );
-    } catch(S3Exception $s3e){
-        error_log("waitUntil failed: " . (string) $s3e);
-        return self::error('Failed to copy file', 503);
+      $s3client->waitUntilObjectExists(
+        ['Bucket' => $dest_bucket, 'Key' => $tmp_file],
+      );
+    } catch (S3Exception $s3e) {
+      error_log("waitUntil failed: ".(string) $s3e);
+      return self::error('Failed to copy file', 503);
     }
 
     // copy the temporary file to its new home
@@ -345,20 +345,20 @@ class jump_api {
         [
           'ACL' => $input['private'] ? 'private' : 'public-read',
           'Bucket' => $dest_bucket,
-          'CopySource' => urlencode($dest_bucket . "/" . $tmp_file),
+          'CopySource' => urlencode($dest_bucket."/".$tmp_file),
           'ContentType' => $content_type,
           'Key' => $new_key.$extension,
           'StorageClass' => 'REDUCED_REDUNDANCY',
           'Metadata' => ['IP' => $_SERVER['REMOTE_ADDR']],
-          'MetadataDirective' => 'REPLACE'
+          'MetadataDirective' => 'REPLACE',
         ],
       );
 
     } catch (S3Exception $s3e) {
       error_log('S3 copyObject failed: '.(string) $s3e);
       return self::error('Failed to copy S3 object', 503);
-      } catch (AccessDeniedException $ade){
-        return self::error('Internal exception 3', 503);
+    } catch (AccessDeniedException $ade) {
+      return self::error('Internal exception 3', 503);
     }
 
     $salt = uniqid('', true);
@@ -394,13 +394,14 @@ class jump_api {
       error_log('DynamoDb died: '.(string) $dydbe);
       return self::error('Failed to create new URL', 503);
     }
-        $s3client->deleteObject([
-            'Bucket' => $dest_bucket, 'Key' => $tmp_file]);
+    $s3client->deleteObject(['Bucket' => $dest_bucket, 'Key' => $tmp_file]);
 
     return self::success(
       array_merge(
         ['url' => jump_config::BASEURL.$new_key],
-        $input['private'] ? [] : ['cdn-url' => jump_config::FILE_HOST . $new_key.$extension],
+        $input['private']
+          ? []
+          : ['cdn-url' => jump_config::FILE_HOST.$new_key.$extension],
       ),
     );
   }
