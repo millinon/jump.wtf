@@ -295,7 +295,7 @@ class api_config {
                   'type' => 'string',
                 ],
                 'password' => [
-                  'description' => 'Optional password to delete the URL',
+                  'description' => 'Password to delete the URL',
                   'type' => 'string',
                   'min-length' => 1,
                   'max-length' => jump_config::MAX_PASS_LEN,
