@@ -1,10 +1,13 @@
-MINGWCXX=
-
-CPPFLAGS= -std=c++11 -O2
-OUT=upload-to-jump
+CFLAGS= -std=c++11 -O2 -march=native
+LIBS=-lcurl
+OUT=upload-jump-file
 
 all:
-	$(CXX) $(CPPFLAGS) -march=native -o $(OUT) main.cpp -lcurl
+	$(CXX) $(CFLAGS) -c main.cpp
+	$(CXX) $(CFLAGS) -o $(OUT) main.o $(LIBS)
+
+debug: CFLAGS+=-D_DEBUG
+debug: all
 
 clean:
-	rm -f $(OUT)
+	rm -f *.o $(OUT)
