@@ -156,7 +156,7 @@ class api_config {
                     'description' =>
                       'Content type of file -- default is detected from the extension, and falls back to application/octet-stream',
                     'type' => 'string',
-                    'default' => 'application/octet-stream',
+                    //'default' => 'application/octet-stream',
                     'max-length' => 40,
                     'regex' => '/^[\\w.-]+\/[\\w.-]+$/',
                   ],
@@ -239,7 +239,7 @@ class api_config {
                     'type' => 'string',
                     'max-length' =>
                       strlen('https://jump.wtf//.') +
-                      key_config::length +
+                      key_config::MAX_LENGTH +
                       jump_config::MAX_EXT_LENGTH,
                     'min-length' =>
                       strlen('http://jump.wtf/') + key_config::MIN_LENGTH,
