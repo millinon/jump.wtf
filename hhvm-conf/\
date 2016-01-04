@@ -11,9 +11,8 @@ hhvm.log.file = /var/log/jump/hhvm-error.log
 
 hhvm.enable_xhp=true
 
-hhvm.repo.authoritative = false
+hhvm.repo.authoritative = true
 hhvm.repo.central.path = /var/run/hhvm-jump.wtf/.hhvm.hhbc
-;hhvm.repo.central.path = /var/www/jump/repo/hhvm.hhbc
 
 
 ; php options
@@ -24,5 +23,5 @@ session.gc_maxlifetime = 1440
 date.timezone = UTC
 
 file_uploads = on
-post_max_size = 20M
-upload_max_filesize = 16M
+post_max_size = 84M
+upload_max_filesize = 64M

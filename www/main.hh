@@ -36,7 +36,7 @@ function main(): void {
   if ($uri === 'a') {
     apiHandler::handle();
   } else if ($uri === 's') {
-    s_main($_POST['action']);
+    s_main();
   } else if ($uri === 'r') {
     r_main();
   } else if ($uri === '404') {

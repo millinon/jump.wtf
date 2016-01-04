@@ -125,8 +125,8 @@ class api_config {
                   'description' => 'Local filename to upload to S3',
                   'note' => 'For integerernal use only',
                   'type' => 'string',
-                  'regex' => '/^[0-9a-f]{14}\\.[0-9]{8}$/',
-                  'max-length' => 23,
+                  'regex' => '/^lf-[0-9a-f]{14}\\.[0-9]{8}$/',
+                  'max-length' => strlen(uniqid('lf-', true))
                 ],
                 'extension' =>
                   [

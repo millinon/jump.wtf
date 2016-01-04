@@ -1,79 +1,36 @@
-
-// add event handlers when the page has loaded
 $(document).ready(function(){
+
+    $("#file-expires").change(function(){
+        c = $("#file-clicks");
+        if($(this).is(":checked")){
+            c.prop("disabled", false);
+            c.prop("value",1);
+        } else {
+            c.prop("disabled", true);
+            c.prop("value", "");
+        }
+    });
+
+    $("#file-expires").change();
     
-    new_file = $("#new_file");
-
-    // remove filesystem path from selected file name
-	new_file.change(function(){
-		$("#file-label").text(new_file.val().replace(/^.*\\/, "").replace(/^.*\//, ""));});
-
-    // respond to expires checkbox
-	$("#expires").change(function(){
-        c = $("#clicks");
-		if($(this).is(":checked")){
-						c.prop("disabled",false);
-						c.prop("value",1);
-		} else {
-				c.prop("disabled",true);
-				c.prop("value","");
-		}});
-
-    // URL mode is default
-	$("#file-group").attr("disabled", true);
-	$("#file-button").attr("disabled", true);
-
-    // respond to URL vs file mode
-	$("input[name='sub_type']").change(function (){
-		radioValue = $(this).val();
-        url = $("#new_url");
-        glyph = $("#newsub_glyph");
-
-        // disable URL input, enable file input
-		if(radioValue === "file"){
-				url.prop("value","");
-				url.prop("disabled",true);
-				url.prop("placeholder","");
-				
-				new_file.prop("disabled",false);
-				$("#file-group").attr("disabled", false);
-				$("#file-button").attr("disabled", false);
-				$("#file-label").text("No file selected");
-
-				glyph.removeClass("glyphicon-link");
-				glyph.addClass("glyphicon-cloud-upload");
-		} else {
-        // disable file input, enable URL input
-				url.prop("value","");
-				url.prop("disabled",false);
-				url.prop("placeholder","http://www.example.com/");
-				
-				new_file.prop("disabled",true);
-				$("#file-group").attr("disabled", true);
-				$("#file-button").attr("disabled", true);
-				$("#file-label").text("")
-
-				new_file.wrap('<form>').closest('form').get(0).reset();
-				new_file.unwrap();
-				
-			    glyph.removeClass("glyphicon-cloud-upload");
-				glyph.addClass("glyphicon-link");
-		}
+    $("#url-expires").change(function(){
+        c = $("#url-clicks");
+        if($(this).is(":checked")){
+            c.prop("disabled", false);
+            c.prop("value",1);
+        } else {
+            c.prop("disabled", true);
+            c.prop("value", "");
+        }
     });
 
-    // prevent duplicate file submissions
-    $("#new_submit").submit(function(){
-		type = $("input[name='sub_type']:checked").val();
-		if(type == "file"){
-            newsub = $("#newsub");
-
-				newsub.html(newsub.html().replace("Submit","Uploading..."));
-				newsub.prop("disabled",true);
-		} else if(type == "url"){
-		
-		}	
-
+    $("#url-expires").change();
+    
+    $("#input-file").change(function(){
+        $("#file-label").text($(this).val().replace(/^.*\\/, "").replace(/^.*\//, ""));
     });
+
+    $("#file-label").text("No file selected");
 
     // super secret easter egg
     var mouseDist = 0;

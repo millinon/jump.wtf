@@ -4,7 +4,7 @@ function gen_footer(): mixed {
   return
     <footer class="footer">
       <div class="container text-center">
-        <p class="text-muted">&copy; Phillip Goldfarb {date("Y")}</p>
+      <p class="text-muted">&copy; Phillip Goldfarb {date("Y")}</p>
       </div>
     </footer>;
 }

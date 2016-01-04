@@ -7,122 +7,105 @@ function err($s): void {
     die();
 }
 
-function s_main($action): void {
+function s_main(): void {
 
-    session_start();
+    $result = ['success' => false, 'message' => 'Invalid request?'];
 
-    $result = ['success' => false, 'message' => 'Invalid request'];
+    $private = isset($_POST['expires']) ? $_POST['expires'] : false;
+    $clicks = isset($_POST['clicks']) ? $_POST['clicks'] : 1;
+    $pass = isset($_POST['password']) ? $_POST['password'] : '';
+    $inurl = isset($_POST['input-url']) ? $_POST['input-url'] : '';
+    $delurl = isset($_POST['del-url']) ? $_POST['del-url'] : '';
 
-    if ($action === 'new') {
-        error_log('action = new');
-        $url = "";
-        $ext = "";
+    $action = 'failure';
 
-        $expires = isset($_POST['expires']) ? $_POST['expires'] : false;
-        $clicks = $expires ? max($_POST['clicks'], 1) : -1;
-        $password = $_POST['pass'];
-        $IP = $_SERVER['REMOTE_ADDR'];
-        $type = $_POST['sub_type'];
+    if(!isset($_POST['action'])){
+        err("Invalid request!");
+    } else if($_POST['action'] === 'new-url'){
+        $result = jump_api::genURL(array_merge(['action' => 'genURL', 'input-url' => $inurl],
+            $pass !== '' ? ['password' => $pass] : [],
+            $private ? ['private' => true, 'clicks' => $clicks] : []));
 
-        if ($type === 'file') {
+        $action = 'url_success';
+    } else if($_POST['action'] === 'new-file'){
+        $tmp_name = uniqid('lf-', true);
 
-            $tmp_name = uniqid('', true);
+        if(!isset($_FILES['input-file'])){
+            error_log(print_r($_FILES, TRUE));
+            err('Invalid request!!!');
+        }
 
-            $file = $_FILES['file'];
+        $file = $_FILES['input-file'];
+        
+        if (!move_uploaded_file(
+            $file['tmp_name'],
+            jump_config::UBASEDIR.'/'.$tmp_name,
+        )) {
+            error_log("move_uploaded_file failed");
+            err('Problem with uploaded file');
+        }
 
-            if ($file['size'] > jump_config::MAX_FILE_SIZE) {
-                unlink('jump_config::UBASEDIR/'.$file['name']);
-                err('File too large');
-            }
-
-            $filename = $file['name'];
-            $filesize = $file['size'];
-
-            $matches = null;
-
-            // extract the original filename and the extension
-            if (preg_match(
-                '/((\.[a-zA-Z0-9]{2,4})|(\.[a-zA-Z])){1,4}$/',
-                $file['name'],
-                $matches,
-            ) >
-            0) {
-                if ($matches !== NULL)
-                    $ext = $matches[0]; else
-                        $ext = '.txt';
-            } else
-                $ext = '.txt';
-
-            if (!move_uploaded_file(
-                $file['tmp_name'],
-                jump_config::UBASEDIR.'/'.$tmp_name,
-            )) {
-                error_log("move_uploaded_file failed");
-                err('Problem with uploaded file');
-            }
-
-            if($expires){
-                $result = jump_api::genFileURL(['action' => 'genFileURL', 'local-file' => $tmp_name, 'extension'=>$ext, 'private' => true, 'clicks' => $clicks, 'password' => $password]);
-            } else {
-                $result = jump_api::genFileURL(['action' => 'genFileURL', 'local-file' => $tmp_name, 'extension'=>$ext, 'password' => $password]);
-            }
-
-            $_SESSION['action'] = 'file_success';
-
+        if($file['size'] > jump_config::MAX_LOCAL_FILE_SIZE){
             unlink(jump_config::UBASEDIR.'/'.$tmp_name);
-
-            
-
-        }  else if($type === 'url'){
-            $url = $_POST['new_url'];
-            
-            if($expires){
-                $result = jump_api::genURL(['action' => 'genURL', 'input-url' => $url, 'private' => true, 'clicks' => $clicks, 'password' => $password]);
-            } else {
-                $result = jump_api::genURL(['action' => 'genURL', 'input-url' => $url, 'password' => $password]);
-            }
-
-            $_SESSION['action'] = 'url_success';
-
-        } else {
-            err('Invalid request');
+            err('File too large.');
         }
-    } else if ($action === 'del') {
-        error_log('action = delete');
+        
+        $matches = null;
+        $ext = '';
 
-        $bucket = "";
-        $key = "";
-        $isPrivate = FALSE;
-        $isFile = FALSE;
-        $filename = "";
-        $check = "";
-        $table_pass = "WRONG PASSWORD";
-
-        $pass = $_POST['del_pass'];
-        $key = $_POST['del_url'];
-
-        $result = jump_api::delURL(['action'=>'delURL', 'jump-url'=>$key, 'password'=>$pass]);
-
-        if(!$result['success']){
-            error_log($result['message']);
-            err('Failed to delete URL');
-        } else {
-            // deletion successful
-            if ($isFile) {
-                $_SESSION['action'] = 'del_file';
+        // extract the original filename and the extension
+        if (preg_match('/(\.\w+)+$/', $file['name'], $matches) > 0) {
+            if ($matches !== NULL) {
+                $ext = $matches[0];
             } else {
-                $_SESSION['action'] = 'del_url';
+                $ext = '.txt';
             }
-
+        } else {
+            $ext = '.txt';
         }
-    } else {
-        err('Invalid request');
-    }
+
+        $result = jump_api::genFileURL(array_merge(['action' => 'genFileURL', 'local-file' => $tmp_name, 'extension' => $ext],
+            $pass !== '' ? ['password' => $pass] : [],
+            $private ? ['private' => true, 'clicks' => $clicks] : []));
+
+        $action = 'file_success';
+        
+        unlink(jump_config::UBASEDIR.'/'.$tmp_name);
+
+    } else if($_POST['action'] === 'del-url'){
+        if( filter_var($delurl, FILTER_VALIDATE_URL) ){
+            $result = jump_api::delURL(['action' => 'delURL', 'jump-url' => $delurl]);
+        } else {
+            $result = jump_api::delURL(['action' => 'delURL', 'jump-key' => $delurl]);
+        }
+
+        $action = 'del_success';
     
+    } else {
+        err("Invalid action");
+    }
+
+
     if(! $result['success']){
         err($result['message']);
     } else {
-        $_SESSION['message'] = $result['url'];
+
+        session_start();
+
+        session_regenerate_id(true);
+
+        session_unset();
+        
+        $_SESSION['action'] = $action;
+
+        if(isset($result['url'])){
+            $_SESSION['url'] = $result['url'];
+        }
+
+        if(isset($result['cdn-url'])){
+            $_SESSION['cdn-url'] = $result['cdn-url'];
+        }
+
         header('location:r');
     }
 }
