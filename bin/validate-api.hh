@@ -306,7 +306,7 @@ $reject_tests =
       "clicks" => 0,
     ],
     ["action" => "jumpTo", "jump-key" => "https://jump.wtf/foo"],
-    ["action" => "jumpTo", "jump-key" => "loooooooooooooongKey"],
+    ["action" => "jumpTo", "jump-key" => "looooooooooooooooooooooooooooooooooooooooooooongKey"],
     [
       "action" => "delURL",
       "password" => "a password",
