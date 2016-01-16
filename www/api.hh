@@ -19,7 +19,7 @@ class ValidationException extends Exception {
 class jump_api {
 
   public static function get_mime(string $extension): string {
-      return mimes::$mime_types[substr($extension, 1)] ?: "application/octet-stream";
+      return mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
   }
 
   public static $doc;
