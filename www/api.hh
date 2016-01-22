@@ -177,7 +177,7 @@ class jump_api {
     $private = $input['private'];
 
     $s3client = mk_aws()->get('S3');
-    $tmp_id = uniqid('', true); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
+    $tmp_id = uniqid('gu-', true); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
 
     $bucket = ($private ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET);
 

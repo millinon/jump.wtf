@@ -48,6 +48,8 @@ class api_config {
       'requires-params' => ['private'],
     ];
 
+    $uniqid_regex = '[0-9a-f]{14}\\.[0-9]{8}';
+
     return
       [
         'genUploadURL' =>
@@ -111,7 +113,7 @@ class api_config {
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
-                    'regex' => '/^[0-9a-f]{14}\\.[0-9]{8}$/',
+                    'regex' => '/^gu-' . $uniqid_regex . '$/',
                   ],
                 'file-data' =>
                   [
@@ -123,10 +125,9 @@ class api_config {
                   ],
                 'local-file' => [
                   'description' => 'Local filename to upload to S3',
-                  'note' => 'For integerernal use only',
+                  'note' => 'For internal use only',
                   'type' => 'string',
-                  'regex' => '/^lf-[0-9a-f]{14}\\.[0-9]{8}$/',
-                  'max-length' => strlen(uniqid('lf-', true))
+                  'regex' => '/^lf-' . $uniqid_regex . '$/',
                 ],
                 'extension' =>
                   [
@@ -173,7 +174,7 @@ class api_config {
                 ],
                 [
                   'action' => 'genFileURL',
-                  'tmp-key' => '567709c438b644.69604071',
+                  'tmp-key' => 'gu-567709c438b644.69604071',
                   'extension' => '.png',
                 ],
               ],
