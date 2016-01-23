@@ -1,7 +1,21 @@
 <?hh
 
 class aws_config {
-    const BACKUP_VAULT_NAME = "SOME_VAULT"; /* vault to upload backups to */
+
+    const credentials_ini = "../credentials.ini";
+
+    static function primary_cfg(): array { /* profile with permissions to CF, DYDB, GL, S3 */
+        return array(
+                'profile' => "SOME_PROFILE",
+                'region' => "SOME_REGION");
+    }
+
+    static function URL_cfg(): array { /* profile with permissions to generate S3 upload / viewing URLs */
+        return array(
+                /* WARNING: this profile's access key will be viewable to users in generated URLs */
+                'profile' => "SOME_PROFILE",
+                'region' => "SOME_REGION");
+    }
 
     const LINK_TABLE = "SOME_LINK_TABLE"; /* name of the DynamoDB link table */
 

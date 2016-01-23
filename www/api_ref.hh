@@ -1,6 +1,11 @@
 <?hh
 
-require_once ('config/jump_config.hh'); // to enable validation
+if (file_exists('config/jump_config.hh')) {
+  require_once ('config/jump_config.hh');
+} else {
+  require_once ('config/jump_config.hh.example'); // satisfy validation
+}
+
 require_once ('config/key_config.hh');
 
 class api_config {
@@ -113,7 +118,7 @@ class api_config {
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
-                    'regex' => '/^gu-' . $uniqid_regex . '$/',
+                    'regex' => '/^gu-'.$uniqid_regex.'$/',
                   ],
                 'file-data' =>
                   [
@@ -127,7 +132,7 @@ class api_config {
                   'description' => 'Local filename to upload to S3',
                   'note' => 'For internal use only',
                   'type' => 'string',
-                  'regex' => '/^lf-' . $uniqid_regex . '$/',
+                  'regex' => '/^lf-'.$uniqid_regex.'$/',
                 ],
                 'extension' =>
                   [

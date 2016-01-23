@@ -16,10 +16,57 @@ class ValidationException extends Exception {
   }
 }
 
+class KeygenException extends Exception {
+  protected $t;
+
+  public function __construct(int $tries) {
+    parent::__construct();
+    $this->t = $tries;
+  }
+
+  public function __toString() {
+    return 'Couldn\'t generate a key in '.$this->t.'tries';
+  }
+}
+
 class jump_api {
 
+  private static function jump_key_exists(string $key): bool {
+    $dyclient = awsHelper::dydb_client();
+
+    $res = $dyclient->query(
+      [
+        'TableName' => aws_config::LINK_TABLE,
+        'KeyConditions' => [
+          'Object ID' => [
+            'AttributeValueList' => [['S' => $key]],
+            'ComparisonOperator' => 'EQ',
+          ],
+        ],
+      ],
+    );
+
+    return $res['Count'] > 0;
+  }
+
+  private static function gen_uniq_key(int $maxtries): string {
+    $tries = 0;
+    $new_key = '';
+
+    do {
+      $tries++;
+      if ($tries > $maxtries) {
+        throw new KeygenException($maxtries);
+      }
+      $new_key = key_config::generate_key();
+    } while (self::jump_key_exists($new_key));
+
+    return $new_key;
+  }
+
   public static function get_mime(string $extension): string {
-      return mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
+    return
+      mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
   }
 
   public static $doc;
@@ -162,8 +209,8 @@ class jump_api {
     return ['success' => false, 'message' => $message, 'code' => $code];
   }
 
-  public static function success(array $data): array {
-    return array_merge(['success' => true], $data);
+  public static function success(array $data, int $code = 400): array {
+    return array_merge(['success' => true, 'code' => $code], $data);
   }
 
   public static function genUploadURL(array $input): array {
@@ -175,8 +222,8 @@ class jump_api {
     }
 
     $private = $input['private'];
+    $s3client = awsHelper::s3_URL_client();
 
-    $s3client = mk_aws()->get('S3');
     $tmp_id = uniqid('gu-', true); // is this unique enough for a temporary ID shared between (potentially) multiple servers?
 
     $bucket = ($private ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET);
@@ -210,7 +257,11 @@ class jump_api {
       try {
         return [
           'success' => true,
-          'URL' => $command->createPresignedUrl('+5 minutes'),
+          'URL' =>
+            (string) $s3client->createPresignedRequest(
+              $command,
+              '+5 minutes',
+            )->getURI(),
           'expires' => $expires->format(DateTime::ATOM),
           'tmp-key' => $tmp_id,
           'max-length' => jump_config::MAX_FILE_SIZE,
@@ -235,11 +286,9 @@ class jump_api {
       return self::error((string) $ve);
     }
 
-    $aws = mk_aws();
-
-    $s3client = $aws->get('S3');
-    $dyclient = $aws->get('DynamoDb');
-    $glclient = $aws->get('Glacier');
+    $s3client = awsHelper::s3_client();
+    $dyclient = awsHelper::dydb_client();
+    $glclient = awsHelper::gl_client();
 
     $dest_bucket =
       $input['private'] ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
@@ -247,7 +296,10 @@ class jump_api {
     $tmp_file = NULL;
     $extension = $input['extension'];
 
-    $content_type = isset($input['content-type']) ? $input['content-type'] : self::get_mime($extension);
+    $content_type =
+      isset($input['content-type'])
+        ? $input['content-type']
+        : self::get_mime($extension);
 
     if (isset($input['tmp-key'])) {
       try {
@@ -316,7 +368,12 @@ class jump_api {
 
       try {
         $result = $s3client->putObject(
-          ['Bucket' => $dest_bucket, 'ACL' => 'private', 'Key' => $tmp_file, 'SourceFile' => jump_config::UBASEDIR.'/'.$input['local-file']]
+          [
+            'Bucket' => $dest_bucket,
+            'ACL' => 'private',
+            'Key' => $tmp_file,
+            'SourceFile' => jump_config::UBASEDIR.'/'.$input['local-file'],
+          ],
         );
       } catch (S3Exception $s3e) {
         error_log('S3 file upload failed: '.(string) $s3e);
@@ -327,18 +384,15 @@ class jump_api {
       return self::error('Constraint verification failed');
     }
 
-    $new_key = key_config::generate_key();
-
+    $new_key = '';
     try {
-      $s3client->waitUntilObjectExists(
-        ['Bucket' => $dest_bucket, 'Key' => $tmp_file],
-      );
-    } catch (S3Exception $s3e) {
-      error_log("waitUntil failed: ".(string) $s3e);
-      return self::error('Failed to copy file', 503);
+      $new_key = self::gen_uniq_key(3);
+    } catch (KeygenException $ke) {
+      error_log((string) $ke);
+      return self::error((string) $ke, 503);
     }
 
-    error_log('using content-type ' . $content_type);
+    error_log('using content-type '.$content_type);
 
     // copy the temporary file to its new home
     try {
@@ -365,32 +419,40 @@ class jump_api {
     $salt = uniqid('', true);
 
     try {
-      $res =
-        $dyclient->putItem(
-          [
-            'TableName' => aws_config::LINK_TABLE,
-            'Item' =>
-              [
-                'Object ID' => ['S' => $new_key],
-                'Checksum' => ['S' => '0'], // checksum field is useless, but I set it as a secondary index, so I have to include it
-                'pass' =>
-                  [
-                    'S' =>
-                      $input['password'] === ""
-                        ? 'nopass'
-                        : hash('sha256', $input['password'].$salt),
-                  ],
-                'salt' => ['S' => $salt],
-                'isPrivate' => ['N' => $input['private'] ? 1 : 0],
-                'active' => ['N' => 1],
-                'isFile' => ['N' => 1],
-                'time' => ['S' => date(DateTime::W3C)],
-                'filename' => ['S' => $new_key.$extension],
-                'ext' => ['S' => $extension],
-                'clicks' => ['N' => $input['clicks'] ?: 0],
-              ],
-          ],
-        );
+      $res = $dyclient->putItem(
+        [
+          'TableName' =>
+            aws_config::LINK_TABLE,
+          'Item' =>
+            [
+              'Object ID' =>
+                ['S' => $new_key],
+              'pass' =>
+                [
+                  'S' =>
+                    $input['password'] === ""
+                      ? 'nopass'
+                      : hash('sha256', $input['password'].$salt),
+                ],
+              'salt' =>
+                ['S' => $salt],
+              'isPrivate' =>
+                ['N' => $input['private'] ? '1' : '0'],
+              'active' =>
+                ['N' => '1'],
+              'isFile' =>
+                ['N' => '1'],
+              'time' =>
+                ['S' => date(DateTime::W3C)],
+              'filename' =>
+                ['S' => $new_key.$extension],
+              'ext' =>
+                ['S' => $extension],
+              'clicks' =>
+                ['N' => strval($input['clicks'] ?: 0)],
+            ],
+        ],
+      );
     } catch (DynamoDbException $dydbe) {
       error_log('DynamoDb died: '.(string) $dydbe);
       return self::error('Failed to create new URL', 503);
@@ -418,17 +480,17 @@ class jump_api {
       return self::error("Invalid URL detected.");
     }
 
-    $aws = mk_aws();
-    $dyclient = $aws->get('DynamoDb');
-    $s3client = $aws->get('S3');
-    $glclient = $aws->get('Glacier');
+    $s3client = awsHelper::s3_client();
+    $dyclient = awsHelper::dydb_client();
+    $glclient = awsHelper::gl_client();
 
     $key = "";
-
-    if (($key = key_config::generate_key()) === "") {
-      return self::error("Failed to generate key");
+    try {
+      $key = gen_uniq_key(3);
+    } catch (KeygenException $ke) {
+      error_log((string) $ke);
+      return self::error((string) $ke, 503);
     }
-
     $salt = uniqid('', true);
 
     try {
@@ -440,12 +502,10 @@ class jump_api {
             [
               'Object ID' =>
                 ['S' => $key],
-              'Checksum' =>
-                ['S' => md5($input['input-url'])],
               'url' =>
                 ['S' => $input['input-url']],
               'isPrivate' =>
-                ['N' => $input['private'] ? 1 : 0],
+                ['N' => $input['private'] ? '1' : '0'],
               'pass' =>
                 [
                   'S' =>
@@ -456,13 +516,13 @@ class jump_api {
               'salt' =>
                 ['S' => $salt],
               'active' =>
-                ['N' => 1],
+                ['N' => '1'],
               'clicks' =>
-                ['N' => $input['clicks'] ?: 0],
+                ['N' => strval($input['clicks'] ?: 0)],
               'time' =>
                 ['S' => date(DateTime::W3C)],
               'isFile' =>
-                ['N' => 0],
+                ['N' => '0'],
             ],
         ],
       );
@@ -482,10 +542,9 @@ class jump_api {
       return self::error((string) $ve);
     }
 
-    $aws = mk_aws();
-    $dyclient = $aws->get('DynamoDb');
-    $cfclient = $aws->get('CloudFront');
-    $s3client = $aws->get('S3');
+    $s3client = awsHelper::s3_client();
+    $dyclient = awsHelper::dydb_client();
+    $cfclient = awsHelper::cf_client();
 
     $key = "";
     $filename = "";
@@ -522,49 +581,34 @@ class jump_api {
       $key = $input['jump-key'];
     }
 
-    try {
-      $it = $dyclient->getIterator(
-        'Query',
-        [
-          'TableName' => aws_config::LINK_TABLE,
-          'ConsistentReat' => true,
-          'KeyConditions' => [
-            'Object ID' => [
-              'AttributeValueList' => [['S' => $key]],
-              'ComparisonOperator' => 'EQ',
-            ],
-          ],
-        ],
-      );
+    $res = $dyclient->getItem(
+      [
+        'TableName' => aws_config::LINK_TABLE,
+        'ConsistentRead' => true,
+        'Key' => ['Object ID' => ['S' => $key]],
+      ],
+    );
 
-      if (iterator_count($it) !== 1) {
-        return self::error("Key lookup failed", 400);
-      }
-
-      foreach ($it as $item) {
-        $table_pass = $item['pass']['s'];
-        $isFile = intval($item['isFile']['N']) === 1;
-        if ($isFile) {
-          $filename = $item['filename']['S'];
-        }
-        $isPrivate = intval($item['isPrivate']['N']) === 1;
-        $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
-        $check = $item['Checksum'];
-      }
-    } catch (DynamoDbException $dde) {
-      error_log('DynamoDb lookup failed: ' . (string) $dde);
-      return self::error('DynamoDb lookup failed');
+    if (!isset($res['Item'])) {
+      return self::error("Key lookup failed", 404);
     }
+
+    $item = $res['Item'];
+
+    $table_pass = $item['pass']['s'];
+    $isFile = intval($item['isFile']['N']) === 1;
+    if ($isFile) {
+      $filename = $item['filename']['S'];
+    }
+    $isPrivate = intval($item['isPrivate']['N']) === 1;
+    $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
 
     if (hash('sha256', $input['password'].$salt) === $table_pass) {
       try {
         $dyclient->updateItem(
           [
             'TableName' => aws_config::LINK_TABLE,
-            'Key' => [
-              'Object ID' => ['S' => $key],
-              'Checksum' => ['S' => $check],
-            ],
+            'Key' => ['Object ID' => ['S' => $key]],
             'AttributeUpdates' => [
               'active' => ['Ation' => 'PUT', 'Value' => ['N' => '0']],
             ],
@@ -584,7 +628,7 @@ class jump_api {
           error_log("Failed to delete file $key");
         }
 
-        if ($isPrivate && aws_config::CF_DIST_ID !== "") {
+        if (!$isPrivate && aws_config::CF_DIST_ID !== "") {
           try {
             $cfclient->createInvalidation(
               [
@@ -616,9 +660,8 @@ class jump_api {
       return self::error((string) $ve);
     }
 
-    $aws = mk_aws();
-    $dyclient = $aws->get('DynamoDb');
-    $s3client = $aws->get('S3');
+    $s3client = awsHelper::s3_client();
+    $dyclient = awsHelper::dydb_client();
 
     $url = "";
     $expires = NULL;
@@ -648,137 +691,126 @@ class jump_api {
       $key = $matches[1];
     }
 
-    $it =
-      $dyclient->getIterator(
-        'Query',
-        [
-          'TableName' => aws_config::LINK_TABLE,
-          'ConsistentRead' => false, // just-submitted links may not be immediately available
-          'KeyConditions' => [
-            'Object ID' => [
-              'AttributeValueList' => [['S' => $key]],
-              'ComparisonOperator' => 'EQ',
+    $res = $dyclient->getItem(
+      [
+        'TableName' => aws_config::LINK_TABLE,
+        'Key' => ['Object ID' => ['S' => $key]],
+        'ConsistentRead' => true,
+      ],
+    );
+
+    if (!isset($res['Item'])) {
+      return self::error('Key not found', 404);
+    }
+
+    $item = $res['Item'];
+
+    if (intval($item['active']['N']) === 0) {
+      return self::error("Link removed", 410);
+    }
+
+    $isFile = (intval($item['isFile']['N']) === 1);
+    $isPrivate =
+      isset($item['isPrivate'])
+        ? (intval($item['isPrivate']['N']) === 1)
+        : false;
+
+    if ($isFile) {
+      // private file: generate a signed URL
+      if ($isPrivate) {
+        try {
+          $command = $s3client->getCommand(
+            'GetObject',
+            [
+              'Bucket' => aws_config::PRIV_BUCKET,
+              'Key' => $item['filename']['S'],
             ],
-          ],
-        ],
-      );
-
-    if (iterator_count($it) !== 1) {
-      return self::error("Key not found", 404);
-    } else {
-
-      foreach ($it as $item) {
-        if (intval($item['active']['N']) === 0) {
-          return self::error("Link removed", 410);
+          );
+          $url = (string) $s3client->createPresignedRequest(
+            $command,
+            '+15 minutes',
+          )->getURI();
+          $expires = (new DateTime())->modify("+15 minutes");
+        } catch (S3Exception $s3e) {
+          return self::error("Problem fetching link", 503);
         }
 
-        $isFile = (intval($item['isFile']['N']) === 1);
-        $isPrivate = isset($item['isPrivate']) ? (intval($item['isPrivate']['N']) === 1) : false;
-
-        if ($isFile) {
-            // private file: generate a signed URL
-            if ($isPrivate) {
-                try {
-                    $url = $s3client->getObjectUrl(
-                        aws_config::PRIV_BUCKET,
-                        $item['filename']['s'],
-                        '+15 minutes',
-                    );
-                    $expires = (new DateTime())->modify("+15 minutes");
-                } catch (S3Exception $s3e) {
-                    return self::error("Problem fetching link", 503);
-                }
-
-            // public file: generate a CDN-backed URL
-            } else {
-                $url = jump_config::FILE_HOST.$item['filename']['S'];
-            }
-
-        // URL: just return the stored URL
-        } else {
-            $url = $item['url']['S'];
-        }
-
-        // decrement the item's clicks, if it's private
-        if ($isPrivate) {
-            try {
-                $dyclient->updateItem(
-                    [
-                        'TableName' => aws_config::LINK_TABLE,
-                        'Key' =>
-                        [
-                            'Object ID' => ['S' => $item['Object ID']['S']],
-                            'Checksum' => ['S' => $item['Checksum']['S']], // this is totally useless but I can't remove it at this point
-                        ],
-                        'AttributeUpdate' => [
-                            'clicks' => [
-                                'Action' => 'ADD',
-                                'Value' => ['N' => '-1'],
-                            ],
-                        ],
-                    ],
-                );
-            } catch (DynamoDbException $dde) {
-                error_log("Failed to decrement clicks for key $key");
-            }
-
-            if (intval($item['clicks']['N']) <= 1) {
-                try {
-                    $dyclient->updateItem(
-                        [
-                            'TableName' => aws_config::LINK_TABLE,
-                            'Key' => [
-                                'Object ID' => ['S' => $item['Object ID']['S']],
-                                'Checksum' => ['S' => $item['Checksum']['S']],
-                            ],
-                            'AttributeUpdate' => [
-                                'active' => ['Action' => 'SET', 'Value' => ['N' => 0]],
-                            ],
-                        ],
-                    );
-                } catch (DynamoDbException $dde) { // bad, but not a fatal error
-                    error_log("Failed to mark key $key as inactive");
-                }
-            }
-        }
+        // public file: generate a CDN-backed URL
+      } else {
+        $url = jump_config::FILE_HOST.$item['filename']['S'];
       }
 
+      // URL: just return the stored URL
+    } else {
+      $url = $item['url']['S'];
+    }
+
+    // decrement the item's clicks, if it's private
+    if ($isPrivate) {
+      try {
+        $dyclient->updateItem(
+          [
+            'TableName' => aws_config::LINK_TABLE,
+            'Key' => ['Object ID' => ['S' => $item['Object ID']['S']]],
+            'AttributeUpdate' => [
+              'clicks' => ['Action' => 'ADD', 'Value' => ['N' => '-1']],
+            ],
+          ],
+        );
+      } catch (DynamoDbException $dde) {
+        error_log("Failed to decrement clicks for key $key");
+      }
+
+      if (intval($item['clicks']['N']) <= 1) {
+        try {
+          $dyclient->updateItem(
+            [
+              'TableName' => aws_config::LINK_TABLE,
+              'Key' => ['Object ID' => ['S' => $item['Object ID']['S']]],
+              'AttributeUpdate' => [
+                'active' => ['Action' => 'SET', 'Value' => ['N' => '0']],
+              ],
+            ],
+          );
+        } catch (DynamoDbException $dde) { // bad, but not a fatal error
+          error_log("Failed to mark key $key as inactive");
+        }
+      }
     }
 
     if (isset($expires)) {
-        return self::success(
-            [
-                'url' => $url,
-                'is-file' => true,
-                'expires' => $expires->format(DateTime::ATOM),
-            ],
-        );
+      return self::success(
+        [
+          'url' => $url,
+          'is-file' => true,
+          'expires' => $expires->format(DateTime::ATOM),
+        ],
+      );
     } else {
-        return self::success(['url' => $url, 'is-file' => $isFile]);
+      return self::success(['url' => $url, 'is-file' => $isFile]);
     }
   }
-
 }
 
 class apiHandler {
 
-    private static function error(string $msg): void {
-        echo json_encode(jump_api::error($msg));
-        die();
+  private static function error(string $msg): void {
+    echo json_encode(jump_api::error($msg));
+    die();
+  }
+
+  private static function getInput() {
+
+    if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+      self::error('Missing application/json content type');
+      return NULL;
     }
 
-    private static function getInput() {
+    switch ($_SERVER['REQUEST_METHOD']) {
 
-        if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
-            self::error('Missing application/json content type');
-            return NULL;
-        }
-
-        switch ($_SERVER['REQUEST_METHOD']) {
-
-        case "GET":
-            self::error('This API only supports HTTP POST requests');
-            return NULL;
+      case "GET":
+        self::error('This API only supports HTTP POST requests');
+        return NULL;
         /*
          if(!isset($_GET["q"])){
          apiHandler::error("Missing q parameter in GET request");
@@ -935,7 +967,7 @@ class apiHandler {
     } else {
 
       $action = $input["action"];
-    
+
       switch ($action) {
 
         case 'genUploadURL':

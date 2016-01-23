@@ -1,7 +1,5 @@
 <?hh
 
-require (__DIR__."/../www/config/jump_config.hh");
-
 require (__DIR__."/../www/api_ref.hh");
 require (__DIR__."/../www/api.hh");
 
@@ -306,7 +304,10 @@ $reject_tests =
       "clicks" => 0,
     ],
     ["action" => "jumpTo", "jump-key" => "https://jump.wtf/foo"],
-    ["action" => "jumpTo", "jump-key" => "looooooooooooooooooooooooooooooooooooooooooooongKey"],
+    [
+      "action" => "jumpTo",
+      "jump-key" => "looooooooooooooooooooooooooooooooooooooooooooongKey",
+    ],
     [
       "action" => "delURL",
       "password" => "a password",

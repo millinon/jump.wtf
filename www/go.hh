@@ -1,5 +1,7 @@
 <?hh
 
+require_once ('aws.hh');
+
 function g_main(string $uri): void {
 
   if (strpos($uri, '/') !== false) {
@@ -8,12 +10,12 @@ function g_main(string $uri): void {
 
   $uri = explode(".", $uri)[0];
 
-  $result = jump_api::jumpTo(['action'=>'jumpTo', 'jump-key' => $uri]);
+  $result = jump_api::jumpTo(['action' => 'jumpTo', 'jump-key' => $uri]);
 
-  if(! $result['success']){
-      error_log($result['message']);
+  if ($result['success'] !== true) {
+    error_log($result['message']);
     error_page($result['code'], $uri);
   } else {
-    header('Location:' . $result['url']);
+    header('Location:'.$result['url']);
   }
 }

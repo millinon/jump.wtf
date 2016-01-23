@@ -2,18 +2,15 @@
 
 class jump_config {
     const BASEURL = "https://jump.wtf/"; /* prefix of generated links */
-    const FILE_HOST = "https://some-cloudfront-domain.cloudfront.net/" /* CNAME for the cloudfront distribution backing the public S3 bucket */
+    const FILE_HOST = "https://some-cloudfront-domain.cloudfront.net/"; /* CNAME for the cloudfront distribution backing the public S3 bucket */
 
     const UBASEDIR = "/var/tmp/some/directory"; /* directory where uploads are moved temporarily */
-
-    // backups disabled for now
-    //const SAVE_BACKUP = TRUE; /* set to false to skip backups of user-uploaded files */
 
     const MAX_CLICKS = 1000; /* maximum expiration clicks */
     const MAX_URL_LEN = 128; /* maximum URL length */
     const MAX_PASS_LEN = 20; /* maximum password length */
 
-    const CDN_HOST = "static.jump.wtf"; /* Where clients should download HTML resources from */
+    const CDN_HOST = "f.jump.wtf/static"; /* Where clients should download HTML resources from */
 
     const MAX_FILE_SIZE = 1024*1024*128; // 128 MiB
     const MAX_LOCAL_FILE_SIZE = 1024*1024*16; // 16 MiB
