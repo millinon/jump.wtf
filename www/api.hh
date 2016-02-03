@@ -234,7 +234,7 @@ class jump_api {
       'conditions' => [
         ['acl' => 'private'],
         ['bucket' => "$bucket"],
-        ['starts-with', "\$key", "tmp/"],
+        ['starts-with', "\$key", "tmp/gu-"],
         ['content-length-range', 0, jump_config::MAX_FILE_SIZE],
       ], // /conditions
       'expiration' => $expires->format(DateTime::ATOM),
@@ -250,7 +250,7 @@ class jump_api {
           'Bucket' => $bucket,
           'ContentType' => 'application/octet-stream',
           'Key' => "tmp/".$tmp_id,
-          'Policy' => base64_encode(json_encode($policy)),
+          'Policy' => $policy
         ],
       );
 
@@ -266,6 +266,7 @@ class jump_api {
           'tmp-key' => $tmp_id,
           'max-length' => jump_config::MAX_FILE_SIZE,
           'content-type' => 'application/octet-stream',
+          'http-method' => 'PUT'
         ];
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
         error_log($iae);
@@ -682,7 +683,7 @@ class jump_api {
             key_config::regex.
             ")(\\.[\\w.]{1,".
             jump_config::MAX_EXT_LENGTH.
-            "})$",
+            "})$~",
             $toks['path'],
             $matches,
           )) {
@@ -747,6 +748,7 @@ class jump_api {
 
     // decrement the item's clicks, if it's private
     if ($isPrivate) {
+	error_log("dec");
       try {
         $dyclient->updateItem(
           [

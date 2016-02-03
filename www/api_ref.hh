@@ -97,7 +97,12 @@ class api_config {
                     'description' =>
                       'Content-Type header that must be used for the upload to S3',
                     'type' => 'string',
-                  ],
+                ],
+                'http-method' => 
+                [
+                    'description' => 'HTTP method to use to upload a file to the provided URL - POST or PUT',
+                    'type' => 'string'
+                    ]
               ],
             'examples' =>
               [
