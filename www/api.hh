@@ -437,12 +437,9 @@ class jump_api {
                 ],
               'salt' =>
                 ['S' => $salt],
-              'isPrivate' =>
-                ['N' => $input['private'] ? '1' : '0'],
-              'active' =>
-                ['N' => '1'],
-              'isFile' =>
-                ['N' => '1'],
+                'private_b' => ['BOOL' => $input['private']],
+                'active_b' => ['BOOL' => true],
+                'file_b' => ['BOOL' => true],
               'time' =>
                 ['S' => date(DateTime::W3C)],
               'filename' =>
@@ -487,7 +484,7 @@ class jump_api {
 
     $key = "";
     try {
-      $key = gen_uniq_key(3);
+      $key = self::gen_uniq_key(3);
     } catch (KeygenException $ke) {
       error_log((string) $ke);
       return self::error((string) $ke, 503);
@@ -505,8 +502,7 @@ class jump_api {
                 ['S' => $key],
               'url' =>
                 ['S' => $input['input-url']],
-              'isPrivate' =>
-                ['N' => $input['private'] ? '1' : '0'],
+                'private_b' => ['BOOL' => $input['private']],
               'pass' =>
                 [
                   'S' =>
@@ -516,14 +512,12 @@ class jump_api {
                 ],
               'salt' =>
                 ['S' => $salt],
-              'active' =>
-                ['N' => '1'],
+                'active_b' => ['BOOL' => true],
               'clicks' =>
                 ['N' => strval($input['clicks'] ?: 0)],
               'time' =>
                 ['S' => date(DateTime::W3C)],
-              'isFile' =>
-                ['N' => '0'],
+                    'file_b' => ['BOOL' => false]
             ],
         ],
       );
@@ -610,9 +604,7 @@ class jump_api {
           [
             'TableName' => aws_config::LINK_TABLE,
             'Key' => ['Object ID' => ['S' => $key]],
-            'AttributeUpdates' => [
-              'active' => ['Ation' => 'PUT', 'Value' => ['N' => '0']],
-            ],
+            'UpdateExpression' => 'SET active_b = false'
           ],
         );
       } catch (DynamoDbException $dde) {
@@ -706,15 +698,21 @@ class jump_api {
 
     $item = $res['Item'];
 
-    if (intval($item['active']['N']) === 0) {
+    // I know this is bad but I didn't know dynamodb knew about bools when I started
+    $isActive = isset($item['active_b']['BOOL']) ? $item['active_b']['BOOL'] :
+        (isset($item['active']['N']) ? (intval($item['active']['N']) === 1) : false);
+
+    $isPrivate = isset($item['private_b']['BOOL']) ? $item['private_b']['BOOL'] :
+        (isset($item['isPrivate']['N']) ? (intval($item['isPrivate']['N']) === 1) : false);
+
+    $isFile = isset($item['file_b']['BOOL']) ? $item['file_b']['BOOL'] : 
+        (isset($item['isFile']['N']) ? (intval($item['isFile']['N'] === 1)) : false); // ???
+    
+    $clicks = isset($item['clicks']['N']) ? intval($item['clicks']['N']) : 0;
+
+    if (! $isActive) {
       return self::error("Link removed", 410);
     }
-
-    $isFile = (intval($item['isFile']['N']) === 1);
-    $isPrivate =
-      isset($item['isPrivate'])
-        ? (intval($item['isPrivate']['N']) === 1)
-        : false;
 
     if ($isFile) {
       // private file: generate a signed URL
@@ -746,45 +744,56 @@ class jump_api {
       $url = $item['url']['S'];
     }
 
-    // decrement the item's clicks, if it's private
-    if ($isPrivate) {
-	error_log("dec");
-      try {
-        $dyclient->updateItem(
-          [
-            'TableName' => aws_config::LINK_TABLE,
-            'Key' => ['Object ID' => ['S' => $item['Object ID']['S']]],
-            'AttributeUpdate' => [
-              'clicks' => ['Action' => 'ADD', 'Value' => ['N' => '-1']],
-            ],
-          ],
-        );
-      } catch (DynamoDbException $dde) {
-        error_log("Failed to decrement clicks for key $key");
-      }
+    $promise = null;
 
-      if (intval($item['clicks']['N']) <= 1) {
-        try {
-          $dyclient->updateItem(
-            [
-              'TableName' => aws_config::LINK_TABLE,
-              'Key' => ['Object ID' => ['S' => $item['Object ID']['S']]],
-              'AttributeUpdate' => [
-                'active' => ['Action' => 'SET', 'Value' => ['N' => '0']],
-              ],
+    $kill_legacy = (isset($item['active']) || isset($item['isPrivate']) || isset($item['isFile']));
+    $kill_str = $kill_legacy ? ' REMOVE' : '';
+    
+    if(isset($item['active'])){
+        $kill_str .=  ' active';
+    }
+
+    if(isset($item['isPrivate'])){
+        if(isset($item['active'])) $kill_str .= ',';
+        $kill_str .= ' isPrivate';
+    }
+    
+    if(isset($item['isFile'])){
+        if(isset($item['active']) || isset($item['isPrivate'])) $kill_str .= ',';
+        $kill_str .= ' isFile';
+    }
+
+
+    // TODO: only do updateItem if we need to change clicks or active
+    // for now, I want to replcae the dumb is* keys with booleans
+    try {
+        $dyclient->updateItem([
+            'TableName' => aws_config::LINK_TABLE,
+            'Key' => ['Object ID' => ['S' => $key]],
+            'ExpressionAttributeValues' => [
+                ':a' => ['BOOL' => ($isActive && (!$isPrivate || $clicks >=1))],
+                ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+                ':f' => ['BOOL' => (bool) $isFile],
+                ':p' => ['BOOL' => (bool) $isPrivate],
             ],
-          );
-        } catch (DynamoDbException $dde) { // bad, but not a fatal error
-          error_log("Failed to mark key $key as inactive");
-        }
-      }
+//            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
+//            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
+//                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
+
+            'UpdateExpression' => 'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p ' . $kill_str
+            ]
+        );
+
+
+    } catch(DynamoDbException $dde){
+        error_log('updateItem(' . $key . ') failed');
     }
 
     if (isset($expires)) {
       return self::success(
         [
           'url' => $url,
-          'is-file' => true,
+          'is-file' => $isFile,
           'expires' => $expires->format(DateTime::ATOM),
         ],
       );

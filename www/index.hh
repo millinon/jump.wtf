@@ -75,6 +75,9 @@ function none_input() {
 }
 
 function i_main(): void {
+
+    $tab_classes="container-fluid col-xs-12 col-sm-12 col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3 tab-content";
+
   echo
     <x:doctype>
       <html lang="en">
@@ -98,20 +101,20 @@ function i_main(): void {
           
           <input type="radio" name="tabs" id="tab_url" checked={true} />
             <label for="tab_url">
-                <i class="fa fa-html5"></i><span>Shorten a URL</span>
-            </label>
-            
+                <i></i><span>Shorten a&nbsp;</span>URL
+                </label>
+
             <input type="radio" name="tabs" id="tab_file" />
             <label for="tab_file">
-                <i class="fa fa-html5"></i><span>Upload a file</span>
+                <i></i><span>Upload a&nbsp;</span>File
             </label>
-            
-                <input type="radio" name="tabs" id="tab_del"/>
+
+            <input type="radio" name="tabs" id="tab_del"/>
             <label for="tab_del">
-                <i class="fa fa-html5"></i><span>Delete a link</span>
+                <i></i>Delete<span>&nbsp;a Link</span>
             </label>
             
-            <div id="tab-url-form" class="tab-content">
+            <div id="tab-url-form" class={$tab_classes}>
             <form id="new-url" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
                 {url_input()}
                 {none_input()}
@@ -122,7 +125,7 @@ function i_main(): void {
             </form>
             </div>
 
-            <div id="tab-file-form" class="tab-content">
+            <div id="tab-file-form" class={$tab_classes}>
             <form id="new-file" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
                 {file_input()}
                 {none_input()}
@@ -133,7 +136,7 @@ function i_main(): void {
             </form>
             </div>
 
-            <div id="tab-del-form" class="tab-content">
+            <div id="tab-del-form" class={$tab_classes}>
             <form id="delete" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
                 {del_key_input()}
                 {none_input()}

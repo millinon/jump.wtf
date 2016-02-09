@@ -110,6 +110,12 @@ function r_main(): void {
 
   session_start();
 
+  if(!isset($_SESSION['action'])){
+      $_SESSION['action'] = 'error';
+      $_SESSION['message'] = 'Invalid request';
+  }
+
+
   $msg = isset($_SESSION['message']) ? $_SESSION['message'] : "";
   $body =
     <body>

@@ -106,10 +106,6 @@ html {
      */
 }
 
-.left .github-fork-ribbon {
-    background-color: #333;
-}
-
 @media only screen 
 and (min-device-width : 320px) 
 and (max-device-width : 480px) {
@@ -119,7 +115,6 @@ and (max-device-width : 480px) {
         margin-bottom: -8pt;
         text-align: center;
     }
-
 }
 
 @media only screen 
@@ -130,7 +125,7 @@ and (max-width : 320px) {
         margin-bottom: -8pt;
         text-align: center;
     }
-
+    
 }
 
 .tabs {
@@ -158,8 +153,8 @@ and (max-width : 320px) {
     width: 33.3333%;
 
     color: #ccc;
-    font-size: 30px;
     font-weight: normal;
+    font-size: 30px;
     text-decoration: none;
     text-align: center;
     line-height: 2;
@@ -189,9 +184,9 @@ and (max-width : 320px) {
 
 .tab-content {
     display: none;
-    width: 60%;
+    /*width: 60%;*/
     /*float: left;*/
-    margin: 0 auto;
+    /*margin: 0 auto;*/
     padding: 15px;
     box-sizing: border-box;
 
