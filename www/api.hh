@@ -250,7 +250,7 @@ class jump_api {
           'Bucket' => $bucket,
           'ContentType' => 'application/octet-stream',
           'Key' => "tmp/".$tmp_id,
-          'Policy' => $policy
+          'Policy' => $policy,
         ],
       );
 
@@ -266,7 +266,7 @@ class jump_api {
           'tmp-key' => $tmp_id,
           'max-length' => jump_config::MAX_FILE_SIZE,
           'content-type' => 'application/octet-stream',
-          'http-method' => 'PUT'
+          'http-method' => 'PUT',
         ];
       } catch (Aws\Common\Exception\InvalidArgumentException $iae) {
         error_log($iae);
@@ -437,9 +437,12 @@ class jump_api {
                 ],
               'salt' =>
                 ['S' => $salt],
-                'private_b' => ['BOOL' => $input['private']],
-                'active_b' => ['BOOL' => true],
-                'file_b' => ['BOOL' => true],
+              'private_b' =>
+                ['BOOL' => $input['private']],
+              'active_b' =>
+                ['BOOL' => true],
+              'file_b' =>
+                ['BOOL' => true],
               'time' =>
                 ['S' => date(DateTime::W3C)],
               'filename' =>
@@ -502,7 +505,8 @@ class jump_api {
                 ['S' => $key],
               'url' =>
                 ['S' => $input['input-url']],
-                'private_b' => ['BOOL' => $input['private']],
+              'private_b' =>
+                ['BOOL' => $input['private']],
               'pass' =>
                 [
                   'S' =>
@@ -512,12 +516,14 @@ class jump_api {
                 ],
               'salt' =>
                 ['S' => $salt],
-                'active_b' => ['BOOL' => true],
+              'active_b' =>
+                ['BOOL' => true],
               'clicks' =>
                 ['N' => strval($input['clicks'] ?: 0)],
               'time' =>
                 ['S' => date(DateTime::W3C)],
-                    'file_b' => ['BOOL' => false]
+              'file_b' =>
+                ['BOOL' => false],
             ],
         ],
       );
@@ -591,7 +597,10 @@ class jump_api {
     $item = $res['Item'];
 
     $table_pass = $item['pass']['s'];
-    $isFile = intval($item['isFile']['N']) === 1;
+    $isFile =
+      isset($item['file_b']['BOOL'])
+        ? $item['file_b']
+        : (intval($item['isFile']['N']) === 1);
     if ($isFile) {
       $filename = $item['filename']['S'];
     }
@@ -604,7 +613,7 @@ class jump_api {
           [
             'TableName' => aws_config::LINK_TABLE,
             'Key' => ['Object ID' => ['S' => $key]],
-            'UpdateExpression' => 'SET active_b = false'
+            'UpdateExpression' => 'SET active_b = false',
           ],
         );
       } catch (DynamoDbException $dde) {
@@ -699,18 +708,30 @@ class jump_api {
     $item = $res['Item'];
 
     // I know this is bad but I didn't know dynamodb knew about bools when I started
-    $isActive = isset($item['active_b']['BOOL']) ? $item['active_b']['BOOL'] :
-        (isset($item['active']['N']) ? (intval($item['active']['N']) === 1) : false);
+    $isActive =
+      isset($item['active_b']['BOOL'])
+        ? $item['active_b']['BOOL']
+        : (isset($item['active']['N'])
+             ? (intval($item['active']['N']) === 1)
+             : false);
 
-    $isPrivate = isset($item['private_b']['BOOL']) ? $item['private_b']['BOOL'] :
-        (isset($item['isPrivate']['N']) ? (intval($item['isPrivate']['N']) === 1) : false);
+    $isPrivate =
+      isset($item['private_b']['BOOL'])
+        ? $item['private_b']['BOOL']
+        : (isset($item['isPrivate']['N'])
+             ? (intval($item['isPrivate']['N']) === 1)
+             : false);
 
-    $isFile = isset($item['file_b']['BOOL']) ? $item['file_b']['BOOL'] : 
-        (isset($item['isFile']['N']) ? (intval($item['isFile']['N'] === 1)) : false); // ???
-    
+    $isFile =
+      isset($item['file_b']['BOOL'])
+        ? $item['file_b']['BOOL']
+        : (isset($item['isFile']['N'])
+             ? (intval($item['isFile']['N']) === 1)
+             : false); // ???
+
     $clicks = isset($item['clicks']['N']) ? intval($item['clicks']['N']) : 0;
 
-    if (! $isActive) {
+    if (!$isActive) {
       return self::error("Link removed", 410);
     }
 
@@ -746,47 +767,53 @@ class jump_api {
 
     $promise = null;
 
-    $kill_legacy = (isset($item['active']) || isset($item['isPrivate']) || isset($item['isFile']));
+    $kill_legacy = (isset($item['active']) ||
+                    isset($item['isPrivate']) ||
+                    isset($item['isFile']));
     $kill_str = $kill_legacy ? ' REMOVE' : '';
-    
-    if(isset($item['active'])){
-        $kill_str .=  ' active';
+
+    if (isset($item['active'])) {
+      $kill_str .= ' active';
     }
 
-    if(isset($item['isPrivate'])){
-        if(isset($item['active'])) $kill_str .= ',';
-        $kill_str .= ' isPrivate';
-    }
-    
-    if(isset($item['isFile'])){
-        if(isset($item['active']) || isset($item['isPrivate'])) $kill_str .= ',';
-        $kill_str .= ' isFile';
+    if (isset($item['isPrivate'])) {
+      if (isset($item['active']))
+        $kill_str .= ',';
+      $kill_str .= ' isPrivate';
     }
 
+    if (isset($item['isFile'])) {
+      if (isset($item['active']) || isset($item['isPrivate']))
+        $kill_str .= ',';
+      $kill_str .= ' isFile';
+    }
 
     // TODO: only do updateItem if we need to change clicks or active
     // for now, I want to replcae the dumb is* keys with booleans
     try {
-        $dyclient->updateItem([
-            'TableName' => aws_config::LINK_TABLE,
-            'Key' => ['Object ID' => ['S' => $key]],
-            'ExpressionAttributeValues' => [
-                ':a' => ['BOOL' => ($isActive && (!$isPrivate || $clicks >=1))],
-                ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
-                ':f' => ['BOOL' => (bool) $isFile],
-                ':p' => ['BOOL' => (bool) $isPrivate],
+      $dyclient->updateItem(
+        [
+          'TableName' => aws_config::LINK_TABLE,
+          'Key' => ['Object ID' => ['S' => $key]],
+          'ExpressionAttributeValues' => [
+            ':a' => [
+              'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
             ],
-//            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
-//            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
-//                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
+            ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+            ':f' => ['BOOL' => (bool) $isFile],
+            ':p' => ['BOOL' => (bool) $isPrivate],
+          ],
+          //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
+          //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
+          //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
+          'UpdateExpression' =>
+            'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
+            $kill_str,
+        ],
+      );
 
-            'UpdateExpression' => 'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p ' . $kill_str
-            ]
-        );
-
-
-    } catch(DynamoDbException $dde){
-        error_log('updateItem(' . $key . ') failed');
+    } catch (DynamoDbException $dde) {
+      error_log('updateItem('.$key.') failed');
     }
 
     if (isset($expires)) {
