@@ -76,7 +76,6 @@ $(document).ready(function(){
         "I reject your reality and substitute my own.",
         "In this moment, I am euphoric. Not because of any phony god’s blessing. But because, I am enlightened by my intelligence.",
         "you're a dirty memer, aren't you",
-        "look out, here comes the jews",
         "omg, gmos!",
         "loading unloader",
         "memeing maymays",

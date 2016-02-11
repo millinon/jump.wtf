@@ -770,300 +770,300 @@ class jump_api {
     $kill_str = '';
 
     // remove stupid deprecated attributes from DynamoDB
-        {
-            $kill_list = [];
+    {
+      $kill_list = [];
 
-            if (isset($item['active'])) {
-                array_push($kill_list, 'active');
-            }
+      if (isset($item['active'])) {
+        array_push($kill_list, 'active');
+      }
 
-            if (isset($item['isPrivate'])) {
-                array_push($kill_list, 'isPrivate');
-            }
+      if (isset($item['isPrivate'])) {
+        array_push($kill_list, 'isPrivate');
+      }
 
-            if (isset($item['isFile'])) {
-                array_push($kill_list, 'isFile');
-            }
+      if (isset($item['isFile'])) {
+        array_push($kill_list, 'isFile');
+      }
 
-            if ($isFile && isset($item['url'])){
-                array_push($kill_list, '#u');
-            }
+      //            if ($isFile && isset($item['url'])){
+      //                array_push($kill_list, '#u');
+      //            }
 
-            if (isset($item['Checksum'])){
-                array_push($kill_list, 'Checksum');
-            }
+      if (isset($item['Checksum'])) {
+        array_push($kill_list, 'Checksum');
+      }
 
-            if (isset($item['IP'])){
-                array_push($kill_list, 'IP');
-            }
+      if (isset($item['IP'])) {
+        array_push($kill_list, 'IP');
+      }
 
-            if (isset($item['origname'])){
-                array_push($kill_list, 'origname');
-            }
+      if (isset($item['origname'])) {
+        array_push($kill_list, 'origname');
+      }
 
-            if (isset($item['hits'])){
-                array_push($kill_list, 'hits');
-            }
+      if (isset($item['hits'])) {
+        array_push($kill_list, 'hits');
+      }
 
-            if(count($kill_list) > 0){
-                $kill_str = 'REMOVE ' . implode(', ', $kill_list);
-            }
-        }
+      if (count($kill_list) > 0) {
+        $kill_str = 'REMOVE '.implode(', ', $kill_list);
+      }
+    }
 
     // TODO: only do updateItem if we need to change clicks or active
     // for now, I want to replace the dumb is* keys with booleans
     try {
-        $dyclient->updateItem(
-            [
-                'TableName' => aws_config::LINK_TABLE,
-                'Key' => ['Object ID' => ['S' => $key]],
-                'ExpressionAttributeValues' => [
-                    ':a' => [
-                        'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
-                    ],
-                    ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
-                    ':f' => ['BOOL' => (bool) $isFile],
-                    ':p' => ['BOOL' => (bool) $isPrivate],
-                ],
-                'ExpressionAttributeNames' => [
-                    '#u' => 'url'
-                    ],
-                //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
-                //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
-                //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
-                'UpdateExpression' =>
-                'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
-                $kill_str,
+      $dyclient->updateItem(
+        [
+          'TableName' => aws_config::LINK_TABLE,
+          'Key' => ['Object ID' => ['S' => $key]],
+          'ExpressionAttributeValues' => [
+            ':a' => [
+              'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
             ],
-        );
+            ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+            ':f' => ['BOOL' => (bool) $isFile],
+            ':p' => ['BOOL' => (bool) $isPrivate],
+          ],
+          //                'ExpressionAttributeNames' => [
+          //                    '#u' => 'url'
+          //                    ],
+          //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
+          //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
+          //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
+          'UpdateExpression' =>
+            'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
+            $kill_str,
+        ],
+      );
 
     } catch (DynamoDbException $dde) {
-        error_log('updateItem('.$key.') failed');
+      error_log('updateItem('.$key.') failed');
     }
 
     if (isset($expires)) {
-        return self::success(
-            [
-                'url' => $url,
-                'is-file' => $isFile,
-                'expires' => $expires->format(DateTime::ATOM),
-            ],
-        );
+      return self::success(
+        [
+          'url' => $url,
+          'is-file' => $isFile,
+          'expires' => $expires->format(DateTime::ATOM),
+        ],
+      );
     } else {
-        return self::success(['url' => $url, 'is-file' => $isFile]);
+      return self::success(['url' => $url, 'is-file' => $isFile]);
     }
   }
 }
 
 class apiHandler {
 
-    private static function error(string $msg): void {
-        echo json_encode(jump_api::error($msg));
-        die();
+  private static function error(string $msg): void {
+    echo json_encode(jump_api::error($msg));
+    die();
+  }
+
+  private static function getInput() {
+
+    if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+      self::error('Missing application/json content type');
+      return NULL;
     }
 
-    private static function getInput() {
+    switch ($_SERVER['REQUEST_METHOD']) {
 
-        if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
-            self::error('Missing application/json content type');
-            return NULL;
-        }
-
-        switch ($_SERVER['REQUEST_METHOD']) {
-
-        case "GET":
-            self::error('This API only supports HTTP POST requests');
-            return NULL;
+      case "GET":
+        self::error('This API only supports HTTP POST requests');
+        return NULL;
         /*
          if(!isset($_GET["q"])){
          apiHandler::error("Missing q parameter in GET request");
          return null;
          } else {
          $json = json_decode($_GET["q"], true);
-        }*/
-            break;
+         }*/
+        break;
 
-        case "POST":
-            $in = file_get_contents('php://input', 'r');
-            //        echo 'input: '.$in.' --> ';
-            return json_decode($in, true);
-            break;
+      case "POST":
+        $in = file_get_contents('php://input', 'r');
+        //        echo 'input: '.$in.' --> ';
+        return json_decode($in, true);
+        break;
 
-        default:
-            self::error("Unknown HTTP method");
-            return NULL;
-            break;
-        }
-
+      default:
+        self::error("Unknown HTTP method");
         return NULL;
+        break;
     }
 
-    private static function help($input): void {
-        $api_help = api_config::api_help();
+    return NULL;
+  }
 
-        $topic = $input['topic'] ?: 'help'; //isset($input['topic']) ? $input['topic'] : 'help';
+  private static function help($input): void {
+    $api_help = api_config::api_help();
 
-        if (!isset($api_help['help']['topics'][$topic])) {
-            self::error("Help topic '$topic' not found");
+    $topic = $input['topic'] ?: 'help'; //isset($input['topic']) ? $input['topic'] : 'help';
+
+    if (!isset($api_help['help']['topics'][$topic])) {
+      self::error("Help topic '$topic' not found");
+    }
+
+    $out = "";
+
+    $options =
+      ($_SERVER['REQUEST_METHOD'] === 'GET')
+        ? (JSON_PRETTY_PRINT +
+           JSON_UNESCAPED_SLASHES +
+           JSON_UNESCAPED_UNICODE)
+        : 0;
+
+    switch ($topic) {
+
+      case 'all':
+        $out = json_encode($api_help, $options);
+        break;
+
+      case 'constraints':
+        $out =
+          json_encode(
+            [
+              'description' => 'Specifies required parameters for a method',
+              'note' =>
+                'Exactly one element of each array in the constraint array must be set',
+              'examples' => [
+                [
+                  'constraint' => [['required']],
+                  'satisfied-by' => ['required'],
+                ],
+                [
+                  'constraint' => [['option1', 'option2']],
+                  'satisfied-by' => ['option1'],
+                ],
+                [
+                  'constraint' => [
+                    ['option1', 'option2'],
+                    ['option2', 'option3'],
+                  ],
+                  'satisfied-by' => ['option2'],
+                ],
+                [
+                  'constraint' => [
+                    ['option1', 'option2'],
+                    ['option2', 'option3'],
+                  ],
+                  'satisfied-by' => ['option1', 'option3'],
+                ],
+              ],
+            ],
+            $options,
+          );
+        break;
+
+      default:
+        $out = json_encode($api_help[$topic], $options);
+        break;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+      foreach (array_keys($api_help['help']['topics']) as $key) {
+        $out = preg_replace(
+          "/\"$key\":/",
+          "\"<a href=\"https://jump.wtf/a/?topic=$key\">$key</a>\":",
+          $out,
+        );
+      }
+
+      $out = preg_replace("/\\\\/", "", $out);
+
+      $out = "\"$topic\": ".$out;
+
+      echo
+        "<html><head><title>jump.wtf Documentation</title></head><body><pre>$out</pre></body></html>"
+      ;
+
+    } else {
+      echo $out;
+    }
+  }
+
+  public static function handle(): void {
+    $input = NULL;
+    $api_help = api_config::api_help();
+
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+      header('Content-Type: text/html');
+
+      if (!isset($_GET['action'])) {
+        if (!isset($_GET['topic'])) {
+          header('Location: /a/?action=help&topic=help');
+        } else {
+          header('Location: /a/?action=help&topic='.$_GET['topic']);
         }
+      } else if ($_GET['action'] != 'help') {
+        self::error('Please use HTTP POST for API calls');
+      } else {
+        $input = $_GET;
+      }
 
-        $out = "";
+      if (!isset($_GET['topic'])) {
+        header('Location: /a/?action=help&topic=help');
+        die();
+      } else if (!in_array(
+                   $_GET['topic'],
+                   array_keys($api_help['help']['topics']),
+                 )) {
+        self::error('Invalid help topic');
+      }
 
-        $options =
-            ($_SERVER['REQUEST_METHOD'] === 'GET')
-            ? (JSON_PRETTY_PRINT +
-            JSON_UNESCAPED_SLASHES +
-            JSON_UNESCAPED_UNICODE)
-            : 0;
+    } else if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+      self::error('Please use the application/json content type');
+    } else {
+      header('Content-Type: application/json');
+      $input = apiHandler::getInput();
+    }
 
-        switch ($topic) {
+    if ($input === NULL) {
+      apiHandler::error('Malformed JSON input');
+    } else if (!isset($input['action'])) {
+      apiHandler::error('Input missing action field, try {action:"help"}');
+    } else {
 
-        case 'all':
-            $out = json_encode($api_help, $options);
-            break;
+      $action = $input["action"];
 
-        case 'constraints':
-            $out =
-                json_encode(
-                    [
-                        'description' => 'Specifies required parameters for a method',
-                        'note' =>
-                        'Exactly one element of each array in the constraint array must be set',
-                        'examples' => [
-                            [
-                                'constraint' => [['required']],
-                                'satisfied-by' => ['required'],
-                            ],
-                            [
-                                'constraint' => [['option1', 'option2']],
-                                'satisfied-by' => ['option1'],
-                            ],
-                            [
-                                'constraint' => [
-                                    ['option1', 'option2'],
-                                    ['option2', 'option3'],
-                                ],
-                                'satisfied-by' => ['option2'],
-                            ],
-                            [
-                                'constraint' => [
-                                    ['option1', 'option2'],
-                                    ['option2', 'option3'],
-                                ],
-                                'satisfied-by' => ['option1', 'option3'],
-                            ],
-                        ],
-                    ],
-                    $options,
-                );
-            break;
+      switch ($action) {
+
+        case 'genUploadURL':
+          echo json_encode(jump_api::genUploadURL($input));
+          break;
+
+        case 'genFileURL':
+          echo json_encode(jump_api::genFileURL($input));
+          break;
+
+        case 'genURL':
+          echo json_encode(jump_api::genURL($input));
+          break;
+
+        case 'delURL':
+          echo json_encode(jump_api::delURL($input));
+          break;
+
+        case 'jumpTo':
+          echo json_encode(jump_api::jumpTo($input));
+          break;
+
+        case 'help':
+          self::help($input);
+          break;
 
         default:
-            $out = json_encode($api_help[$topic], $options);
-            break;
-        }
+          apiHandler::error('Unsupported action; try {action:"help"}');
+          break;
+      }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-            foreach (array_keys($api_help['help']['topics']) as $key) {
-                $out = preg_replace(
-                    "/\"$key\":/",
-                    "\"<a href=\"https://jump.wtf/a/?topic=$key\">$key</a>\":",
-                    $out,
-                );
-            }
-
-            $out = preg_replace("/\\\\/", "", $out);
-
-            $out = "\"$topic\": ".$out;
-
-            echo
-                "<html><head><title>jump.wtf Documentation</title></head><body><pre>$out</pre></body></html>"
-                ;
-
-        } else {
-            echo $out;
-        }
     }
-
-    public static function handle(): void {
-        $input = NULL;
-        $api_help = api_config::api_help();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-            header('Content-Type: text/html');
-
-            if (!isset($_GET['action'])) {
-                if (!isset($_GET['topic'])) {
-                    header('Location: /a/?action=help&topic=help');
-                } else {
-                    header('Location: /a/?action=help&topic='.$_GET['topic']);
-                }
-            } else if ($_GET['action'] != 'help') {
-                self::error('Please use HTTP POST for API calls');
-            } else {
-                $input = $_GET;
-            }
-
-            if (!isset($_GET['topic'])) {
-                header('Location: /a/?action=help&topic=help');
-                die();
-            } else if (!in_array(
-                $_GET['topic'],
-                array_keys($api_help['help']['topics']),
-            )) {
-                self::error('Invalid help topic');
-            }
-
-        } else if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
-            self::error('Please use the application/json content type');
-        } else {
-            header('Content-Type: application/json');
-            $input = apiHandler::getInput();
-        }
-
-        if ($input === NULL) {
-            apiHandler::error('Malformed JSON input');
-        } else if (!isset($input['action'])) {
-            apiHandler::error('Input missing action field, try {action:"help"}');
-        } else {
-
-            $action = $input["action"];
-
-            switch ($action) {
-
-            case 'genUploadURL':
-                echo json_encode(jump_api::genUploadURL($input));
-                break;
-
-            case 'genFileURL':
-                echo json_encode(jump_api::genFileURL($input));
-                break;
-
-            case 'genURL':
-                echo json_encode(jump_api::genURL($input));
-                break;
-
-            case 'delURL':
-                echo json_encode(jump_api::delURL($input));
-                break;
-
-            case 'jumpTo':
-                echo json_encode(jump_api::jumpTo($input));
-                break;
-
-            case 'help':
-                self::help($input);
-                break;
-
-            default:
-                apiHandler::error('Unsupported action; try {action:"help"}');
-                break;
-            }
-
-        }
-    }
+  }
 
 }
 
