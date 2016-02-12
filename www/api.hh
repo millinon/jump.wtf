@@ -230,16 +230,6 @@ class jump_api {
 
     $expires = (new DateTime())->modify("+5 minutes");
 
-    $policy = [
-      'conditions' => [
-        ['acl' => 'private'],
-        ['bucket' => "$bucket"],
-        ['starts-with', "\$key", "tmp/gu-"],
-        ['content-length-range', 0, jump_config::MAX_FILE_SIZE],
-      ], // /conditions
-      'expiration' => $expires->format(DateTime::ATOM),
-    ]; // /policy
-
     try {
 
       $command = $s3client->getCommand(
@@ -250,7 +240,6 @@ class jump_api {
           'Bucket' => $bucket,
           'ContentType' => 'application/octet-stream',
           'Key' => "tmp/".$tmp_id,
-          'Policy' => $policy,
         ],
       );
 
