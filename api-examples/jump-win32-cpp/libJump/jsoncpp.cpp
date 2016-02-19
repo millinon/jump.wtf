@@ -2502,7 +2502,7 @@ namespace Json {
 	* memset( this, 0, sizeof(Value) )
 	* This optimization is used in ValueInternalMap fast allocator.
 	*/
-	Value::Value(ValueType vtype) {
+	EXPORT Value::Value(ValueType vtype) {
 		initBasic(vtype);
 		switch (vtype) {
 		case nullValue:
@@ -2657,7 +2657,7 @@ namespace Json {
 			delete[] comments_;
 	}
 
-	Value &Value::operator=(const Value &other) {
+	EXPORT Value &Value::operator=(const Value &other) {
 		Value temp(other);
 		swap(temp);
 		return *this;
@@ -2805,7 +2805,7 @@ namespace Json {
 		return true;
 	}
 
-	std::string Value::asString() const {
+	EXPORT std::string Value::asString() const {
 		switch (type_) {
 		case nullValue:
 			return "";
@@ -3214,7 +3214,7 @@ namespace Json {
 		if (it == value_.map_->end()) return NULL;
 		return &(*it).second;
 	}
-	const Value& Value::operator[](const char* key) const
+	EXPORT const Value& Value::operator[](const char* key) const
 	{
 		Value const* found = find(key, key + strlen(key));
 		if (!found) return nullRef;
@@ -3227,7 +3227,7 @@ namespace Json {
 		return *found;
 	}
 
-	Value& Value::operator[](const char* key) {
+	EXPORT Value& Value::operator[](const char* key) {
 		return resolveReference(key, key + strlen(key));
 	}
 
@@ -3340,7 +3340,7 @@ namespace Json {
 		Value const* value = find(key, cend);
 		return NULL != value;
 	}
-	bool Value::isMember(char const* key) const
+	EXPORT bool Value::isMember(char const* key) const
 	{
 		return isMember(key, key + strlen(key));
 	}

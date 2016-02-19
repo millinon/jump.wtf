@@ -614,7 +614,7 @@ Json::Value arr_value(Json::arrayValue); // []
 Json::Value obj_value(Json::objectValue); // {}
 \endcode
   */
-  Value(ValueType type = nullValue);
+  EXPORT Value(ValueType type = nullValue);
   Value(Int value);
   Value(UInt value);
 #if defined(JSON_HAS_INT64)
@@ -647,11 +647,11 @@ Json::Value obj_value(Json::objectValue); // {}
   Value(bool value);
   /// Deep copy.
   Value(const Value& other);
-  ~Value();
+  EXPORT ~Value();
 
   /// Deep copy, then swap(other).
   /// \note Over-write existing comments. To preserve comments, use #swapPayload().
-  Value &operator=(const Value &other);
+  EXPORT Value &operator=(const Value &other);
   /// Swap everything.
   void swap(Value& other);
   /// Swap values but leave comments and source offsets in place.
@@ -669,7 +669,7 @@ Json::Value obj_value(Json::objectValue); // {}
   int compare(const Value& other) const;
 
   const char* asCString() const; ///< Embedded zeroes could cause you trouble!
-  std::string asString() const; ///< Embedded zeroes are possible.
+  EXPORT std::string asString() const; ///< Embedded zeroes are possible.
   /** Get raw char* of string-value.
    *  \return false if !string. (Seg-fault if str or end are NULL.)
    */
@@ -767,10 +767,10 @@ Json::Value obj_value(Json::objectValue); // {}
   /// Access an object value by name, create a null member if it does not exist.
   /// \note Because of our implementation, keys are limited to 2^30 -1 chars.
   ///  Exceeding that will cause an exception.
-  Value& operator[](const char* key);
+  EXPORT Value& operator[](const char* key);
   /// Access an object value by name, returns null if there is no member with
   /// that name.
-  const Value& operator[](const char* key) const;
+  EXPORT const Value& operator[](const char* key) const;
   /// Access an object value by name, create a null member if it does not exist.
   /// \param key may contain embedded nulls.
   Value& operator[](const std::string& key);
@@ -856,7 +856,7 @@ Json::Value obj_value(Json::objectValue); // {}
 
   /// Return true if the object has a member named key.
   /// \note 'key' must be null-terminated.
-  bool isMember(const char* key) const;
+  EXPORT bool isMember(const char* key) const;
   /// Return true if the object has a member named key.
   /// \param key may contain embedded nulls.
   bool isMember(const std::string& key) const;

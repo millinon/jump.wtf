@@ -1,9 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props" Condition="Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props')" />
-  <Import Project="..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.props" Condition="Exists('..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.props')" />
-  <Import Project="..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.props" Condition="Exists('..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.props')" />
-  <Import Project="..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.props" Condition="Exists('..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -169,9 +165,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\libJump\libJump.vcxproj">
       <Project>{da7b133c-ee32-4f89-a293-b9023caa1808}</Project>
     </ProjectReference>
@@ -183,23 +176,5 @@
     <Image Include="..\millinon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.targets" Condition="Exists('..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.targets')" />
-    <Import Project="..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets" Condition="Exists('..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets')" />
-    <Import Project="..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.targets" Condition="Exists('..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.targets')" />
-    <Import Project="..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets" Condition="Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.props'))" />
-    <Error Condition="!Exists('..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_zlib.1.2.8.5\build\native\rmt_zlib.targets'))" />
-    <Error Condition="!Exists('..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.props'))" />
-    <Error Condition="!Exists('..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets'))" />
-    <Error Condition="!Exists('..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.props'))" />
-    <Error Condition="!Exists('..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_libssh2.1.6.0.0\build\native\rmt_libssh2.targets'))" />
-    <Error Condition="!Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props'))" />
-    <Error Condition="!Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

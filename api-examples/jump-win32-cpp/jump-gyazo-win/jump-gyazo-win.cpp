@@ -454,7 +454,7 @@ LRESULT CALLBACK LayerWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		swprintf_s(sHeight, L"%d", iHeight);
 
 		int w, h, h2;
-		w = -fHeight * 2.5 + 8;
+		w = (int)(-fHeight * 2.5 + 8);
 		h = -fHeight * 2 + 8;
 		h2 = h + fHeight;
 

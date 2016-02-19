@@ -187,8 +187,6 @@
     <Import Project="..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets" Condition="Exists('..\packages\rmt_openssl.1.0.2.6\build\native\rmt_openssl.targets')" />
     <Import Project="..\packages\rmt_zlib.1.2.8.6\build\native\rmt_zlib.targets" Condition="Exists('..\packages\rmt_zlib.1.2.8.6\build\native\rmt_zlib.targets')" />
     <Import Project="..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.targets" Condition="Exists('..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.targets')" />
-    <Import Project="..\packages\jsoncpp.redist.0.6.0.1\build\native\jsoncpp.redist.targets" Condition="Exists('..\packages\jsoncpp.redist.0.6.0.1\build\native\jsoncpp.redist.targets')" />
-    <Import Project="..\packages\jsoncpp.0.6.0.1\build\native\jsoncpp.targets" Condition="Exists('..\packages\jsoncpp.0.6.0.1\build\native\jsoncpp.targets')" />
     <Import Project="..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets" Condition="Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -201,8 +199,6 @@
     <Error Condition="!Exists('..\packages\rmt_zlib.1.2.8.6\build\native\rmt_zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_zlib.1.2.8.6\build\native\rmt_zlib.targets'))" />
     <Error Condition="!Exists('..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.props'))" />
     <Error Condition="!Exists('..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_libssh2.1.6.0.2\build\native\rmt_libssh2.targets'))" />
-    <Error Condition="!Exists('..\packages\jsoncpp.redist.0.6.0.1\build\native\jsoncpp.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\jsoncpp.redist.0.6.0.1\build\native\jsoncpp.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\jsoncpp.0.6.0.1\build\native\jsoncpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\jsoncpp.0.6.0.1\build\native\jsoncpp.targets'))" />
     <Error Condition="!Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.props'))" />
     <Error Condition="!Exists('..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\rmt_curl.7.47.1.0\build\native\rmt_curl.targets'))" />
   </Target>
