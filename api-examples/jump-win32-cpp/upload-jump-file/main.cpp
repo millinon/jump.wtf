@@ -1,21 +1,17 @@
-// upload-jump-file.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 
 #include <iostream>
 
-#include "jump.hpp"
-using namespace jump;
+#include "jump.h"
+
+#include "json/json.h"
 
 int main(int argc, char * argv[])
 {
-	curl_global_init(CURL_GLOBAL_ALL);
-
-	json response[2];
+	Json::Value json;
 
 	if (argc < 2) {
-		std::cerr << "Usage: " << argv[0] << " path/to/file1 [path/to/file2] [...]" << std::endl;
+		std::cerr << "Usage: upload-jump-file.exe path/to/file1 [path/to/file2] [...]" << std::endl;
 		return 1;
 	}
 
@@ -26,14 +22,15 @@ int main(int argc, char * argv[])
 
 		if (file.find(".") == std::string::npos) {
 			extension = ".txt";
-		} else {
+		}
+		else {
 			extension = file.substr(file.find_last_of("."));
 		}
 
 		std::cout << "Trying to upload " << file << std::endl;
 
 		try {
-			response[0] = jump::get_upload_url();
+			json = jump::get_upload_url();
 			std::cout << "    Got upload URL " << std::endl;
 		}
 		catch (jump::JumpException je) {
@@ -42,7 +39,7 @@ int main(int argc, char * argv[])
 		}
 
 		try {
-			jump::upload_file(response[0]["URL"], file, response[0]["content-type"]);
+			jump::upload_file(json["URL"].asString(), file, json["content-type"].asString());
 			std::cout << "    Uploaded file" << std::endl;
 		}
 		catch (jump::JumpException je) {
@@ -51,18 +48,16 @@ int main(int argc, char * argv[])
 		}
 
 		try {
-			response[1] = jump::get_jump_file_url(response[0]["tmp-key"], extension);
-			std::cout << "    Got jump.wtf URL: " << response[1]["url"] << std::endl;
-			if (response[1].find("cdn-url") != response[1].end())
-				std::cout << "    CDN URL: " << response[1]["cdn-url"] << std::endl;
+			json = jump::gen_jump_file_url(json["tmp-key"].asString(), extension);
+			std::cout << "    Got jump.wtf URL: " << json["url"].asString() << std::endl;
+			if (json.isMember("cdn-url"))
+				std::cout << "    CDN URL: " << json["cdn-url"].asString() << std::endl;
 		}
-		catch (JumpException je) {
+		catch (jump::JumpException je) {
 			std::cerr << je.what() << std::endl;
 			continue;
 		}
 	}
-
-	curl_global_cleanup();
 
 	return 0;
 }
