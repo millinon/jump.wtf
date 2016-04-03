@@ -15,4 +15,20 @@ class jump_config {
     const MAX_FILE_SIZE = 1024*1024*128; // 128 MiB
     const MAX_LOCAL_FILE_SIZE = 1024*1024*16; // 16 MiB
     const MAX_EXT_LENGTH = 16;
+
+    static function cdn_host(){
+        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+            return jump_config::H_CDN_HOST;
+        } else {
+            return jump_config::CDN_HOST;
+        }
+    }
+
+    static function base_url(){
+        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+            return jump_config::H_BASEURL;
+        } else {
+            return jump_config::BASEURL;
+        }
+    }
 }

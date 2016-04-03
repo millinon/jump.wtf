@@ -1,5 +1,10 @@
 <?hh
 
+require_once('vendor/facebook/xhp-lib/init.php');
+
+require_once('header.hh');
+require_once('footer.hh');
+
 function heading(string $action): string {
   switch ($action) {
     case "del_file":

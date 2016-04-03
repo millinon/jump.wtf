@@ -97,4 +97,4 @@ class awsHelper {
 
 }
 
-awsHelper::init();
+//awsHelper::init();

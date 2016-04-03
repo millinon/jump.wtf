@@ -1,8 +1,10 @@
 <?hh
 
-require_once ('aws.hh');
+require_once ('api.hh');
 
 function g_main(string $uri): void {
+
+  awsHelper::init();
 
   if (strpos($uri, '/') !== false) {
     error_page(404, $uri);

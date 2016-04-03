@@ -1,6 +1,6 @@
 <?hh
 
-require_once ('aws.hh');
+require_once ('api.hh');
 
 function err($s): void {
   $_SESSION['action'] = 'error';
@@ -10,12 +10,14 @@ function err($s): void {
 }
 
 function s_main(): void {
-  $result = ['success' => false, 'message' => 'Invalid request?'];
+    awsHelper::init();
+
+    $result = ['success' => false, 'message' => 'Invalid request?'];
 
   $private = isset($_POST['expires']) ? $_POST['expires'] : false;
   $clicks = isset($_POST['clicks']) ? intval($_POST['clicks']) : 1;
   $pass = isset($_POST['password']) ? $_POST['password'] : '';
-  $inurl = isset($_POST['input-url']) ? $_POST['input-url'] : '';
+  $inurl = isset($_POST['new-url']) ? $_POST['new-url'] : '';
   $delurl = isset($_POST['del-url']) ? $_POST['del-url'] : '';
 
   $action = 'failure';

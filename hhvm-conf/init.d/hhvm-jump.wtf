@@ -29,8 +29,8 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Default values. This values can be overwritten in '/etc/default/hhvm'
 CONFIG_FILE="/etc/hhvm/jump.wtf-server.ini"
 SYSTEM_CONFIG_FILE="/etc/hhvm/jump.wtf-php.ini"
-RUN_AS_USER="nginx"
-RUN_AS_GROUP="nginx"
+RUN_AS_USER="www-data"
+RUN_AS_GROUP="www-data"
 ADDITIONAL_ARGS=""
 
 # Read configuration variable file if it is present

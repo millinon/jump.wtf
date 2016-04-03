@@ -1,7 +1,11 @@
 <?hh
 
+require_once ('aws.hh');
 require_once ('api_ref.hh');
 require_once ('mimes.hh');
+
+require_once ('config/jump_config.hh');
+require_once ('config/key_config.hh');
 
 class ValidationException extends Exception {
   protected $msg;
@@ -449,9 +453,12 @@ class jump_api {
     }
     $s3client->deleteObject(['Bucket' => $dest_bucket, 'Key' => $tmp_file]);
 
+    $cdn_host = jump_config::cdn_host();
+    $base = jump_config::base_url();
+
     return self::success(
-      array_merge(
-        ['url' => jump_config::BASEURL.$new_key],
+        array_merge(
+        ['url' => $base.$new_key],
         $input['private']
           ? []
           : ['cdn-url' => jump_config::FILE_HOST.$new_key.$extension],
@@ -521,98 +528,100 @@ class jump_api {
       return self::error("Failed to generate URL. Please try again later.");
     }
 
-    return self::success(['url' => 'https://jump.wtf/'.$key]);
+    $base = jump_config::base_url();
+
+    return self::success(['url' => $base.$key]);
   }
 
   public static function delURL($input): array {
 
-    try {
-      $input = validate($input);
-    } catch (ValidationException $ve) {
-      return self::error((string) $ve);
-    }
-
-    $s3client = awsHelper::s3_client();
-    $dyclient = awsHelper::dydb_client();
-    $cfclient = awsHelper::cf_client();
-
-    $key = "";
-    $filename = "";
-    $isPrivate = false;
-    $check = "";
-    $table_pass = "";
-    $salt = "";
-    $isFile = false;
-
-    if (isset($input['jump-url'])) {
-      if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
-        return self::error("URL validation faield");
-      } else {
-        $toks = parse_url($input['jump-url']);
-        if (!$toks) {
-          return self::error("Problem with URL specified", 400);
-        }
-        $matches = [];
-        if (!preg_match(
-              "~^/(".
-              key_config::regex.
-              ")(\\.[\\w.]{1,".
-              jump_config::MAX_EXT_LENGTH.
-              "})$",
-              $toks['path'],
-              $matches,
-            )) {
-          return self::error("Invalid URL specified", 400);
-        } else {
-          $key = $matches[1];
-        }
-      }
-    } else {
-      $key = $input['jump-key'];
-    }
-
-    $res = $dyclient->getItem(
-      [
-        'TableName' => aws_config::LINK_TABLE,
-        'ConsistentRead' => true,
-        'Key' => ['Object ID' => ['S' => $key]],
-      ],
-    );
-
-    if (!isset($res['Item'])) {
-      return self::error("Key lookup failed", 404);
-    }
-
-    $item = $res['Item'];
-
-    $table_pass = $item['pass']['s'];
-    $isFile =
-      isset($item['file_b']['BOOL'])
-        ? $item['file_b']
-        : (intval($item['isFile']['N']) === 1);
-    if ($isFile) {
-      $filename = $item['filename']['S'];
-    }
-    $isPrivate = intval($item['isPrivate']['N']) === 1;
-    $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
-
-    if (hash('sha256', $input['password'].$salt) === $table_pass) {
       try {
-        $dyclient->updateItem(
-          [
-            'TableName' => aws_config::LINK_TABLE,
-            'Key' => ['Object ID' => ['S' => $key]],
-            'UpdateExpression' => 'SET active_b = false',
-          ],
-        );
-      } catch (DynamoDbException $dde) {
-        error_log("Failed to delete item $key: ".(string) $dde);
-        return self::error("Failed to delete item", 500);
+          $input = validate($input);
+      } catch (ValidationException $ve) {
+          return self::error((string) $ve);
       }
 
+      $s3client = awsHelper::s3_client();
+      $dyclient = awsHelper::dydb_client();
+      $cfclient = awsHelper::cf_client();
+
+      $key = "";
+      $filename = "";
+      $isPrivate = false;
+      $check = "";
+      $table_pass = "";
+      $salt = "";
+      $isFile = false;
+
+      if (isset($input['jump-url'])) {
+          if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
+              return self::error("URL validation faield");
+          } else {
+              $toks = parse_url($input['jump-url']);
+              if (!$toks) {
+                  return self::error("Problem with URL specified", 400);
+              }
+              $matches = [];
+              if (!preg_match(
+                  "~^/(".
+                  key_config::regex.
+                  ")(\\.[\\w.]{1,".
+                  jump_config::MAX_EXT_LENGTH.
+                  "})$",
+                  $toks['path'],
+                  $matches,
+              )) {
+                  return self::error("Invalid URL specified", 400);
+              } else {
+                  $key = $matches[1];
+              }
+          }
+      } else {
+          $key = $input['jump-key'];
+      }
+
+      $res = $dyclient->getItem(
+          [
+              'TableName' => aws_config::LINK_TABLE,
+              'ConsistentRead' => true,
+              'Key' => ['Object ID' => ['S' => $key]],
+          ],
+      );
+
+      if (!isset($res['Item'])) {
+          return self::error("Key lookup failed", 404);
+      }
+
+      $item = $res['Item'];
+
+      $table_pass = $item['pass']['s'];
+      $isFile =
+          isset($item['file_b']['BOOL'])
+          ? $item['file_b']
+          : (intval($item['isFile']['N']) === 1);
       if ($isFile) {
-        $bucket =
-          $isPrivate ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
+          $filename = $item['filename']['S'];
+      }
+      $isPrivate = intval($item['isPrivate']['N']) === 1;
+      $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
+
+      if (hash('sha256', $input['password'].$salt) === $table_pass) {
+          try {
+              $dyclient->updateItem(
+                  [
+                      'TableName' => aws_config::LINK_TABLE,
+                      'Key' => ['Object ID' => ['S' => $key]],
+                      'UpdateExpression' => 'SET active_b = false',
+                  ],
+              );
+          } catch (DynamoDbException $dde) {
+              error_log("Failed to delete item $key: ".(string) $dde);
+              return self::error("Failed to delete item", 500);
+          }
+
+          if ($isFile) {
+              $bucket =
+                  $isPrivate ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
         try {
           $s3client->deleteObject(['Bucket' => $bucket, 'Key' => $filename]);
         } catch (S3Exception $s3e) {
@@ -976,6 +985,7 @@ class apiHandler {
   }
 
   public static function handle(): void {
+    awsHelper::init();
     $input = NULL;
     $api_help = api_config::api_help();
 

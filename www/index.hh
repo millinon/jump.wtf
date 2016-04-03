@@ -1,26 +1,24 @@
 <?hh
 
-/*class :file_span extends :span {
-  attribute bool disabled;
-}*/
+require_once ('vendor/facebook/xhp-lib/init.php');
 
-function input_label($label){
-    return <span class="input-group-addon">&nbsp;{$label}</span>;
+require_once('header.hh');
+require_once('forms.hh');
+require_once('footer.hh');
+
+
+function input_none(){
+    return <div class="input-group"><input style="display:none;" /></div>;
 }
 
-function url_input() {
-    return <div class="input-group">
-        {input_label("URL:")}
-                    <input type="url" class="form-control" name="input-url" id="input-url" placeholder="http://www.example.com" maxlength={jump_config::MAX_URL_LEN} autofocus={true} required={true} autocomplete="off" />
-                    <input style="display:none" />
-                </div>;
+function input_label(string $label){
+    return <span class="input-group-addon">&nbsp;{$label}</span>;
 }
 
 function file_input() {
     return <div class="input-group" id="file-input-group">
         {input_label("File:")}
         <span id="file-group" class="form-control">
-            <input type="hidden" name="MAX_FILE_SIZE" value={(string) jump_config::MAX_LOCAL_FILE_SIZE} />
             <span class="btn btn-default btn-file" id="file-button">
             Browse
             <input type="file" class="form-control" name="input-file" id="input-file" />
@@ -28,13 +26,6 @@ function file_input() {
                 <span id="file-label" style="margin-left: 5px"></span>
         </span>
     </div>;
-}
-
-function pass_input(string $id_prefix) {
-    return <div class="input-group">
-        {input_label("Password for deletion:")}
-        <input type="password" class="form-control" name="password" id={$id_prefix . '-pass'} maxlength={jump_config::MAX_PASS_LEN} autocomplete="off" placeholder="(optional)" />
-        </div>;
 }
 
 function expire_input(string $id_prefix) {
@@ -56,22 +47,34 @@ function submit_input(string $id_prefix, string $icon) {
         </button>;
 }
 
-function del_key_input() {
-    return <div class="input-group">
-        {input_label('ID:')}
-        <input type="text" class="form-control" name="del-url" id="del-url" pattern={'(https?://jump.wtf/)?' . key_config::regex} placeholder="https://jump.wtf/fooBar" required={true} autocomplete="off" maxlength={key_config::MAX_LENGTH} />
-    </div>;
+function url_input(string $id_prefix, string $title, string $placeholder, int $maxlength = jump_config::MAX_URL_LEN, bool $autofocus = false){
+
+    $id = $id_prefix . '-url';
+
+    return <div class="input-group" id={$id_prefix . '-url-input-group'}>
+            {input_label($title)}
+            <input type="url" class="form-control" name={$id} id={$id}  placeholder={$placeholder} maxlength={$maxlength} autofocus={$autofocus} required={true} autocomplete="off" />
+            </div>;
 }
 
-function del_pass_input() {
+function pass_input(string $id_prefix, string $title='Password:', bool $required = false) {
+
+    $id = $id_prefix . '-pass';
+
+    $input = null;
+
+    if($required){
+        $input = <input type="password" class="form-control" name="password" id={$id} maxlength={jump_config::MAX_PASS_LEN} autocomplete="deletion-pass" required={true}/>;
+        //$input->setAttribute('required', 'true');
+    } else {
+        $input = <input type="password" class="form-control" name="password" id={$id} maxlength={jump_config::MAX_PASS_LEN} autocomplete="deletion-pass" placeholder="(Optional)"/>;
+        //$input->setAttribute('placeholder', '(Optional)');
+    }
+
     return <div class="input-group">
-        {input_label('Password:')}
-        <input type="password" class="form-control" name="password" id="del-pass" maxlength={jump_config::MAX_PASS_LEN} autocomplete="off" />
+    {input_label($title)}
+    {$input}
         </div>;
-}
-
-function none_input() {
-    return <input style="display:none" />;
 }
 
 function i_main(): void {
@@ -89,7 +92,7 @@ function i_main(): void {
               <h1>Link Shortening / File Hosting Service</h1>
               <p>
                 By submitting a link or file, you are agreeing to this site's
-                <a target="_blank" href="https://f.jump.wtf/wZw.txt">
+                <a target="_blank" href="https://f.jump.wtf/mVR3.txt">
                   Terms of Service and Privacy Policy
                 </a>. <br />
                 This site's source code is available on <a href="https://github.com/millinon/jump.wtf">GitHub</a>.
@@ -115,21 +118,20 @@ function i_main(): void {
             </label>
             
             <div id="tab-url-form" class={$tab_classes}>
-            <form id="new-url" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
-                {url_input()}
-                {none_input()}
-                {pass_input('url')}
-                {expire_input('url')}
-                {action_input('url', 'new-url')}
-                {submit_input('url', 'glyphicon-link')}
+            <form id="new-url" action="s" method="post" enctype="multipart/form-data">
+                {url_input('new', 'URL:', 'http://example.com', jump_config::MAX_URL_LEN, true)}
+                {input_none()}
+                {pass_input('new', 'Password for deletion:')}
+                {expire_input('new')}
+                {action_input('new', 'new-url')}
+                {submit_input('new', 'glyphicon-link')}
             </form>
             </div>
 
             <div id="tab-file-form" class={$tab_classes}>
-            <form id="new-file" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
+            <form id="new-file" action="s" method="post" enctype="multipart/form-data">
                 {file_input()}
-                {none_input()}
-                {pass_input('file')}
+                {pass_input('file', 'Password for deletion:')}
                 {expire_input('file')}
                 {action_input('file', 'new-file')}
                 {submit_input('file', 'glyphicon-cloud-upload')}
@@ -137,10 +139,10 @@ function i_main(): void {
             </div>
 
             <div id="tab-del-form" class={$tab_classes}>
-            <form id="delete" action="s" method="post" enctype="multipart/form-data" autocomplete="off">
-                {del_key_input()}
-                {none_input()}
-                {del_pass_input()}
+            <form id="delete" action="s" method="post" enctype="multipart/form-data">
+                {url_input('del', 'URL:', 'https://jump.wtf/fooBar', jump_config::MAX_URL_LEN)}
+                {input_none()}
+                {pass_input('del', 'Password:', true)}
                 {action_input('del', 'del-url')}
                 {submit_input('del', 'glyphicon-trash')}
                 </form>
