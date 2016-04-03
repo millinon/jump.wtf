@@ -10,9 +10,9 @@ function err($s): void {
 }
 
 function s_main(): void {
-    awsHelper::init();
+  awsHelper::init();
 
-    $result = ['success' => false, 'message' => 'Invalid request?'];
+  $result = ['success' => false, 'message' => 'Invalid request?'];
 
   $private = isset($_POST['expires']) ? $_POST['expires'] : false;
   $clicks = isset($_POST['clicks']) ? intval($_POST['clicks']) : 1;
@@ -46,14 +46,14 @@ function s_main(): void {
 
     if (!move_uploaded_file(
           $file['tmp_name'],
-          jump_config::UBASEDIR.'/'.$tmp_name,
+          jump_config::UPLOAD_DIR.'/'.$tmp_name,
         )) {
       error_log("move_uploaded_file failed");
       err('Problem with uploaded file');
     }
 
     if ($file['size'] > jump_config::MAX_LOCAL_FILE_SIZE) {
-      unlink(jump_config::UBASEDIR.'/'.$tmp_name);
+      unlink(jump_config::UPLOAD_DIR.'/'.$tmp_name);
       err('File too large.');
     }
 
@@ -85,7 +85,7 @@ function s_main(): void {
 
     $action = 'file_success';
 
-    unlink(jump_config::UBASEDIR.'/'.$tmp_name);
+    unlink(jump_config::UPLOAD_DIR.'/'.$tmp_name);
 
   } else if ($_POST['action'] === 'del-url') {
     if (filter_var($delurl, FILTER_VALIDATE_URL)) {

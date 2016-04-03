@@ -1,7 +1,8 @@
 <?hh
 
-require (__DIR__."/../www/api_ref.hh");
-require (__DIR__."/../www/api.hh");
+set_include_path(dirname(__FILE__).'/../www/include');
+
+require ('api.hh');
 
 /*  The documentation / API validation is pretty solid, but it's fairly complex in terms of hierarchy, so it's easy to mistakenly add a field to the API in the wrong place. This file will verify that for each action defined for the API, the action's fields are well defined. If the API as defined in api_documentation.hh is provably correct, and the validation provably evaluates the API correctly, then the output of the validator will be correct or will throw an exception.
  */
@@ -314,6 +315,11 @@ $reject_tests =
       "jump-key" => "https://jump.wtf/fooBar",
     ],
     ["action" => "delURL", "password" => "", "jump-key" => "foo"],
+    [
+      "action" => "genURL",
+      "input-url" => "https://jump.wtf",
+      "custom-url" => "fooBar",
+    ],
   ];
 
 echo "Running tests on invalid input...\n";

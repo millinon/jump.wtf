@@ -1,15 +1,15 @@
 <?hh
 
-require_once('vendor/facebook/xhp-lib/init.php');
+require_once ('vendor/facebook/xhp-lib/init.php');
 
-require_once('config/jump_config.hh');
+require_once (dirname(__FILE__).'/config/jump_config.hh');
 
 function gen_head($title = "JUMP.WTF") {
 
-    $cdn_host = jump_config::cdn_host();
-    $base = jump_config::base_url();
+  $cdn_host = jump_config::cdn_host();
+  $base = jump_config::base_url();
 
-    return
+  return
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -22,23 +22,19 @@ function gen_head($title = "JUMP.WTF") {
       <link
         rel="shortcut icon"
         type="image/x-icon"
-        href={$base . "favicon.ico"}
+        href={$base."favicon.ico"}
       />
       <link
         rel="stylesheet"
-        href=
-          {"//".$cdn_host.
-          "/vendor/bootstrap/dist/css/bootstrap.min.css"}
+        href={$cdn_host."/vendor/bootstrap/dist/css/bootstrap.min.css"}
       />
       <link
         rel="stylesheet"
-        href=
-          {"//".$cdn_host.
-          "/vendor/bootstrap/dist/css/bootstrap-theme.min.css"}
+        href={$cdn_host."/vendor/bootstrap/dist/css/bootstrap-theme.min.css"}
       />
       <link
         rel="stylesheet"
-        href={"//".$cdn_host."/vendor/clippy.js/build/clippy.css"}
+        href={$cdn_host."/vendor/clippy.js/build/clippy.css"}
         media="all"
       />
       <link
@@ -50,16 +46,14 @@ function gen_head($title = "JUMP.WTF") {
       <link
         rel="stylesheet"
         href=
-          {"//".$cdn_host.
-          "/css/".
-          file_get_contents("htdocs/css/main.css.latest")}
+          {$cdn_host."/css/".file_get_contents("htdocs/css/main.css.latest")}
       />
     </head>;
 }
 
 function gen_nav() {
-    
-    $base = jump_config::base_url();
+
+  $base = jump_config::base_url();
 
   //echo "<body>";
   return

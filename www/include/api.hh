@@ -4,9 +4,6 @@ require_once ('aws.hh');
 require_once ('api_ref.hh');
 require_once ('mimes.hh');
 
-require_once ('config/jump_config.hh');
-require_once ('config/key_config.hh');
-
 class ValidationException extends Exception {
   protected $msg;
 
@@ -225,6 +222,20 @@ class jump_api {
       return self::error((string) $ve);
     }
 
+    $limit = jump_config::MAX_FILE_SIZE;
+    if (isset($input['promo-code'])) {
+      $balance = self::getBalance(
+        ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
+      );
+      if (!$balance['success']) {
+        return self::error('Invalid promo code');
+      } else {
+        if ($balance['large-files'] > 0) {
+          $limit = jump_config::PROMO_MAX_FILE_SIZE;
+        }
+      }
+    }
+
     $private = $input['private'];
     $s3client = awsHelper::s3_URL_client();
 
@@ -257,7 +268,7 @@ class jump_api {
             )->getURI(),
           'expires' => $expires->format(DateTime::ATOM),
           'tmp-key' => $tmp_id,
-          'max-length' => jump_config::MAX_FILE_SIZE,
+          'max-length' => $limit,
           'content-type' => 'application/octet-stream',
           'http-method' => 'PUT',
         ];
@@ -273,7 +284,7 @@ class jump_api {
 
   }
 
-  public static function genFileURL($input): array {
+  public static function genFileURL(array $input): array {
     try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
@@ -290,103 +301,168 @@ class jump_api {
     $tmp_file = NULL;
     $extension = $input['extension'];
 
+    $size_limit = jump_config::MAX_FILE_SIZE;
+    $local_limit = jump_config::MAX_LOCAL_FILE_SIZE;
+    $used_promo_size = false;
+    $used_promo_urls = false;
+
+    $balance = [];
+
+    if (isset($input['promo-code'])) {
+      $balance = self::getBalance(
+        ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
+      );
+      if (!$balance['success']) {
+        return self::error("Invalid promo code");
+      } else if ($balance['large-files'] > 0) {
+        $size_limit = jump_config::PROMO_MAX_FILE_SIZE;
+        $local_limit = jump_config::PROMO_MAX_LOCAL_FILE_SIZE;
+      }
+    }
+
     $content_type =
       isset($input['content-type'])
         ? $input['content-type']
         : self::get_mime($extension);
 
     if (isset($input['tmp-key'])) {
-      try {
-        $result = $s3client->headObject(
-          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$input['tmp-key']],
-        );
-      } catch (S3Exception $s3e) {
-        return self::error(
-          'File tmp/'.$input['tmp-key'].' not found in S3 bucket',
-          400,
-        );
-      } catch (AccessDeniedException $ade) {
-        return self::error('Internal exception', 503);
+      // user already uploaded the file to S3
+      $tmp_file = $input['tmp-key'];
+    } else {
+
+      if (isset($input['local-file'])) {
+
+        //$tmp_file = uniqid('lf-', true);
+
+        /* the API regex for this param should check this, but I don't want to take any chances */
+        if (strpos($input['local-file'], '/') !== false) {
+          return self::error(
+            'Invalid local-file parameter -- shenanigans detected',
+            400,
+          );
+        }
+
+        $tmp_file = $input['local-file'];
+
+        if (!file_exists(jump_config::UPLOAD_DIR.'/'.$input['local-file'])) {
+          return self::error('local-file parameter -- file not found', 404);
+        } else if (filesize(
+                     jump_config::UPLOAD_DIR.'/'.$input['local-file'],
+                   ) >
+                   $local_limit) {
+          return self::error('File too large', 400);
+        }
+
+      } else if (isset($input['file-data'])) {
+        $body = base64_decode($input['file-data'], true);
+
+        if (!$body) {
+          return self::error(
+            'file-data parameter invalid -- should be base64 encoded',
+            400,
+          );
+        }
+
+        $tmp_file = uniqid('fd-', true);
+
+        file_put_contents(jump_config::UPLOAD_DIR.'/'.$tmp_file, $body);
+
+      } else {
+        return self::error("Constraint verification failed");
       }
 
-      if ($result['ContentLength'] > jump_config::MAX_FILE_SIZE) {
+      $file = jump_config::UPLOAD_DIR.'/'.$tmp_file;
+      $size = filesize($file);
+
+      if (!file_exists($file)) {
+        return self::error('Problem with local file', 500);
+      } else if ($size > jump_config::MAX_LOCAL_FILE_SIZE) {
+        if ($size <= $local_limit) {
+          $used_promo_size = TRUE;
+        } else {
+          unlink($file);
+          return self::error('File too large', 400);
+        }
+      }
+
+      try {
+        $result = $s3client->putObject(
+          [
+            'Bucket' => $dest_bucket,
+            'ACL' => 'private',
+            'Key' => 'tmp/'.$tmp_file,
+            'SourceFile' => $file,
+          ],
+        );
+      } catch (S3Exception $s3e) {
+        error_log('S3 file upload failed: '.(string) $s3e);
+        return self::error('failed to upload file to S3', 503);
+      }
+
+      unlink($file);
+    }
+
+    try {
+      $result = $s3client->headObject(
+        ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
+      );
+    } catch (S3Exception $s3e) {
+      return
+        self::error('File tmp/'.$tmp_file.' not found in S3 bucket', 400);
+    } catch (AccessDeniedException $ade) {
+      return self::error('Internal exception', 503);
+    }
+
+    if ($result['ContentLength'] > jump_config::MAX_FILE_SIZE) {
+      if ($result['ContentLength'] <= $size_limit) {
+        $used_promo_size = TRUE;
+      } else {
         $s3client->deleteObject(
-          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$input['tmp-key']],
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
         return self::error('File too large', 400);
       }
+    }
 
-      $tmp_file = 'tmp/'.$input['tmp-key'];
-
-    } else if (isset($input['file-data'])) {
-      $body = base64_decode($input['file-data'], true);
-
-      $tmp_file = 'tmp/'.uniqid('fd-', true);
-
-      if (!$body) {
-        return self::error(
-          'file-data parameter invalid -- should be base64 encoded',
-          400,
+    if (isset($input['requested-url'])) {
+      if (!isset($input['promo-code'])) {
+        $s3client->deleteObject(
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
-      }
-
-      try {
-        $result = $s3client->putObject(
-          [
-            'Bucket' => $dest_bucket,
-            'ACL' => 'private',
-            'Body' => $body,
-            'Key' => $tmp_file,
-            'StorageClass' => 'REDUCED_REDUNDANCY',
-          ],
+        return self::error('A custom URL requires a promo code', 500);
+      } else if (!$balance['success']) {
+        $s3client->deleteObject(
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
-      } catch (S3Exception $s3e) {
-        error_log('S3 file upload failed: '.(string) $s3e);
-        return self::error('failed to upload file to S3', 503);
-      }
-    } else if (isset($input['local-file'])) {
-
-      $tmp_file = 'tmp/'.uniqid('lf-', true);
-
-      /* the API regex for this param should check this, but I don't want to take any chances */
-      if (strpos($input['local-file'], '/') !== false) {
-        return self::error(
-          'Invalid local-file parameter -- shenanigans detected',
-          400,
+        return self::error('Invalid promo code');
+      } else if ($balance['custom-urls'] <= 0) {
+        $s3client->deleteObject(
+          ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
-      } else if (!file_exists(
-                   jump_config::UBASEDIR.'/'.$input['local-file'],
-                 )) {
-        return self::error('local-file parameter -- file not found', 404);
+        return
+          self::error('Promo code has no remaining custom-url credits', 500);
+      } else {
+        if (jump_key_exists($input['requested-url'])) {
+          $s3client->deleteObject(
+            ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
+          );
+          return self::error('Key requested is not available', 400);
+        } else {
+          $new_key = $input['requested-url'];
+          $used_promo_url = TRUE;
+        }
       }
-
-      try {
-        $result = $s3client->putObject(
-          [
-            'Bucket' => $dest_bucket,
-            'ACL' => 'private',
-            'Key' => $tmp_file,
-            'SourceFile' => jump_config::UBASEDIR.'/'.$input['local-file'],
-          ],
-        );
-      } catch (S3Exception $s3e) {
-        error_log('S3 file upload failed: '.(string) $s3e);
-        return self::error('failed to upload file to S3', 503);
-      }
-
     } else {
-      return self::error('Constraint verification failed');
-    }
 
-    $new_key = '';
-    try {
-      $new_key = self::gen_uniq_key(3);
-    } catch (KeygenException $ke) {
-      error_log((string) $ke);
-      return self::error((string) $ke, 503);
-    }
+      $new_key = '';
+      try {
+        $new_key = self::gen_uniq_key(3);
+      } catch (KeygenException $ke) {
+        error_log((string) $ke);
+        return self::error((string) $ke, 503);
+      }
 
-    error_log('using content-type '.$content_type);
+    }
 
     // copy the temporary file to its new home
     try {
@@ -394,7 +470,7 @@ class jump_api {
         [
           'ACL' => $input['private'] ? 'private' : 'public-read',
           'Bucket' => $dest_bucket,
-          'CopySource' => urlencode($dest_bucket."/".$tmp_file),
+          'CopySource' => urlencode($dest_bucket.'/tmp/'.$tmp_file),
           'ContentType' => $content_type,
           'Key' => $new_key.$extension,
           'StorageClass' => 'REDUCED_REDUNDANCY',
@@ -456,8 +532,37 @@ class jump_api {
     $cdn_host = jump_config::cdn_host();
     $base = jump_config::base_url();
 
+    if ($used_promo_size || $used_promo_urls) {
+
+      $expr = [];
+
+      if ($used_promo_size) {
+        array_push($expr, 'large-files -1');
+      }
+
+      if ($used_promo_urls) {
+        array_push($expr, 'custom-urls -1');
+      }
+
+      try {
+        $dyclient->updateItem(
+          [
+            'Key' => ['code' => ['S' => $input['promo-code']]],
+            'UpdateExpression' => 'ADD '.implode(', ', $expr),
+          ],
+        );
+      } catch (DynamoDbException $dbe) {
+        error_log(
+          "Failed to decrement promo code ".
+          $input['promo-code'].
+          ": ".
+          implode(', ', $expr),
+        );
+      }
+    }
+
     return self::success(
-        array_merge(
+      array_merge(
         ['url' => $base.$new_key],
         $input['private']
           ? []
@@ -477,17 +582,43 @@ class jump_api {
       return self::error("Invalid URL detected.");
     }
 
-    $s3client = awsHelper::s3_client();
+    //        $s3client = awsHelper::s3_client();
     $dyclient = awsHelper::dydb_client();
-    $glclient = awsHelper::gl_client();
+    //        $glclient = awsHelper::gl_client();
 
-    $key = "";
-    try {
-      $key = self::gen_uniq_key(3);
-    } catch (KeygenException $ke) {
-      error_log((string) $ke);
-      return self::error((string) $ke, 503);
+    $balance = self::getBalance(
+      ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
+    );
+    $used_promo_url = FALSE;
+
+    if (isset($input['custom-url'])) {
+      if (!isset($input['promo-code'])) {
+        return self::error('A custom URL requires a promo code', 500);
+      } else if (!$balance['success']) {
+        return self::error('Invalid promo code');
+      } else if ($balance['custom-urls'] <= 0) {
+        return
+          self::error('Promo code has no remaining custom-url credits', 500);
+      } else {
+        if (jump_key_exists($input['requested-url'])) {
+          return self::error('Key requested is not available', 400);
+        } else {
+          $key = $input['requested-url'];
+          $used_promo_url = TRUE;
+        }
+      }
+    } else {
+
+      $key = "";
+      try {
+        $key = self::gen_uniq_key(3);
+      } catch (KeygenException $ke) {
+        error_log((string) $ke);
+        return self::error((string) $ke, 503);
+      }
+
     }
+
     $salt = uniqid('', true);
 
     try {
@@ -528,100 +659,116 @@ class jump_api {
       return self::error("Failed to generate URL. Please try again later.");
     }
 
-    $base = jump_config::base_url();
+    if ($used_promo_url) {
+      try {
+        $dyclient->updateItem(
+          [
+            'Key' => ['code' => ['S' => $input['promo-code']]],
+            'UpdateExpression' => 'ADD custom-urls -1',
+          ],
+        );
+      } catch (DynamoDbException $dbe) {
+        error_log(
+          "Failed to decrement promo code ".
+          $input['promo-code'].
+          ": ADD custom-urls -1",
+        );
+      }
+    }
 
+    $base = jump_config::base_url();
     return self::success(['url' => $base.$key]);
   }
 
   public static function delURL($input): array {
 
-      try {
-          $input = validate($input);
-      } catch (ValidationException $ve) {
-          return self::error((string) $ve);
-      }
+    try {
+      $input = validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
 
-      $s3client = awsHelper::s3_client();
-      $dyclient = awsHelper::dydb_client();
-      $cfclient = awsHelper::cf_client();
+    $s3client = awsHelper::s3_client();
+    $dyclient = awsHelper::dydb_client();
+    $cfclient = awsHelper::cf_client();
 
-      $key = "";
-      $filename = "";
-      $isPrivate = false;
-      $check = "";
-      $table_pass = "";
-      $salt = "";
-      $isFile = false;
+    $key = "";
+    $filename = "";
+    $isPrivate = false;
+    $check = "";
+    $table_pass = "";
+    $salt = "";
+    $isFile = false;
 
-      if (isset($input['jump-url'])) {
-          if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
-              return self::error("URL validation faield");
-          } else {
-              $toks = parse_url($input['jump-url']);
-              if (!$toks) {
-                  return self::error("Problem with URL specified", 400);
-              }
-              $matches = [];
-              if (!preg_match(
-                  "~^/(".
-                  key_config::regex.
-                  ")(\\.[\\w.]{1,".
-                  jump_config::MAX_EXT_LENGTH.
-                  "})$",
-                  $toks['path'],
-                  $matches,
-              )) {
-                  return self::error("Invalid URL specified", 400);
-              } else {
-                  $key = $matches[1];
-              }
-          }
+    if (isset($input['jump-url'])) {
+      if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
+        return self::error("URL validation faield");
       } else {
-          $key = $input['jump-key'];
+        $toks = parse_url($input['jump-url']);
+        if (!$toks) {
+          return self::error("Problem with URL specified", 400);
+        }
+        $matches = [];
+        if (!preg_match(
+              "~^/(".
+              key_config::regex.
+              ")(\\.[\\w.]{1,".
+              jump_config::MAX_EXT_LENGTH.
+              "})$",
+              $toks['path'],
+              $matches,
+            )) {
+          return self::error("Invalid URL specified", 400);
+        } else {
+          $key = $matches[1];
+        }
       }
+    } else {
+      $key = $input['jump-key'];
+    }
 
-      $res = $dyclient->getItem(
+    $res = $dyclient->getItem(
+      [
+        'TableName' => aws_config::LINK_TABLE,
+        'ConsistentRead' => true,
+        'Key' => ['Object ID' => ['S' => $key]],
+      ],
+    );
+
+    if (!isset($res['Item'])) {
+      return self::error("Key lookup failed", 404);
+    }
+
+    $item = $res['Item'];
+
+    $table_pass = $item['pass']['S'];
+    $isFile =
+      isset($item['file_b']['BOOL'])
+        ? $item['file_b']
+        : (intval($item['isFile']['N']) === 1);
+    if ($isFile) {
+      $filename = $item['filename']['S'];
+    }
+    $isPrivate = intval($item['isPrivate']['N']) === 1;
+    $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
+
+    if (hash('sha256', $input['password'].$salt) === $table_pass) {
+      try {
+        $dyclient->updateItem(
           [
-              'TableName' => aws_config::LINK_TABLE,
-              'ConsistentRead' => true,
-              'Key' => ['Object ID' => ['S' => $key]],
+            'TableName' => aws_config::LINK_TABLE,
+            'Key' => ['Object ID' => ['S' => $key]],
+            'UpdateExpression' => 'SET active_b = false',
           ],
-      );
-
-      if (!isset($res['Item'])) {
-          return self::error("Key lookup failed", 404);
+        );
+      } catch (DynamoDbException $dde) {
+        error_log("Failed to delete item $key: ".(string) $dde);
+        return self::error("Failed to delete item", 500);
       }
 
-      $item = $res['Item'];
-
-      $table_pass = $item['pass']['s'];
-      $isFile =
-          isset($item['file_b']['BOOL'])
-          ? $item['file_b']
-          : (intval($item['isFile']['N']) === 1);
       if ($isFile) {
-          $filename = $item['filename']['S'];
-      }
-      $isPrivate = intval($item['isPrivate']['N']) === 1;
-      $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
-
-      if (hash('sha256', $input['password'].$salt) === $table_pass) {
-          try {
-              $dyclient->updateItem(
-                  [
-                      'TableName' => aws_config::LINK_TABLE,
-                      'Key' => ['Object ID' => ['S' => $key]],
-                      'UpdateExpression' => 'SET active_b = false',
-                  ],
-              );
-          } catch (DynamoDbException $dde) {
-              error_log("Failed to delete item $key: ".(string) $dde);
-              return self::error("Failed to delete item", 500);
-          }
-
-          if ($isFile) {
-              $bucket =
-                  $isPrivate ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
+        $bucket =
+          $isPrivate ? aws_config::PRIV_BUCKET : aws_config::PUB_BUCKET;
         try {
           $s3client->deleteObject(['Bucket' => $bucket, 'Key' => $filename]);
         } catch (S3Exception $s3e) {
@@ -851,6 +998,45 @@ class jump_api {
       return self::success(['url' => $url, 'is-file' => $isFile]);
     }
   }
+
+  public static function getBalance($input): array {
+
+    try {
+      $input = self::validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
+
+    $dyclient = awsHelper::dydb_client();
+
+    try {
+      $res = $dyclient->getItem(
+        [
+          'TableName' => aws_config::PROMO_TABLE,
+          'ConsistentRead' => true,
+          'Key' => ['code' => ['S' => $input['promo-code']]],
+        ],
+      );
+    } catch (DynamoDbException $dydbe) {
+      return self::error('Promo code not found');
+    }
+
+    if (!isset($res['Item'])) {
+      return self::error("Promo code lookup failed", 404);
+    }
+
+    $large_files = intval($res['Item']['large-files']['N']);
+    $custom_urls = intval($res['Item']['custom-urls']['N']);
+
+    return self::success(
+      [
+        'large-files' => $large_files,
+        'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
+        'request-urls' => $custom_urls,
+      ],
+    );
+  }
+
 }
 
 class apiHandler {
@@ -1052,6 +1238,10 @@ class apiHandler {
           echo json_encode(jump_api::jumpTo($input));
           break;
 
+        case 'getBalance':
+          echo json_encode(jump_api::getBalance($input));
+          break;
+
         case 'help':
           self::help($input);
           break;
@@ -1060,10 +1250,8 @@ class apiHandler {
           apiHandler::error('Unsupported action; try {action:"help"}');
           break;
       }
-
     }
   }
-
 }
 
 jump_api::init();

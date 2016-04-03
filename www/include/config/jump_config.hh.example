@@ -1,0 +1,70 @@
+<?hh
+
+class jump_config {
+
+    /* prefix of generated links */
+    const BASEURL = 'https://somesite.com/';
+
+    /* hidden service prefix */
+    const H_BASEURL = 'http://somesite.onion/';
+
+
+    /* prefix URL of static HTML resources */
+    /* this is used in href and src attributes in HTML */
+    const CDN_HOST = '//cdn.somesite.com';
+
+    /* prefix URL of static resources for the hidden service */
+    const H_CDN_HOST = 'http://static.somesite.onion';
+
+
+    /* prefix URL of public file host / S3 bucket*/
+    /* this is where uploaded public files will be accessed from */
+    /* I use a CloudFront distribution for this */
+    const FILE_HOST = 'https://some-cloudfront-domain.cloudfront.net/';
+
+
+    /* temporary upload directory for local files */
+    /* make sure the HHVM user has rwx permissions for this directory */
+    const UPLOAD_DIR = '/var/tmp/some/directory';
+
+
+    /* max expiration clicks */
+    const MAX_CLICKS = 1000;
+
+    /* maximum input URL length */
+    const MAX_URL_LEN = 128;
+
+    /* max password length */
+    const MAX_PASS_LEN = 20;
+
+    /* max length of file extensions */
+    const MAX_EXT_LENGTH = 16;
+
+
+    /* max file size for direct uploads to S3 */
+    const MAX_FILE_SIZE = 1024*1024*128; // 128 MiB
+    const PROMO_MAX_FILE_SIZE = jump_config::MAX_FILE_SIZE * 4;
+
+    /* max file size for uploads through the web server */
+    const MAX_LOCAL_FILE_SIZE = jump_config::MAX_FILE_SIZE / 8;
+    const PROMO_MAX_LOCAL_FILE_SIZE = jump_config::MAX_LOCAL_FILE_SIZE * 4;
+
+
+
+
+    static function cdn_host(){
+        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+            return jump_config::H_CDN_HOST;
+        } else {
+            return jump_config::CDN_HOST;
+        }
+    }
+
+    static function base_url(){
+        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+            return jump_config::H_BASEURL;
+        } else {
+            return jump_config::BASEURL;
+        }
+    }
+}

@@ -3,7 +3,7 @@
 if (file_exists('config/jump_config.hh')) {
   require_once ('config/jump_config.hh');
 } else {
-  require_once ('config/jump_config.hh.example'); // satisfy validation
+  require_once ('config/jump_config.hh.example');
 }
 
 require_once ('config/key_config.hh');
@@ -53,6 +53,27 @@ class api_config {
       'requires-params' => ['private'],
     ];
 
+    $promo_param = [
+      'description' => 'Promotional code',
+      'type' => 'string',
+      'max-length' => 30,
+      'requires-params' => [],
+    ];
+
+    $custom_url_param = [
+      'description' => 'Requested custom URL, requires a promo code',
+      'requires-params' => ['promo-code'],
+      'min-length' => key_config::MIN_LENGTH,
+      'max-length' => key_config::MAX_LENGTH,
+      'type' => 'string',
+    ];
+
+    $pass_param = [
+      'description' => 'Password to delete the file',
+      'type' => 'string',
+      'max-length' => jump_config::MAX_PASS_LEN,
+    ];
+
     $uniqid_regex = '[0-9a-f]{14}\\.[0-9]{8}';
 
     return
@@ -62,7 +83,7 @@ class api_config {
             'description' =>
               'Generate an S3 upload URL valid for a HTTP POST file upload',
             'params' =>
-              ['private' => $private_param],
+              ['private' => $private_param, 'promo-code' => $promo_param],
             'constraints' =>
               [],
             'returns' =>
@@ -71,7 +92,7 @@ class api_config {
                 'URL' =>
                   [
                     'description' =>
-                      'URL that a file can be uploaded to with HTTP POST',
+                      'URL that a file can be uploaded to with a HTTP client',
                     'type' => 'string',
                   ],
                 'tmp-key' =>
@@ -97,12 +118,13 @@ class api_config {
                     'description' =>
                       'Content-Type header that must be used for the upload to S3',
                     'type' => 'string',
-                ],
-                'http-method' => 
-                [
-                    'description' => 'HTTP method to use to upload a file to the provided URL - POST or PUT',
-                    'type' => 'string'
-                    ]
+                  ],
+                'http-method' =>
+                  [
+                    'description' =>
+                      'HTTP method to use to upload a file to the provided URL - POST or PUT',
+                    'type' => 'string',
+                  ],
               ],
             'examples' =>
               [
@@ -116,6 +138,8 @@ class api_config {
               'Generate a jump.wtf URL for a file',
             'params' =>
               [
+                'promo-code' => $promo_param,
+                'Custom-url' => $custom_url_param,
                 'private' => $private_param,
                 'clicks' => $clicks_param,
                 'tmp-key' =>
@@ -123,7 +147,7 @@ class api_config {
                     'description' =>
                       'tmp-key field from the genUploadURL query used to upload the file',
                     'type' => 'string',
-                    'regex' => '/^gu-'.$uniqid_regex.'$/',
+                    'regex' => "/^gu-{$uniqid_regex}$/",
                   ],
                 'file-data' =>
                   [
@@ -137,7 +161,7 @@ class api_config {
                   'description' => 'Local filename to upload to S3',
                   'note' => 'For internal use only',
                   'type' => 'string',
-                  'regex' => '/^lf-'.$uniqid_regex.'$/',
+                  'regex' => "/^lf-{$uniqid_regex}$/",
                 ],
                 'extension' =>
                   [
@@ -156,12 +180,12 @@ class api_config {
                  'type' => 'boolean',
                  'default' => true,
                  ],*/
-                'password' => [
-                  'description' => 'Optional password to delete the file',
-                  'type' => 'string',
-                  'default' => '',
-                  'max-length' => jump_config::MAX_PASS_LEN,
-                ],
+                'password' => $pass_param, /*[
+                 'description' => 'Optional password to delete the file',
+                 'type' => 'string',
+                 'default' => '',
+                 'max-length' => jump_config::MAX_PASS_LEN,
+                 ],*/
                 'content-type' =>
                   [
                     'description' =>
@@ -195,6 +219,8 @@ class api_config {
               'Generate a jump.wtf URL for a web link',
             'params' =>
               [
+                'promo-code' => $promo_param,
+                'custom-url' => $custom_url_param,
                 'input-url' =>
                   [
                     'description' =>
@@ -204,12 +230,12 @@ class api_config {
                   ],
                 'private' => $private_param,
                 'clicks' => $clicks_param,
-                'password' => [
-                  'description' => 'Optional password to delete the URL',
-                  'type' => 'string',
-                  'default' => '',
-                  'max-length' => jump_config::MAX_PASS_LEN,
-                ],
+                'password' => $pass_param, /*[
+                 'description' => 'Optional password to delete the URL',
+                 'type' => 'string',
+                 'default' => '',
+                 'max-length' => jump_config::MAX_PASS_LEN,
+                 ],*/
               ],
             'constraints' =>
               [['input-url']],
@@ -235,25 +261,29 @@ class api_config {
               'Get the long-form URL to the link or file that a jump.wtf link pointegers to',
             'params' =>
               [
+                'promo-code' => $promo_param,
                 'jump-key' =>
                   [
                     'description' =>
-                      'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
+                      "Key to jump to: '".
+                      jump_config::BASEURL.
+                      "fooBar.baz' expects 'fooBar'",
                     'type' => 'string',
                     'min-length' => key_config::MIN_LENGTH,
                     'max-length' => key_config::MAX_LENGTH,
-                    'regex' => '/^'.key_config::regex.'$/',
+                    'regex' => '/^'.key_config::extended_regex.'$/',
                   ],
                 'jump-url' =>
                   [
                     'description' => 'jump.wtf link to jump to',
                     'type' => 'string',
                     'max-length' =>
-                      strlen('https://jump.wtf//.') +
+                      strlen(jump_config::H_BASEURL) +
                       key_config::MAX_LENGTH +
                       jump_config::MAX_EXT_LENGTH,
                     'min-length' =>
-                      strlen('http://jump.wtf/') + key_config::MIN_LENGTH,
+                      strlen(jump_config::BASEURL) +
+                      key_config::MIN_LENGTH,
                   ],
               ],
             'constraints' =>
@@ -283,7 +313,7 @@ class api_config {
               [
                 [
                   'action' => 'jumpTo',
-                  'jump-url' => 'https://jump.wtf/foo',
+                  'jump-url' => jump_config::BASEURL.'fooBar',
                 ],
                 ['action' => 'jumpTo', 'jump-key' => 'foo'],
               ],
@@ -297,20 +327,25 @@ class api_config {
                 'jump-key' =>
                   [
                     'description' =>
-                      'Key to jump to: "https://jump.wtf/fooBar.baz" expects "fooBar"',
+                      "Key to jump to: '".
+                      jump_config::BASEURL.
+                      "fooBar.baz' expects 'fooBar'",
                     'type' => 'string',
-                    'regex' => '/^'.key_config::regex.'$/',
+                    'regex' => '/^'.key_config::extended_regex.'$/',
                   ],
                 'jump-url' => [
                   'description' => 'jump.wtf link to jump to',
                   'type' => 'string',
                 ],
-                'password' => [
-                  'description' => 'Password to delete the URL',
-                  'type' => 'string',
-                  'min-length' => 1,
-                  'max-length' => jump_config::MAX_PASS_LEN,
-                ],
+                'password' => array_merge(
+                  $pass_param,
+                  ['min-length' => 1],
+                ), /*[
+                 'description' => 'Password to delete the URL',
+                 'type' => 'string',
+                 'min-length' => 1,
+                 'max-length' => jump_config::MAX_PASS_LEN,
+                 ],*/
               ],
             'constraints' =>
               [['jump-key', 'jump-url'], ['password']],
@@ -327,6 +362,40 @@ class api_config {
                   'action' => 'delURL',
                   'jump-url' => 'https://jump.wtf/foo',
                   'password' => 'my_secret_password',
+                ],
+              ],
+          ],
+        'getBalance' =>
+          [
+            'description' =>
+              'Check the balance of a promo code',
+            'params' =>
+              ['promo-code' => $promo_param],
+            'constraints' =>
+              [['promo-code']],
+            'returns' =>
+              [
+                'success' => $success_retval,
+                'large-files' => [
+                  'description' => 'Number of large file credits',
+                  'type' => 'int',
+                ],
+                'large-file-size' =>
+                  [
+                    'description' =>
+                      'Size in bytes of the large-file limit',
+                    'type' => 'int',
+                  ],
+                'custom-urls' => [
+                  'description' => 'Number of custom URL credits',
+                  'type' => 'int',
+                ],
+              ],
+            'examples' =>
+              [
+                [
+                  'action' => 'getBalance',
+                  'promo-code' => 'MY_SPECIAL_PROMO_CODE',
                 ],
               ],
           ],
@@ -355,6 +424,7 @@ class api_config {
             'genURL' => 'Generate a jump.wtf link from a web URL',
             'delURL' => 'Delete an existing jump.wtf link',
             'jumpTo' => 'Resolve a jump.wtf link',
+            'getBalance' => 'Check the balance of a promo code',
             'constraints' => 'How to read the constraints',
             'help' => 'Show help information',
           ],

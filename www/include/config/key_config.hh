@@ -6,7 +6,12 @@ class key_config {
   const MAX_LENGTH = 20;
 
   const target_length = 4;
-  const regex = '[A-Za-z0-9]{3,20}';
+
+  // this is what generated URLs will look like
+  const regex = '[\\w]{3,5}';
+  // this is what requested URLs will look like
+  const extended_regex = '[\\w{}()-]{3,20}';
+
   static function gen_charset() {
     return array_merge(
       range('a', 'z'),

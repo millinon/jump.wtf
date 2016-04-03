@@ -1,0 +1,41 @@
+<?hh
+
+class aws_config {
+
+    /* this is where AWS credentials are stored */
+    /* protect this file */
+    const credentials_ini = '../credentials.ini';
+
+
+    /* profile with permissions to CF, DYDB, GL, S3 */
+    static function primary_cfg(): array {
+        return array(
+                'profile' => 'SOME_PROFILE',
+                'region' => 'SOME_REGION');
+    }
+
+    /* profile with permissions to generate S3 upload / viewing URLs */
+    /* WARNING: this profile's access key will be viewable to users in generated URLs */
+    static function URL_cfg(): array {
+        return array(
+                'profile' => 'SOME_PROFILE',
+                'region' => 'SOME_REGION');
+    }
+
+
+    /* DynamoDB table holding generated links */
+    const LINK_TABLE = 'SOME_LINK_TABLE';
+    /* DynamoDB table holding promo codes */
+    const PROMO_TABLE = 'SOME_PROMO_TABLE';
+
+
+    /* S3 bucket for public file storage */
+    const PUB_BUCKET = 'SOME_BUCKET';
+    /* S3 bucket for private file storage */
+    const PRIV_BUCKET = 'SOME_OTHER_BUCKET';
+
+
+    /* CloudFront distribution backing public files */
+    /* set to '' to disable */
+    const CF_DIST_ID = 'SOMEDISTRIBUTIONID'; 
+}

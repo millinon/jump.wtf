@@ -2,7 +2,11 @@
 
 require_once ("aws.phar");
 
-require_once ("config/aws_config.hh");
+if (file_exists('config/aws_config.hh')) {
+  require_once ('config/aws_config.hh');
+} else {
+  require_once ('config/jump_config.hh.example');
+}
 
 use Aws\Credentials\CredentialProvider;
 
