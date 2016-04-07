@@ -17,10 +17,10 @@
  - Kloth.net Bot Trap @ http://www.kloth.net/internet/bottrap.php
  */
 
-$version = '2.0';
+require_once ('blackhole.hh'); // die if already recorded
 
 // variables
-$filename = 'blackhole/blackhole.dat';
+$filename = blackhole::$filename;
 $badbot = 0;
 
 $request = sanitize($_SERVER['REQUEST_URI']);
@@ -49,13 +49,10 @@ if (!$ipaddress || !preg_match("/^[\w\d\.\-]+\.[\w\d]{1,4}$/i", $ipaddress)) {
   exit('Error: You did not specify a valid target host or IP.');
 }
 
-//require ('blackhole.hh');
-
 // record hit
 $fp = fopen($filename, 'a+');
 fwrite($fp, "$ipaddress - $protocol - $date - $useragent - $request\n");
 fclose($fp);
 
-die('404 file not found');
-
-exit;
+blackhole::deny();
+die();

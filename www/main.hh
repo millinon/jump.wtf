@@ -4,7 +4,7 @@ set_include_path(
   get_include_path().PATH_SEPARATOR.__DIR__.'/include',
 );
 
-include ('blackhole/blackhole.hh');
+include_once ('blackhole/blackhole.hh');
 
 function main(): void {
 

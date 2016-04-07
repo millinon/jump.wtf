@@ -1,34 +1,48 @@
 <?hh
 
+
 class blackhole {
 
-  static $blacklist = ['_asterisk', 'cgi-bin', '(wp-)?admin', 'blackhole'];
+    static $blacklist = ['_asterisk', 'cgi-bin', '(wp-)?admin', 'blackhole'];
 
-  static function main(): void {
-    if (preg_match(
-          "~^/+(".implode(self::$blacklist, '|').")(/.*)?~",
-          $_SERVER['REQUEST_URI'],
-        ) ===
-        1) {
-      require_once ('blackhole/index.hh');
-    } else {
-      $filename = 'blackhole/blackhole.dat';
-      $ipaddress = $_SERVER['REMOTE_ADDR'];
+    static $filename = 'blackhole/blackhole.dat';
 
-      if (!file_exists($filename)) {
-        touch($filename);
+    static function main(): void {
+
+        if(!defined('BLACKHOLE') && 
+            preg_match('~^/+('.implode(blackhole::$blacklist,'|').')(/.*)?~',$_SERVER['REQUEST_URI'])){
+                    self::ban();
+        }
+
+
+        $ipaddress = $_SERVER['REMOTE_ADDR'];
+
+      if (!file_exists(self::$filename)) {
+        touch(self::$filename);
       }
 
-      $fp = fopen($filename, 'r');
+      $fp = fopen(self::$filename, 'r');
       while ($line = fgets($fp)) {
         $u = explode(' ', $line);
-        if ($u[0] == $ipaddress)
-          die("404 file not found");
+        if ($u[0] == $ipaddress){
+            self::deny();
+            die();// if deny is modified
+        }
       }
       fclose($fp);
+      define('BLACKHOLE', true);
     }
-  }
+
+    static function ban(){
+        require_once('blackhole/index.hh');
+    }
+
+    static function deny(){
+        die('404 file not found');
+    }
 
 }
 
-blackhole::main();
+if(!defined('BLACKHOLE')){
+    blackhole::main();
+}

@@ -1,5 +1,7 @@
 <?hh
 
+include_once('blackhole/blackhole.hh');
+
 require_once('vendor/facebook/xhp-lib/init.php');
 
 require_once('header.hh');

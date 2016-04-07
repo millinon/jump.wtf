@@ -1,10 +1,11 @@
 <?hh
 
+include_once ('blackhole/blackhole.hh');
+
 require_once ('vendor/facebook/xhp-lib/init.php');
 
 require_once ('header.hh');
 require_once ('footer.hh');
-
 
 function input_none() {
   return <div class="input-group"><input style="display:none;" /></div>;
