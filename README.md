@@ -19,7 +19,7 @@ The file `main.hh` is the web-facing script that calls different main functions.
 
 The main functions are divided into five different tasks:
 
-* `api.hh`: provide a web-facing API
+* `include/api.hh`: serves the core API
 * `index.hh`: Index page
 * `go.hh`: Forwarding page
 * `result.hh`: Results page
@@ -30,7 +30,8 @@ A typical interaction is a user goes to the site root, which is served by `index
 The rest of the resources needed for the site are arranged into a few directories:
 
 * `www/blackhole/`: A trapdoor for bad bots
-* `www/config/`: Configuration information needed at runtime
+* `www/include/`: Hack files that are not web-facing
+* `www/include/config/`: Configuration information needed at runtime
 * `www/htdocs/`: static HTML resources (JS / CSS)
 * `www/uploads/`: Temporary storage for uploaded files
 
@@ -44,6 +45,7 @@ There is additionally a `bin/` directory with a few scripts I've written:
 * `minify.js`: minifies JavaScript and CSS resources, with versioning
 * `pre-commit.sh`: does some basic testing, I use this as my pre-commit hook
 * `validate-api.hh`: makes sure that the API as defined by `api.hh` and `api_ref.hh` is sane
+* `make-code.hh`: generates a promo code with X custom URLs and Y large files
 
 ## To-Do
 
@@ -58,13 +60,14 @@ TODO, in no particular order:
 * Improve file upload processing
 * Add submission-time options to the user:
  * Expiration date
- * Promotional codes (custom URL, extended expiration, multiple file selection, etc.)
 
 ## Setup
 
-If you want to set up your own version of jump.wtf, you need to have an AWS account with access to S3 and DynamoDB at a bare minimum. I also include access to CloudFront, to provide a CDN for user-uploaded files, and Glacier, to automatically save backups of uploaded files. Credentials for this user need to be in `www/config/aws.json`, following the example provided by `www/config/aws.json.example`.
+If you'd like to set up a copy of jump.wtf, I will be more than happy to help you out - contact me if you are struggling with the AWS account details or web server setup.
 
-You need to have a web server set up so that it can statically serve the files in `www/htdocs`, and so that it can forward certain requests with the `*.hh` files by proxy to HHVM. Refer to the files in `www/config/`. I previously used an Apache configuration, but Nginx seems to be easier to configure and possibly better performing.
+If you want to set up your own version of jump.wtf, you need to have an AWS account with access to S3 and DynamoDB at a bare minimum. I also include access to CloudFront, to provide a CDN for user-uploaded files, and Glacier, to automatically save backups of uploaded files. Credentials for this user need to be in `credentials.ini`, following the example provided by `credentials.ini.example`. I decided to use two separate IAM users, since one of them exposes its IAM access key when it generates links.
+
+You need to have a web server set up so that it can statically serve the files in `www/htdocs`, and so that it can forward certain requests with the `*.hh` files by proxy to HHVM. Refer to the files in `www/include/config/`. I previously used an Apache configuration, but Nginx seems to be easier to configure and possibly better performing. The interface between HHVM and your web server is fairly flexible, as the web server only needs to support FCGI.
 
 It is important to note that the only files that are served statically are in the `www/htdocs` directory - no other files should be accessible from the Internet. I was previously making this distinction by checking the prefix of the URI against `/htdocs/`, but I decided that it makes far more sense to distinguish static files by subdomain, and serving all other requests through `main.hh`.
 
@@ -78,17 +81,15 @@ Files submitted to jump.wtf are sent to one of two S3 buckets.
 
 As a very simple example, the site's favicon isn't actually stored on my web server. The url https://jump.wtf/favicon.ico is associated with a row in the table with the primary key `favicon`. The matching URL in the table is `https://f.jump.wf/favicon.ico`, which is mapped by CloudFront to the file `favicon.ico` in a S3 bucket. 'favicon' wasn't an actually generated key; I manually uploaded the file to S3 and inserted a row into the table.
 
+Requests are decoded into a uniform format (from JSON or multipart/formdata or HTTP GET), and routed into the API handler, which performs validation and routes the request to the appropriate method.
+
 ### Link generation process
 
-When a request is submitted to `submit.hh`, the file or URL goes through some basic checking. A key is then generated from the strings in `www/config/key_config.hh`. My version produces a key matching `[A-Za-z0-9]{4}`, but by modifying the configuration, you could make it use words instead of characters to produce a different scheme of keys (think of Gfycat filenames). The generated keys are then checked against DynamoDB to prevent duplicate key problems. Since the only URIs used in the process of generating links are `/s` and `/r`, almost any key scheme will work so long. If the dependence on `/s` and `/r` can be removed, then any key scheme at all will work.
+When a request is submitted to `submit.hh`, the file or URL goes through some basic checking. A key is then generated from the strings in `www/include.config/key_config.hh`. My version produces a key matching `[A-Za-z0-9]{4}`, but by modifying the configuration, you could make it use words instead of characters to produce a different scheme of keys (think of Gfycat filenames). The generated keys are then checked against DynamoDB to prevent duplicate key problems. Since the only URIs used in the process of generating links are `/s` and `/r`, almost any key scheme will work so long. If the dependence on `/s` and `/r` can be removed, then any key scheme at all will work.
 
 Once a key is selected, the metadata is sent to DynamoDB with the new key as the primary index. If the submission is marked as having a click limit (e.g. a click limit of 1 click), then the submission is marked as being private. Any submissions that are private have a positive click limit stored in the DynamoDB table that gets decremented each time that it is accessed. If the user submitted a file, it is uploaded to the CDN-backed S3 bucket (or the non CDN-backed version if it is private).
 
-A checksum is also submitted to DynamoDB as the secondary index, in case a checksum would be useful in the future to improve handling of duplicate submissions. It doesn't look like this was a correct decision, so it's probably fine to ignore the checksum -- if I were to start over with a new table, I would exclude it.
-
-If the submission is a file upload, then a backup is also uploaded to Glacier for convenience, although this could be removed without affecting the experience of users.
-
-Once the key has been selected and the data uploaded, the user is presented with a link. If they submitted a (non-private) file, they are presented a link in the form of "https://f.jump.wtf/newKey.ext", to allow the user to take advantage of the CDN. If the user submitted a private file, they are presented a link in the form "https://jump.wtf/newKey.ext". If the user submitted a URL, they are presented a link in the form "https://jump.wtf/newKey".
+Once the key has been selected and the data uploaded, the user is presented with a link. If they submitted a (non-private) file, they are also presented a CDN-backed link in the form of "https://f.jump.wtf/newKey.ext", to allow the user to take advantage of the CDN. If the user submitted a private file, they are presented a link in the form "https://jump.wtf/newKey.ext", which will be transformed into a signed AWS URL upon being accessed. If the user submitted a URL, they are presented a link in the form "https://jump.wtf/newKey".
 
 ### Link forwarding process
 
@@ -104,19 +105,40 @@ If all goes well, the user is redirected to the corresponding link with a "Locat
 
 ### Link deletion process
 
-When a link to be deleted is submitted to `s.hh`, the link is first checked as existing, and the link's stored deletion password checked with the one stored in DynamoDB (salted and hashed).
+When a link to be deleted is submitted to `submit.hh`, the link is first checked as existing, and the link's stored deletion password checked with the one stored in DynamoDB (salted and hashed).
 
 If the request is verified, then the link is marked as inactive in DynamoDB. If the link is a file, the file is deleted from the corresponding S3 bucket, and invalidated in CloudFront.
 
+It's worth noting that since the `jumpTo` method can be accessed through HTTP GET, URLs and files that have been deleted may still be accessible by someone who previously followed a link. However, jump.wtf is not intended to securely hide information - someone could always write down the long-form URL or save the 'private' file, so it can be accessed after deletion. Private files avoid this risk by requiring URLs to be signed, but there's nothing stopping someone from downloading a file before it has been deleted or before its click limit has been reached.
+
 ## API
 
-Out of interest from a few people in adding an API for extensibility, I've started writing an API to allow applications to create jump.wtf links. Since I needed to make sure that the API follows a consistent input format, I decided to write the API specification in a way that can be used for input validation and for documentation. The documentation can be browsed in an (ugly) JSON format [here](https://jump.wtf/a), and HTTP POST requests are accepted at the same URL. Here's an example of a command to generate a link:
+Out of interest from a few people in adding an API for extensibility, I've started writing an API to allow applications to create jump.wtf links. Since I needed to make sure that the API follows a consistent input format, I decided to write the API specification in a way that can be used for input validation and for documentation. The documentation can be browsed in an (ugly) JSON format [here](https://jump.wtf/a), and HTTP POST requests are accepted at the same URL. This is certainly not a sane way of designing an API, but it is very fun to work with in terms of defining remote procedure calls. In a sense, the data being used to define the API methods is also being used as code defining how the API methods are implemented.
+
+Here's an example of a command to generate a link:
 ```bash
 $ curl -H 'Content-Type: application/json' -X POST -d '{"action":"genURL","input-url":"https://example.com"}' https://jump.wtf/a
 {"success":true,"url":"https:\/\/jump.wtf\/a2uB"}
 ```
 
-It makes sense to use a single API to handle all requests, so once the remaining methods are implemented, I'll begin replacing the not very reliable code that handles the form requests with code that directly accesses the API. This way, input validation can occur uniformly, and errors can be identified and handled more easily.
+This example uses the command-line cURL program to call the `genURL` method, but the API works with any language that speaks HTTP(S). In the `api-examples/` directory, there is an example of a few Win32 C++ programs that use the jump.wtf API.
+
+The API supports the following methods, indicated by an `action` field:
+
+* `genURL`: generates a jump.wtf shortened URL
+* `genUploadURL`: generates a jump.wtf URL that a file can be uploaded to, which can then be used in `genFileURL`
+* `genFileURL`: generates a jump.wtf shortened URL from an already-uploaded file
+* `jumpTo`: resolves a jump.wtf URL to its long form
+* `delURL`: deletes a previously generated URL
+* `getBalance`: looks up a promo code's balance
+
+There is a help interface provided over HTTP GET [here](https://jump.wtf/a/action=help), which serves as documentation. The documentation is generated from the API itself, instead of a separate document. This means that details of each method, like the parameters required and the types of each parameter, are used for validating API calls, and are encoded as JSON to explain how to properly make API calls. Certain properties, like regular expressions used to verify parameters, and values representing acceptable limits (such as the length of an input URL) are stored as configuration files, meaning that updating the configuration immediately updates the code used for both generating the documentation and for processing input.
+
+The HTML-exposed functionality has all been re-routed through the API, so that validation is uniform regardless of the input method. This is nice, because even if I modify the HTML form (possibly introducing bugs along the way), I can be certain that the API is still providing a consistent interface.
+
+## Promo Codes
+
+Promotional codes were added as a way to add some value to the site, by allowing users to include codes with submissions to gain extra features. Promo codes are stored in a separate DynamoDB table (again, a relational database would be equal or better for this use case), such that each code is associated with a number of custom URLs and large file 'credits'. A custom URL allows a user to request a certain key, using the key (instead of a randomly generated one) as the short-form link, or to upload a file that is a (configurable) number of times larger than the default maximum file size. As an example of usage, I was able to assign the URL https://jump.wtf/jump\_src to this repository by using the web interface, entering my generated promotional code in the `promo-code` field, and `jump\_src` in the `custom-url` field. Promo codes are generated by adding a row to the promo code table through any AWS interface.
 
 ## Dependencies
 
