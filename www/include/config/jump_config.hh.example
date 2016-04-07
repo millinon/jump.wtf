@@ -1,6 +1,6 @@
 <?hh
 
-die('Edit ' . __FILE__);
+defined('VERIFY') or die('Edit ' . __FILE__); // delete this line
 
 class jump_config {
 
