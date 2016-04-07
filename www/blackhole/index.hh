@@ -49,7 +49,7 @@ if (!$ipaddress || !preg_match("/^[\w\d\.\-]+\.[\w\d]{1,4}$/i", $ipaddress)) {
   exit('Error: You did not specify a valid target host or IP.');
 }
 
-require ('blackhole.hh');
+//require ('blackhole.hh');
 
 // record hit
 $fp = fopen($filename, 'a+');

@@ -13,8 +13,8 @@ $(document).ready(function(){
 
     $("#file-expires").change();
     
-    $("#url-expires").change(function(){
-        c = $("#url-clicks");
+    $("#new-expires").change(function(){
+        c = $("#new-clicks");
         if($(this).is(":checked")){
             c.prop("disabled", false);
             c.prop("value",1);
@@ -24,13 +24,52 @@ $(document).ready(function(){
         }
     });
 
-    $("#url-expires").change();
+    $("#new-expires").change();
     
+    $("#new-promo").on('change textInput input', function(){
+        keyfield = $("#new-key");
+        hint = $("#new-wrap-expires")
+
+        if(this.value){
+            keyfield.prop("disabled", false);
+            hint.off(".tooltip");
+        } else {
+            keyfield.prop("value", "");
+            keyfield.prop("disabled", true);
+            hint.tooltip("enable");
+        }
+    });
+
+    $("#new-promo").change();
+
+    
+    $("#file-promo").on('change textInput input', function(){
+        keyfield = $("#file-key");
+        hint = $("#file-wrap-expires")
+        
+        if(this.value){
+            keyfield.prop("disabled", false);
+            hint.off(".tooltip");
+        } else {
+            keyfield.prop("value", "");
+            keyfield.prop("disabled", true);
+            hint.tooltip("enable");
+        }
+        });
+
+    $("#file-promo").change();
+
     $("#input-file").change(function(){
         $("#file-label").text($(this).val().replace(/^.*\\/, "").replace(/^.*\//, ""));
     });
 
     $("#file-label").text("No file selected");
+
+    
+
+    $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip(); 
+    });
 
     // super secret easter egg
     var mouseDist = 0;

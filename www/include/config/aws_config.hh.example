@@ -1,10 +1,12 @@
 <?hh
 
+die('Edit ' . __FILE__);
+
 class aws_config {
 
     /* this is where AWS credentials are stored */
     /* protect this file */
-    const credentials_ini = '../credentials.ini';
+    const credentials_ini = '../../../credentials.ini';
 
 
     /* profile with permissions to CF, DYDB, GL, S3 */

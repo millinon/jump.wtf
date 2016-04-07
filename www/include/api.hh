@@ -32,74 +32,109 @@ class KeygenException extends Exception {
 
 class jump_api {
 
+
+
+  public static function route(array $input): array {
+      switch($input['action']){
+      case 'genUploadURL':
+          return jump_api::genUploadURL($input);
+          break;
+
+      case 'genFileURL':
+          return jump_api::genFileURL($input);
+          break;
+
+      case 'genURL':
+          return jump_api::genURL($input);
+          break;
+
+      case 'delURL':
+          return jump_api::delURL($input);
+          break;
+
+      case 'jumpTo':
+          return jump_api::jumpTo($input);
+          break;
+
+      case 'getBalance':
+          return jump_api::getBalance($input);
+          break;
+
+      default:
+          return ['success'=>false,'message'=>'Invalid action, try {"action":"help"}'];
+          break;
+      }
+  }
+
+
   private static function jump_key_exists(string $key): bool {
-    $dyclient = awsHelper::dydb_client();
+      $dyclient = awsHelper::dydb_client();
 
-    $res = $dyclient->query(
-      [
-        'TableName' => aws_config::LINK_TABLE,
-        'KeyConditions' => [
-          'Object ID' => [
-            'AttributeValueList' => [['S' => $key]],
-            'ComparisonOperator' => 'EQ',
+      $res = $dyclient->query(
+          [
+              'TableName' => aws_config::LINK_TABLE,
+              'KeyConditions' => [
+                  'Object ID' => [
+                      'AttributeValueList' => [['S' => $key]],
+                      'ComparisonOperator' => 'EQ',
+                  ],
+              ],
           ],
-        ],
-      ],
-    );
+      );
 
-    return $res['Count'] > 0;
+      return $res['Count'] > 0;
   }
 
   private static function gen_uniq_key(int $maxtries): string {
-    $tries = 0;
-    $new_key = '';
+      $tries = 0;
+      $new_key = '';
 
-    do {
-      $tries++;
-      if ($tries > $maxtries) {
-        throw new KeygenException($maxtries);
-      }
-      $new_key = key_config::generate_key();
-    } while (self::jump_key_exists($new_key));
+      do {
+          $tries++;
+          if ($tries > $maxtries) {
+              throw new KeygenException($maxtries);
+          }
+          $new_key = key_config::generate_key();
+      } while (self::jump_key_exists($new_key));
 
-    return $new_key;
+      return $new_key;
   }
 
   public static function get_mime(string $extension): string {
-    return
-      mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
+      return
+          mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
   }
 
   public static $doc;
 
   public function init(): void {
-    self::$doc = api_config::api_methods();
+      self::$doc = api_config::api_methods();
   }
 
   public static function validate(array $input): array {
-    // validating the API against the documentation is terrible, but I spent a bunch
-    // of time on the documentation in a format that's PHP-readable, so I'll use it
+      // validating the API against the documentation is terrible, but I spent a bunch
+      // of time on the documentation in a format that's PHP-readable, so I'll use it
 
-    if (!isset($input['action'])) {
-      throw new ValidationException(
-        'Missing action parameter -- try {"action": "help"}',
-      );
-    }
+      if (!isset($input['action'])) {
+          throw new ValidationException(
+              'Missing action parameter -- try {"action": "help"}',
+          );
+      }
 
-    $func = $input['action'];
-    if (!in_array($func, array_keys(self::$doc))) {
-      throw new ValidationException("Unknown action $func");
-    }
+      $func = $input['action'];
+      if (!in_array($func, array_keys(self::$doc))) {
+          throw new ValidationException("Unknown action $func");
+      }
 
-    $action_ref = jump_api::$doc[$func];
-    $params = $action_ref['params'];
+      $action_ref = jump_api::$doc[$func];
+      $params = $action_ref['params'];
 
-    foreach (array_keys($input) as $in_param) {
-      if (!isset($action_ref[$in_param])) {
-        if ($in_param === 'action')
-          continue;
-        if (!isset($action_ref['params'][$in_param])) {
-          throw new ValidationException("Unknown parameter $in_param");
+      foreach (array_keys($input) as $in_param) {
+          if (!isset($action_ref[$in_param])) {
+              if ($in_param === 'action')
+                  continue;
+              if (!isset($action_ref['params'][$in_param])) {
+                  throw new ValidationException("Unknown parameter $in_param");
         }
       }
 
@@ -306,12 +341,11 @@ class jump_api {
     $used_promo_size = false;
     $used_promo_urls = false;
 
-    $balance = [];
+    $balance = ['success'=>false, 'custom-urls'=>0, 'large-files'=>0];
 
     if (isset($input['promo-code'])) {
       $balance = self::getBalance(
-        ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
-      );
+        ['action' => 'getBalance', 'promo-code' => $input['promo-code']]);
       if (!$balance['success']) {
         return self::error("Invalid promo code");
       } else if ($balance['large-files'] > 0) {
@@ -320,10 +354,7 @@ class jump_api {
       }
     }
 
-    $content_type =
-      isset($input['content-type'])
-        ? $input['content-type']
-        : self::get_mime($extension);
+    $content_type = empty($input['content-type']) ? self::get_mime($extension) : $input['content-type'];
 
     if (isset($input['tmp-key'])) {
       // user already uploaded the file to S3
@@ -424,7 +455,7 @@ class jump_api {
       }
     }
 
-    if (isset($input['requested-url'])) {
+    if (isset($input['custom-url'])) {
       if (!isset($input['promo-code'])) {
         $s3client->deleteObject(
           ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
@@ -442,13 +473,13 @@ class jump_api {
         return
           self::error('Promo code has no remaining custom-url credits', 500);
       } else {
-        if (jump_key_exists($input['requested-url'])) {
+        if (jump_key_exists($input['custom-url'])) {
           $s3client->deleteObject(
             ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
           );
           return self::error('Key requested is not available', 400);
         } else {
-          $new_key = $input['requested-url'];
+          $new_key = $input['custom-url'];
           $used_promo_url = TRUE;
         }
       }
@@ -486,26 +517,27 @@ class jump_api {
       return self::error('Internal exception 3', 503);
     }
 
-    $salt = uniqid('', true);
+    $pass = 'nopass';
+    $salt = '';
+
+    if(!empty($input['password'])){
+        $salt = uniqid('', true);
+        $pass = hash('sha256', $input['password'].$salt);
+    }
 
     try {
       $res = $dyclient->putItem(
         [
           'TableName' =>
             aws_config::LINK_TABLE,
-          'Item' =>
+          'Item' => array_merge(
             [
               'Object ID' =>
                 ['S' => $new_key],
               'pass' =>
                 [
-                  'S' =>
-                    $input['password'] === ""
-                      ? 'nopass'
-                      : hash('sha256', $input['password'].$salt),
+                  'S' => $pass
                 ],
-              'salt' =>
-                ['S' => $salt],
               'private_b' =>
                 ['BOOL' => $input['private']],
               'active_b' =>
@@ -520,7 +552,7 @@ class jump_api {
                 ['S' => $extension],
               'clicks' =>
                 ['N' => strval($input['clicks'] ?: 0)],
-            ],
+            ],(!empty($salt)?['salt'=>['S'=>$salt]]:[]))
         ],
       );
     } catch (DynamoDbException $dydbe) {
@@ -534,29 +566,23 @@ class jump_api {
 
     if ($used_promo_size || $used_promo_urls) {
 
-      $expr = [];
-
-      if ($used_promo_size) {
-        array_push($expr, 'large-files -1');
-      }
-
-      if ($used_promo_urls) {
-        array_push($expr, 'custom-urls -1');
-      }
-
       try {
         $dyclient->updateItem(
-          [
-            'Key' => ['code' => ['S' => $input['promo-code']]],
-            'UpdateExpression' => 'ADD '.implode(', ', $expr),
+            [
+                'TableName' => aws_config::PROMO_TABLE,
+                'Key' => ['code' => ['S' => $input['promo-code']]],
+                'ExpressionAttributeNames' => ['#cu' => 'custom-urls','#lf' => 'large-files'],
+                'ExpressionAttributeValues' => [
+                    ':val1' => ['N' => strval($balance['custom-urls'] - ((int) $used_promo_urls))],
+                    ':val2' => ['N' => strval($balance['large-files'] - ((int) $used_promo_size))],
+                    ],
+            'UpdateExpression' => 'SET #cu = :val1, #lf = :val2',
           ],
         );
       } catch (DynamoDbException $dbe) {
         error_log(
           "Failed to decrement promo code ".
-          $input['promo-code'].
-          ": ".
-          implode(', ', $expr),
+          $input['promo-code']
         );
       }
     }
@@ -586,13 +612,16 @@ class jump_api {
     $dyclient = awsHelper::dydb_client();
     //        $glclient = awsHelper::gl_client();
 
+    $balance = ['success'=>false, 'custom-urls'=>0];
+
+    if(!empty($input['promo-code'])){
     $balance = self::getBalance(
-      ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
-    );
+      ['action' => 'getBalance', 'promo-code' => $input['promo-code']]);
+    }
     $used_promo_url = FALSE;
 
-    if (isset($input['custom-url'])) {
-      if (!isset($input['promo-code'])) {
+    if (!empty($input['custom-url'])) {
+      if (empty($input['promo-code'])) {
         return self::error('A custom URL requires a promo code', 500);
       } else if (!$balance['success']) {
         return self::error('Invalid promo code');
@@ -600,10 +629,10 @@ class jump_api {
         return
           self::error('Promo code has no remaining custom-url credits', 500);
       } else {
-        if (jump_key_exists($input['requested-url'])) {
+        if (self::jump_key_exists($input['custom-url'])) {
           return self::error('Key requested is not available', 400);
         } else {
-          $key = $input['requested-url'];
+          $key = $input['custom-url'];
           $used_promo_url = TRUE;
         }
       }
@@ -619,7 +648,13 @@ class jump_api {
 
     }
 
-    $salt = uniqid('', true);
+    $pass = 'nopass';
+    $salt = '';
+
+    if(!empty($input['password'])){
+        $salt = uniqid('', true);
+        $pass = hash('sha256', $input['password'].$salt);
+    }
 
     try {
       $result = $dyclient->putItem(
@@ -627,7 +662,7 @@ class jump_api {
           'TableName' =>
             aws_config::LINK_TABLE,
           'Item' =>
-            [
+            array_merge([
               'Object ID' =>
                 ['S' => $key],
               'url' =>
@@ -636,13 +671,8 @@ class jump_api {
                 ['BOOL' => $input['private']],
               'pass' =>
                 [
-                  'S' =>
-                    $input['password'] === ""
-                      ? 'nopass'
-                      : hash("sha256", $input['password'].$salt),
+                  'S' => $pass,
                 ],
-              'salt' =>
-                ['S' => $salt],
               'active_b' =>
                 ['BOOL' => true],
               'clicks' =>
@@ -651,7 +681,7 @@ class jump_api {
                 ['S' => date(DateTime::W3C)],
               'file_b' =>
                 ['BOOL' => false],
-            ],
+            ],(!empty($salt)?['salt' => ['S'=>$salt]]:[]))
         ],
       );
     } catch (DynamoDbException $ex) {
@@ -662,9 +692,12 @@ class jump_api {
     if ($used_promo_url) {
       try {
         $dyclient->updateItem(
-          [
-            'Key' => ['code' => ['S' => $input['promo-code']]],
-            'UpdateExpression' => 'ADD custom-urls -1',
+            [
+                'TableName' => aws_config::PROMO_TABLE,
+                'Key' => ['code' => ['S' => $input['promo-code']]],
+                'ExpressionAttributeNames' => ['#cu' => 'custom-urls'],
+                'ExpressionAttributeValues' => [':val' => ['N' => strval($balance['custom-urls'] - 1)]],
+            'UpdateExpression' => 'SET #cu = :val',
           ],
         );
       } catch (DynamoDbException $dbe) {
@@ -744,7 +777,7 @@ class jump_api {
     $table_pass = $item['pass']['S'];
     $isFile =
       isset($item['file_b']['BOOL'])
-        ? $item['file_b']
+        ? boolval($item['file_b'])
         : (intval($item['isFile']['N']) === 1);
     if ($isFile) {
       $filename = $item['filename']['S'];
@@ -789,9 +822,13 @@ class jump_api {
             error_log("Failed to purge $filename");
           }
         }
+
+        return self::success(['was-file' => true]);
+      } else {
+          return self::success(['was-file' => false]);
       }
 
-      return self::success(['note' => "Item deleted"]);
+      //return self::success(['note' => "Item deleted"]);
     } else {
       return self::error("Incorrect key or password", 500);
     }
@@ -1032,7 +1069,7 @@ class jump_api {
       [
         'large-files' => $large_files,
         'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
-        'request-urls' => $custom_urls,
+        'custom-urls' => $custom_urls,
       ],
     );
   }
@@ -1170,12 +1207,14 @@ class apiHandler {
     }
   }
 
-  public static function handle(): void {
+  public static function handle(?array $input_arr = null): void {
     awsHelper::init();
     $input = NULL;
     $api_help = api_config::api_help();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if($input_arr !== null){
+        $input = $input_arr;
+    } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
       header('Content-Type: text/html');
 
@@ -1211,9 +1250,13 @@ class apiHandler {
     if ($input === NULL) {
       apiHandler::error('Malformed JSON input');
     } else if (!isset($input['action'])) {
-      apiHandler::error('Input missing action field, try {action:"help"}');
+        apiHandler::error('Input missing action field, try {"action":"help"}');
+    } else if ($input['action'] === 'help') {
+          self::help($input);
     } else {
 
+      echo json_encode(jump_api::route($input));
+     /* 
       $action = $input["action"];
 
       switch ($action) {
@@ -1249,7 +1292,7 @@ class apiHandler {
         default:
           apiHandler::error('Unsupported action; try {action:"help"}');
           break;
-      }
+      }*/
     }
   }
 }

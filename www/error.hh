@@ -1,5 +1,11 @@
 <?hh
 
+require_once ('vendor/facebook/xhp-lib/init.php');
+
+require_once ('header.hh');
+
+require_once ('footer.hh');
+
 function error_message(int $status): mixed {
   switch ($status) {
     case 403:

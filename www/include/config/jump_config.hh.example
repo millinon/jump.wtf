@@ -1,5 +1,7 @@
 <?hh
 
+die('Edit ' . __FILE__);
+
 class jump_config {
 
     /* prefix of generated links */

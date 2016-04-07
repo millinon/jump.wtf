@@ -1,7 +1,5 @@
 <?hh
 
-echo get_include_path();
-
 require_once ('vendor/facebook/xhp-lib/init.php');
 
 require_once ('config/jump_config.hh');

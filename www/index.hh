@@ -3,8 +3,8 @@
 require_once ('vendor/facebook/xhp-lib/init.php');
 
 require_once ('header.hh');
-//require_once('forms.hh');
 require_once ('footer.hh');
+
 
 function input_none() {
   return <div class="input-group"><input style="display:none;" /></div>;
@@ -147,10 +147,50 @@ function pass_input(
     </div>;
 }
 
+
+function promo_input(string $id_prefix){
+  $id = $id_prefix.'-promo';
+
+  return
+    <div class="input-group" id={$id_prefix.'-promo-input-group'}>
+        {input_label('Promo code:')}
+      <input type="text" class="form-control" name="promo-code" id={$id} autocomplete="off" />
+    </div>;
+}
+
+function key_input(string $id_prefix){
+
+    $id = $id_prefix . '-key';
+
+  return
+    <div class="input-group" id={$id_prefix.'-key-input-group'}>
+{input_label('Custom key:')}
+<div id={$id_prefix.'-wrap-expires'} data-toggle="tooltip" title="Promo code required">
+<input type="text" class="form-control" name="custom-url" id={$id} autocomplete="off" data-toggle="tooltip" title="Promo code required"/>
+</div>
+    </div>;
+
+}
+
+
+function collapse_input(string $id_prefix){
+    return <div class="input-group">
+        <button id="button" type="button" class="btn showdetails" data-toggle="collapse" data-target={'#'.$id_prefix.'-opt'}>
+        <span class="glyphicon glyphicon-collapse-down">&nbsp;</span>More Options
+        </button>
+        <div id={$id_prefix.'-opt'} class="collapse container-fluid" style="margin:0px; padding:0px">
+                {pass_input($id_prefix, 'Password for deletion:')}
+                {expire_input($id_prefix)}
+                {key_input($id_prefix)}
+                {promo_input($id_prefix)}
+                </div>
+        </div>;
+}
+
+
 function i_main(): void {
 
-  $tab_classes =
-    "container-fluid col-xs-12 col-sm-12 col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3 tab-content";
+$tab_classes = "container-fluid col-xs-12 col-sm-12 col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3 tab-content";
 
   echo
     <x:doctype>
@@ -198,8 +238,7 @@ function i_main(): void {
                   true,
                 )}
                 {input_none()}
-                {pass_input('new', 'Password for deletion:')}
-                {expire_input('new')}
+                {collapse_input('new')}
                 {action_input('new', 'new-url')}
                 {submit_input('new', 'glyphicon-link')}
               </form>
@@ -211,8 +250,7 @@ function i_main(): void {
                 method="post"
                 enctype="multipart/form-data">
                 {file_input()}
-                {pass_input('file', 'Password for deletion:')}
-                {expire_input('file')}
+                {collapse_input('file')}
                 {action_input('file', 'new-file')}
                 {submit_input('file', 'glyphicon-cloud-upload')}
               </form>

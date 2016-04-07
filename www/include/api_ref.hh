@@ -1,6 +1,6 @@
 <?hh
 
-if (file_exists('config/jump_config.hh')) {
+if (file_exists(__DIR__ . '/config/jump_config.hh')) {
   require_once ('config/jump_config.hh');
 } else {
   require_once ('config/jump_config.hh.example');
@@ -56,6 +56,7 @@ class api_config {
     $promo_param = [
       'description' => 'Promotional code',
       'type' => 'string',
+      'min-length' => 1,
       'max-length' => 30,
       'requires-params' => [],
     ];
@@ -63,8 +64,9 @@ class api_config {
     $custom_url_param = [
       'description' => 'Requested custom URL, requires a promo code',
       'requires-params' => ['promo-code'],
-      'min-length' => key_config::MIN_LENGTH,
-      'max-length' => key_config::MAX_LENGTH,
+      //'min-length' => key_config::MIN_LENGTH,
+      //'max-length' => key_config::MAX_LENGTH,
+      'regex' => '/^'.key_config::extended_regex.'$/',
       'type' => 'string',
     ];
 
@@ -350,7 +352,11 @@ class api_config {
             'constraints' =>
               [['jump-key', 'jump-url'], ['password']],
             'returns' =>
-              ['success' => $success_retval],
+            ['success' => $success_retval,
+                'was-file' => [
+                    'description' => 'Whether or not the deleted URL was a file, if successful',
+                    'type' => 'boolean']
+                ],
             'examples' =>
               [
                 [

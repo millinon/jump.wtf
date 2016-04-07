@@ -2,6 +2,8 @@
 
 require_once ('api.hh');
 
+require_once ('error.hh');
+
 function g_main(string $uri): void {
 
   awsHelper::init();

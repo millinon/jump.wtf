@@ -5,47 +5,71 @@ require_once('vendor/facebook/xhp-lib/init.php');
 require_once('header.hh');
 require_once('footer.hh');
 
-function heading(string $action): string {
-  switch ($action) {
-    case "del_file":
-    case "del_url":
-      return "Deletion successful";
+function heading(): string {
+    if(empty($_SESSION['success']) || !$_SESSION['success']){
+        return "Error!";
+    }
 
-    case "url_success":
-      return "Link generated";
+  switch ($_SESSION['action']) {
+  case 'delURL':
+    return 'Deletion successful';
+    break;
 
-    case "file_success":
-      return "File uploaded";
+    case 'genURL':
+        return 'Link generated';
+        break;
 
-    case "error":
-      return "Error!";
+    case 'genFileURL':
+        return 'File uploaded';
+        break;
 
     default:
-      header('location:./');
-      die();
-      return "";
+        return 'Error!';
+        break;
   }
 }
 
-function message(string $action, string $message): mixed {
-  switch ($action) {
-    case "del_file":
-      return <p>Link deleted; file deletion pending.</p>;
-    case "del_url":
-      return <p>Link deleted.</p>;
+function message(): mixed {
+    
+    if(empty($_SESSION['action'])){
+        return <p>Invalid query.</p>;
+    } else if(empty($_SESSION['success']) || !$_SESSION['success']){
+        if(empty($_SESSION['message'])){
+            return <p>Unknown error.</p>;
+        } else {
+            return <p>{$_SESSION['message']}</p>;
+        }
+    }
 
-    case "url_success":
-    case "file_success":
-      return
-        <p>
-          Your link has been generated:
-          <a id="newlink" href={$message} target="_blank">{$message}</a>
-        </p>;
+    // past this point, success
+    switch ($_SESSION['action']) {
+        case 'genURL':
+            return <p>
+                Your link has been generated:
+          <a id="newlink" href={$_SESSION['url']} target="_blank">{$_SESSION['url']}</a>
+          </p>;
+            break;
 
-    case "error":
-      return <p>{$message}</p>;
+        case 'genFileURL':
+            return <p>
+                Your file has been uploaded:
+                <a id="newlink" href={$_SESSION['url']} target="_blank">{$_SESSION['url']}</a>
+          </p>;
+            break;
+
+        case 'delURL':
+            if($_SESSION['was-file']){
+                return <p>Link deleted, file deletion pending.</p>;
+            } else {
+                return <p>Link deleted.</p>;
+            }
+            break;
+        
+        default:
+            return <p>Something weird happened.</p>;
+            break;
+    }
   }
-}
 
 function copy_button(string $id, string $label, string $href) {
   return
@@ -62,24 +86,16 @@ function make_container() {
 
   $container = null;
 
-  $msg = "";
-
-  if (isset($_SESSION['url'])) {
-    $msg = $_SESSION['url'];
-  } else if (isset($_SESSION['message'])) {
-    $msg = $_SESSION['message'];
-  }
 
   $container =
     <div class="container centered">
-      <h2>{heading($_SESSION['action'])}</h2>
-      {message($_SESSION['action'], $msg)}<br />
+      <h2>{heading()}</h2>
+      {message()}<br />
     </div>;
 
   $buttons = <div id="button-container" class="container centered"></div>;
 
-  if ($_SESSION['action'] === 'url_success' ||
-      $_SESSION['action'] === 'file_success') {
+  if(isset($_SESSION['url'])){
     $buttons->appendChild(
       copy_button('copy-url', 'Copy to clipboard', $_SESSION['url']),
     );
@@ -116,7 +132,7 @@ function r_main(): void {
   session_start();
 
   if(!isset($_SESSION['action'])){
-      $_SESSION['action'] = 'error';
+      $_SESSION['success'] = false;
       $_SESSION['message'] = 'Invalid request';
   }
 
@@ -138,8 +154,7 @@ function r_main(): void {
           file_get_contents("htdocs/js/clip.js.latest")}>
       </script>
     </body>;
-  if ($_SESSION['action'] === 'url_success' ||
-      $_SESSION['action'] === 'file_success') {
+if (isset($_SESSION['url'])){
     $body->appendChild(
       <script
         src=
