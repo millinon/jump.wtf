@@ -155,8 +155,6 @@ foreach (array_keys($doc) as $action) {
             $param_name,
             "depends on non-existent parameter $req",
           );
-          //                } else if( isset($action_ref['params'][$req]['default']) ){
-          //                    key_error($action, 'params', $param_name, "depends on parameter $req with a default value");
         }
       }
 
@@ -227,7 +225,7 @@ foreach (array_keys($doc) as $action) {
             $action,
             'constraints',
             $param_name,
-            "parameter has a default value",
+            'parameter has a default value',
           );
         } else if (isset($param_ref['requires-params']) &&
                    in_array(
@@ -238,7 +236,7 @@ foreach (array_keys($doc) as $action) {
             $action,
             'constraints',
             $set_str,
-            "set members are mutually exclusive but $param_name depends on $param2_name",
+            'set members are mutually exclusive but $param_name depends on $param2_name',
           );
         } else if (isset($param2_ref['requires_params']) &&
                    in_array(
@@ -249,78 +247,84 @@ foreach (array_keys($doc) as $action) {
             $action,
             'constraints',
             $set_str,
-            "set members are mutually exclusive but $param2_name depends on $param_name",
+            'set members are mutually exclusive but $param2_name depends on $param_name',
           );
         }
       }
     }
   }
 
-  echo "    Validating examples...\n";
+  echo '    Validating examples...'."\n";
   foreach ($action_ref['examples'] as $example) {
     try {
       jump_api::validate($example);
     } catch (ValidationException $ve) {
-      echo "Validation failed: ".(string) $ve."\n";
+      echo 'Validation failed: '.(string) $ve."\n";
       exit(1);
     }
   }
 
-  echo "Pass\n";
+  echo 'Pass\n';
 }
 
 $reject_tests =
   [
     [],
-    ["noaction" => true],
-    ["action" => ""],
-    ["action" => "fakeaction"],
-    ["action" => "genURL", "fakeParam" => "test"],
-    ["action" => "genUploadURL", "input-url" => "http://example.com"],
+    ['noaction' => true],
+    ['action' => ''],
+    ['action' => 'fakeaction'],
+    ['action' => 'genURL', 'fakeParam' => 'test'],
+    ['action' => 'genUploadURL', 'input-url' => 'http://example.com'],
     [
-      "action" => "genURL",
-      "input-url" => "http://example.com",
-      "private" => 5,
+      'action' => 'genURL',
+      'input-url' => 'http://example.com',
+      'private' => 5,
     ],
-    //["action" => "genURL", "input-url" => "not a URL"], // URLs aren't tested during validation, since that's done by filter_var
+    //['action' => 'genURL', 'input-url' => 'not a URL'], // URLs aren't tested during validation, since that's done by filter_var
     [
-      "action" => "genURL",
-      "input-url" => "http://example.com",
-      "clicks" => 5,
-    ],
-    [
-      "action" => "genURL",
-      "input-url" => "http://example.com",
-      "private" => true,
-      "clicks" => jump_config::MAX_CLICKS + 1,
+      'action' => 'genURL',
+      'input-url' => 'http://example.com',
+      'clicks' => 5,
     ],
     [
-      "action" => "genFileURL",
-      "file-data" => "aGVsbG8K",
-      "tmp-key" => "5677988ddaee51.96624275",
-    ],
-    ["action" => "genFileURL", "tmp-key" => "invalid key"],
-    [
-      "action" => "genURL",
-      "input-url" => "http://example.com",
-      "private" => true,
-      "clicks" => 0,
-    ],
-    ["action" => "jumpTo", "jump-key" => "https://jump.wtf/foo"],
-    [
-      "action" => "jumpTo",
-      "jump-key" => "looooooooooooooooooooooooooooooooooooooooooooongKey",
+      'action' => 'genURL',
+      'input-url' => 'http://example.com',
+      'private' => true,
+      'clicks' => jump_config::MAX_CLICKS + 1,
     ],
     [
-      "action" => "delURL",
-      "password" => "a password",
-      "jump-key" => "https://jump.wtf/fooBar",
+      'action' => 'genFileURL',
+      'file-data' => 'aGVsbG8K',
+      'tmp-key' => '5677988ddaee51.96624275',
     ],
-    ["action" => "delURL", "password" => "", "jump-key" => "foo"],
+    ['action' => 'genFileURL', 'tmp-key' => 'invalid key'],
     [
-      "action" => "genURL",
-      "input-url" => "https://jump.wtf",
-      "custom-url" => "fooBar",
+      'action' => 'genURL',
+      'input-url' => 'http://example.com',
+      'private' => true,
+      'clicks' => 0,
+    ],
+    ['action' => 'jumpTo', 'jump-key' => 'https://jump.wtf/foo'],
+    [
+      'action' => 'jumpTo',
+      'jump-key' => 'looooooooooooooooooooooooooooooooooooooooooooongKey',
+    ],
+    [
+      'action' => 'delURL',
+      'password' => 'a password',
+      'jump-key' => 'https://jump.wtf/fooBar',
+    ],
+    ['action' => 'delURL', 'password' => '', 'jump-key' => 'foo'],
+    [
+      'action' => 'genURL',
+      'input-url' => 'https://jump.wtf',
+      'custom-url' => 'fooBar',
+    ],
+    ['action' => 'delURL', 'jump-key' => 'realKey'],
+    [
+      'action' => 'genFileURL',
+      'file-data' => 'd2hvb3BzIHRoaXMgaXMgYW4gaW52YWxpZCBleHRlbnNpb24K',
+      'extension' => '.loooooooong.invalid.extension',
     ],
   ];
 
@@ -334,7 +338,7 @@ foreach ($reject_tests as $test) {
     continue;
   }
   echo "Failed on input: ";
-  var_dump($test); //.json_encode($test)."\n";
+  var_dump($test);
   exit(1);
 }
 

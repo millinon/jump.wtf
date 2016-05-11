@@ -1,6 +1,6 @@
 <?hh
 
-if (file_exists(__DIR__ . '/config/jump_config.hh')) {
+if (file_exists(__DIR__.'/config/jump_config.hh')) {
   require_once ('config/jump_config.hh');
 } else {
   require_once ('config/jump_config.hh.example');
@@ -141,7 +141,7 @@ class api_config {
             'params' =>
               [
                 'promo-code' => $promo_param,
-                'Custom-url' => $custom_url_param,
+                'custom-url' => $custom_url_param,
                 'private' => $private_param,
                 'clicks' => $clicks_param,
                 'tmp-key' =>
@@ -173,7 +173,7 @@ class api_config {
                     'default' => '.txt',
                     'min-length' => 1,
                     'max-length' => jump_config::MAX_EXT_LENGTH,
-                    'regex' => '/^\.\\w+(\\.\\w+)*$/',
+                    'regex' => '/^(\\.\\w{1,4})+$/',
                   ],
                 /*'save-backup' =>
                  [
@@ -182,12 +182,7 @@ class api_config {
                  'type' => 'boolean',
                  'default' => true,
                  ],*/
-                'password' => $pass_param, /*[
-                 'description' => 'Optional password to delete the file',
-                 'type' => 'string',
-                 'default' => '',
-                 'max-length' => jump_config::MAX_PASS_LEN,
-                 ],*/
+                'password' => $pass_param,
                 'content-type' =>
                   [
                     'description' =>
@@ -212,6 +207,12 @@ class api_config {
                   'action' => 'genFileURL',
                   'tmp-key' => 'gu-567709c438b644.69604071',
                   'extension' => '.png',
+                ],
+                [
+                  'action' => 'genFileURL',
+                  'file-data' => 'anVtcC53dGYgcm9ja3MhCg==',
+                  'custom-url' => 'motto',
+                  'promo-code' => 'SUPER_SECRET_CODE',
                 ],
               ],
           ],
@@ -254,6 +255,12 @@ class api_config {
                   'input-url' => 'https://jump.wtf',
                   'private' => true,
                   'clicks' => 2,
+                ],
+                [
+                  'action' => 'genURL',
+                  'input-url' => 'http://gitlab.com',
+                  'custom-url' => 'gitlab',
+                  'promo-code' => 'SUPER_SECRET_CODE',
                 ],
               ],
           ],
@@ -352,11 +359,15 @@ class api_config {
             'constraints' =>
               [['jump-key', 'jump-url'], ['password']],
             'returns' =>
-            ['success' => $success_retval,
-                'was-file' => [
-                    'description' => 'Whether or not the deleted URL was a file, if successful',
-                    'type' => 'boolean']
-                ],
+              [
+                'success' => $success_retval,
+                'was-file' =>
+                  [
+                    'description' =>
+                      'Whether or not the deleted URL was a file, if successful',
+                    'type' => 'boolean',
+                  ],
+              ],
             'examples' =>
               [
                 [
