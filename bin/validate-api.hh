@@ -1,3 +1,4 @@
+#!/usr/bin/env hhvm
 <?hh
 
 set_include_path(dirname(__FILE__).'/../www/include');
@@ -343,3 +344,5 @@ foreach ($reject_tests as $test) {
 }
 
 echo "    All passed\n";
+
+/* vim: set ft=php ts=4 sw=4 tw=0 et :*/

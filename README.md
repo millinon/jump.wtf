@@ -43,6 +43,7 @@ There is additionally a `bin/` directory with a few scripts I've written:
 
 * `deploy.sh`: prepares static resources
 * `minify.js`: minifies JavaScript and CSS resources, with versioning
+* `putFile.hh`: uploads a file, optionally with a custom key, I use this for `robots.txt`
 * `pre-commit.sh`: does some basic testing, I use this as my pre-commit hook
 * `validate-api.hh`: makes sure that the API as defined by `api.hh` and `api_ref.hh` is sane
 * `make-code.hh`: generates a promo code with X custom URLs and Y large files
@@ -63,15 +64,13 @@ TODO, in no particular order:
 
 ## Setup
 
-If you'd like to set up a copy of jump.wtf, I will be more than happy to help you out - contact me if you are struggling with the AWS account details or web server setup.
+If you'd like to set up a copy of jump.wtf for non-commercial use, I would be more than happy to help you out - contact me if you are struggling with the AWS account details or web server setup.
 
 If you want to set up your own version of jump.wtf, you need to have an AWS account with access to S3 and DynamoDB at a bare minimum. I also include access to CloudFront, to provide a CDN for user-uploaded files, and Glacier, to automatically save backups of uploaded files. Credentials for this user need to be in `credentials.ini`, following the example provided by `credentials.ini.example`. I decided to use two separate IAM users, since one of them exposes its IAM access key when it generates links.
 
 You need to have a web server set up so that it can statically serve the files in `www/htdocs`, and so that it can forward certain requests with the `*.hh` files by proxy to HHVM. Refer to the files in `www/include/config/`. I previously used an Apache configuration, but Nginx seems to be easier to configure and possibly better performing. The interface between HHVM and your web server is fairly flexible, as the web server only needs to support FCGI.
 
 It is important to note that the only files that are served statically are in the `www/htdocs` directory - no other files should be accessible from the Internet. I was previously making this distinction by checking the prefix of the URI against `/htdocs/`, but I decided that it makes far more sense to distinguish static files by subdomain, and serving all other requests through `main.hh`.
-
-At some point in the future, this project may have some sort of script to automate the setup process.
 
 ## How it works
 

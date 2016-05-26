@@ -278,8 +278,8 @@ class api_config {
                       jump_config::BASEURL.
                       "fooBar.baz' expects 'fooBar'",
                     'type' => 'string',
-                    'min-length' => key_config::MIN_LENGTH,
-                    'max-length' => key_config::MAX_LENGTH,
+                    //'min-length' => key_config::MIN_LENGTH,
+                    //'max-length' => key_config::MAX_LENGTH,
                     'regex' => '/^'.key_config::extended_regex.'$/',
                   ],
                 'jump-url' =>

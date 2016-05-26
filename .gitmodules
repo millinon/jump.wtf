@@ -14,3 +14,6 @@
 	path = www/vendor/facebook/xhp-lib
     url = https://github.com/facebook/xhp-lib.git
     ignore = dirty
+[submodule "nginx-conf/ssl"]
+	path = nginx-conf/ssl
+	url = https://gitlab.com/millinon/nginx-ssl-conf.git

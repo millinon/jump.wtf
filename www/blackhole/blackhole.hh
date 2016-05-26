@@ -3,7 +3,7 @@
 
 class blackhole {
 
-    static $blacklist = ['_asterisk', 'cgi-bin', '(wp-)?admin', 'blackhole'];
+    static $blacklist = ['_asterisk', 'cgi-bin', '(wp-)?admin', 'blackhole', 'phpMyAdmin', 'a2billing'];
 
     static $filename = 'blackhole/blackhole.dat';
 

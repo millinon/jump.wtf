@@ -29,7 +29,7 @@ done
 
     if git diff --cached --name-only -- '*api*.hh' >/dev/null 2>&1; then
         echo "Validating API"
-        if hhvm bin/validate-api.hh; then
+        if bin/validate-api.hh; then
             echo "API passed"
         else
             echo "API failed"

@@ -32,8 +32,6 @@ class KeygenException extends Exception {
 
 class jump_api {
 
-
-
   public static function route(array $input): array {
       switch($input['action']){
       case 'genUploadURL':
@@ -67,7 +65,7 @@ class jump_api {
   }
 
 
-  private static function jump_key_exists(string $key): bool {
+  public static function jump_key_exists(string $key): bool {
       $dyclient = awsHelper::dydb_client();
 
       $res = $dyclient->query(
@@ -184,7 +182,7 @@ class jump_api {
           if (isset($param_ref['regex'])) {
             if (!preg_match($param_ref['regex'], $input[$param])) {
               throw new ValidationException(
-                "input $param didn't match parameter regex",
+                "input $param didn't match parameter regex: " . $param_ref['regex'],
               );
             }
           }
@@ -473,7 +471,7 @@ class jump_api {
         return
           self::error('Promo code has no remaining custom-url credits', 500);
       } else {
-        if (jump_key_exists($input['custom-url'])) {
+        if (self::jump_key_exists($input['custom-url'])) {
           $s3client->deleteObject(
             ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
           );
@@ -812,10 +810,11 @@ class jump_api {
           try {
             $cfclient->createInvalidation(
               [
-                'DistributionId' => aws_config::CF_DIST_ID,
+                  'DistributionId' => aws_config::CF_DIST_ID,
+                  'InvalidationBatch' => [
                 'CallerReference' =>
                   'jump.wtf-delete-'.$filename.'.'.rand(0, 8),
-                'Paths' => ['Quantity' => 1, 'Items' => ['/'.$filename]],
+                'Paths' => ['Quantity' => 1, 'Items' => ['/'.$filename]]],
               ],
             );
           } catch (CloudfrontException $ce) {
