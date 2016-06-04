@@ -173,7 +173,7 @@ class api_config {
                     'default' => '.txt',
                     'min-length' => 1,
                     'max-length' => jump_config::MAX_EXT_LENGTH,
-                    'regex' => '/^(\\.\\w{1,4})+$/',
+                    'regex' => '/^(\\.\\w{1,4})*$/',
                   ],
                 /*'save-backup' =>
                  [
