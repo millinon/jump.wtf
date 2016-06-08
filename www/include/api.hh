@@ -255,7 +255,7 @@ class jump_api {
     try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
-      return self::error((string) $ve);
+      return self::error((string) $ve, 400);
     }
 
     $limit = jump_config::MAX_FILE_SIZE;
@@ -264,7 +264,7 @@ class jump_api {
         ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
       );
       if (!$balance['success']) {
-        return self::error('Invalid promo code');
+        return self::error('Invalid promo code', 400);
       } else {
         if ($balance['large-files'] > 0) {
           $limit = jump_config::PROMO_MAX_FILE_SIZE;
@@ -324,7 +324,7 @@ class jump_api {
     try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
-      return self::error((string) $ve);
+      return self::error((string) $ve, 400);
     }
 
     $s3client = awsHelper::s3_client();
@@ -349,7 +349,7 @@ class jump_api {
         ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
       );
       if (!$balance['success']) {
-        return self::error("Invalid promo code");
+        return self::error("Invalid promo code", 400);
       } else if ($balance['large-files'] > 0) {
         $size_limit = jump_config::PROMO_MAX_FILE_SIZE;
         $local_limit = jump_config::PROMO_MAX_LOCAL_FILE_SIZE;
@@ -373,7 +373,7 @@ class jump_api {
         /* the API regex for this param should check this, but I don't want to take any chances */
         if (strpos($input['local-file'], '/') !== false) {
           return self::error(
-            'Invalid local-file parameter -- shenanigans detected',
+            'Invalid local-file parameter, shenanigans detected',
             400,
           );
         }
@@ -381,7 +381,8 @@ class jump_api {
         $tmp_file = $input['local-file'];
 
         if (!file_exists(jump_config::UPLOAD_DIR.'/'.$input['local-file'])) {
-          return self::error('local-file parameter -- file not found', 404);
+          return
+            self::error('Invalid local-file parameter -- file not found');
         } else if (filesize(
                      jump_config::UPLOAD_DIR.'/'.$input['local-file'],
                    ) >
@@ -394,7 +395,7 @@ class jump_api {
 
         if (!$body) {
           return self::error(
-            'file-data parameter invalid -- should be base64 encoded',
+            'file-data parameter invalid, should be base64 encoded',
             400,
           );
         }
@@ -404,7 +405,7 @@ class jump_api {
         file_put_contents(jump_config::UPLOAD_DIR.'/'.$tmp_file, $body);
 
       } else {
-        return self::error("Constraint verification failed");
+        return self::error("Constraint verification failed", 400);
       }
 
       $file = jump_config::UPLOAD_DIR.'/'.$tmp_file;
@@ -432,7 +433,7 @@ class jump_api {
         );
       } catch (S3Exception $s3e) {
         error_log('S3 file upload failed: '.(string) $s3e);
-        return self::error('failed to upload file to S3', 503);
+        return self::error('failed to upload file to S3', 500);
       }
 
       unlink($file);
@@ -444,7 +445,7 @@ class jump_api {
       );
     } catch (S3Exception $s3e) {
       return
-        self::error('File tmp/'.$tmp_file.' not found in S3 bucket', 400);
+        self::error('File tmp/'.$tmp_file.' not found in S3 bucket', 412);
     } catch (AccessDeniedException $ade) {
       return self::error('Internal exception', 503);
     }
@@ -465,24 +466,24 @@ class jump_api {
         $s3client->deleteObject(
           ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
-        return self::error('A custom URL requires a promo code', 500);
+        return self::error('A custom URL requires a promo code', 403);
       } else if (!$balance['success']) {
         $s3client->deleteObject(
           ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
-        return self::error('Invalid promo code');
+        return self::error('Invalid promo code', 400);
       } else if ($balance['custom-urls'] <= 0) {
         $s3client->deleteObject(
           ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
         );
         return
-          self::error('Promo code has no remaining custom-url credits', 500);
+          self::error('Promo code has no remaining custom-url credits', 402);
       } else {
         if (self::jump_key_exists($input['custom-url'])) {
           $s3client->deleteObject(
             ['Bucket' => $dest_bucket, 'Key' => 'tmp/'.$tmp_file],
           );
-          return self::error('Key requested is not available', 400);
+          return self::error('Key requested is not available', 409);
         } else {
           $new_key = $input['custom-url'];
           $used_promo_url = TRUE;
@@ -517,9 +518,9 @@ class jump_api {
 
     } catch (S3Exception $s3e) {
       error_log('S3 copyObject failed: '.(string) $s3e);
-      return self::error('Failed to copy S3 object', 503);
+      return self::error('Failed to copy S3 object', 500);
     } catch (AccessDeniedException $ade) {
-      return self::error('Internal exception 3', 503);
+      return self::error('Internal exception', 503);
     }
 
     $pass = 'nopass';
@@ -604,11 +605,11 @@ class jump_api {
     try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
-      return self::error((string) $ve);
+      return self::error((string) $ve, 400);
     }
 
     if (!filter_var($input['input-url'], FILTER_VALIDATE_URL)) {
-      return self::error("Invalid URL detected.");
+      return self::error("Invalid URL detected.", 400);
     }
 
     //        $s3client = awsHelper::s3_client();
@@ -626,15 +627,15 @@ class jump_api {
 
     if (!empty($input['custom-url'])) {
       if (empty($input['promo-code'])) {
-        return self::error('A custom URL requires a promo code', 500);
+        return self::error('A custom URL requires a promo code', 403);
       } else if (!$balance['success']) {
-        return self::error('Invalid promo code');
+        return self::error('Invalid promo code', 400);
       } else if ($balance['custom-urls'] <= 0) {
         return
-          self::error('Promo code has no remaining custom-url credits', 500);
+          self::error('Promo code has no remaining custom-url credits', 402);
       } else {
         if (self::jump_key_exists($input['custom-url'])) {
-          return self::error('Key requested is not available', 400);
+          return self::error('Key requested is not available', 412);
         } else {
           $key = $input['custom-url'];
           $used_promo_url = TRUE;
@@ -681,7 +682,8 @@ class jump_api {
       );
     } catch (DynamoDbException $ex) {
       error_log('DyDb putItem(url) failed: '.(string) $ex);
-      return self::error("Failed to generate URL. Please try again later.");
+      return
+        self::error("Failed to generate URL. Please try again later.", 503);
     }
 
     if ($used_promo_url) {
@@ -715,7 +717,7 @@ class jump_api {
     try {
       $input = validate($input);
     } catch (ValidationException $ve) {
-      return self::error((string) $ve);
+      return self::error((string) $ve, 400);
     }
 
     $s3client = awsHelper::s3_client();
@@ -732,7 +734,7 @@ class jump_api {
 
     if (isset($input['jump-url'])) {
       if (!filter_var($input['jump-url'], FILTER_VALIDATE_URL)) {
-        return self::error("URL validation faield");
+        return self::error("URL validation failed", 400);
       } else {
         $toks = parse_url($input['jump-url']);
         if (!$toks) {
@@ -844,7 +846,7 @@ class jump_api {
     try {
       $input = self::validate($input);
     } catch (ValidationException $ve) {
-      return self::error((string) $ve);
+      return self::error((string) $ve, 400);
     }
 
     $s3client = awsHelper::s3_client();
@@ -1058,7 +1060,7 @@ class jump_api {
         ],
       );
     } catch (DynamoDbException $dydbe) {
-      return self::error('Promo code not found');
+      return self::error('Promo code not found', 404);
     }
 
     if (!isset($res['Item'])) {
@@ -1081,22 +1083,22 @@ class jump_api {
 
 class apiHandler {
 
-  private static function error(string $msg): void {
-    echo json_encode(jump_api::error($msg));
+  private static function error(string $msg, int $code): void {
+    echo json_encode(jump_api::error($msg, $code));
     die();
   }
 
   private static function getInput() {
 
     if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
-      self::error('Missing application/json content type');
+      self::error('Missing or wrong application/json content type', 406);
       return NULL;
     }
 
     switch ($_SERVER['REQUEST_METHOD']) {
 
       case "GET":
-        self::error('This API only supports HTTP POST requests');
+        self::error('This API only supports HTTP POST requests', 405);
         return NULL;
         /*
          if(!isset($_GET["q"])){
@@ -1114,7 +1116,7 @@ class apiHandler {
         break;
 
       default:
-        self::error("Unknown HTTP method");
+        self::error("Unknown HTTP method", 405);
         return NULL;
         break;
     }
@@ -1128,7 +1130,7 @@ class apiHandler {
     $topic = $input['topic'] ?: 'help'; //isset($input['topic']) ? $input['topic'] : 'help';
 
     if (!isset($api_help['help']['topics'][$topic])) {
-      self::error("Help topic '$topic' not found");
+      self::error("Help topic '$topic' not found", 404);
     }
 
     $out = "";
@@ -1228,7 +1230,7 @@ class apiHandler {
           header('Location: /a/?action=help&topic='.$_GET['topic']);
         }
       } else if ($_GET['action'] != 'help') {
-        self::error('Please use HTTP POST for API calls');
+        self::error('Please use HTTP POST for API calls', 405);
       } else {
         $input = $_GET;
       }
@@ -1240,20 +1242,23 @@ class apiHandler {
                    $_GET['topic'],
                    array_keys($api_help['help']['topics']),
                  )) {
-        self::error('Invalid help topic');
+        self::error('Invalid help topic', 404);
       }
 
     } else if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
-      self::error('Please use the application/json content type');
+      self::error('Please use the application/json content type', 405);
     } else {
       header('Content-Type: application/json');
       $input = apiHandler::getInput();
     }
 
     if ($input === NULL) {
-      apiHandler::error('Malformed JSON input');
+      apiHandler::error('Malformed JSON input', 400);
     } else if (!isset($input['action'])) {
-      apiHandler::error('Input missing action field, try {"action":"help"}');
+      apiHandler::error(
+        'Input missing action field, try {"action":"help"}',
+        40,
+      );
     } else if ($input['action'] === 'help') {
       self::help($input);
     } else {

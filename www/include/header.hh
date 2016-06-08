@@ -39,6 +39,11 @@ function gen_head($title = "JUMP.WTF") {
       />
       <link
         rel="stylesheet"
+        href={$cdn_host."/vendor/dropzone/dist/dropzone.css"}
+        media="all"
+      />
+      <link
+        rel="stylesheet"
         href="//fonts.googleapis.com/css?family=Montserrat:700"
         type="text/css"
         data-noprefix=""

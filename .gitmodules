@@ -17,3 +17,6 @@
 [submodule "nginx-conf/ssl"]
 	path = nginx-conf/ssl
 	url = https://gitlab.com/millinon/nginx-ssl-conf.git
+[submodule "www/htdocs/vendor/dropzone"]
+	path = www/htdocs/vendor/dropzone
+	url = https://github.com/enyo/dropzone.git

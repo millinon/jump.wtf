@@ -31,6 +31,7 @@ function gen_footer_scripts(): mixed {
       </script>
       <script src={$cdn_host."/vendor/clippy.js/build/clippy.min.js"}>
       </script>
+      <script src={$cdn_host."/vendor/dropzone/dist/dropzone.js"}></script>
       <script
         async={true}
         src={$cdn_host."/js/".file_get_contents("htdocs/js/main.js.latest")}>
