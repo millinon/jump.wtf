@@ -715,7 +715,7 @@ class jump_api {
   public static function delURL($input): array {
 
     try {
-      $input = validate($input);
+      $input = self::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
