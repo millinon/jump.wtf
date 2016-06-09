@@ -743,10 +743,10 @@ class jump_api {
         $matches = [];
         if (!preg_match(
               "~^/(".
-              key_config::regex.
+              key_config::extended_regex.
               ")(\\.[\\w.]{1,".
-              jump_config::MAX_EXT_LENGTH.
-              "})$",
+              (jump_config::MAX_EXT_LENGTH - 1).
+              "})$~",
               $toks['path'],
               $matches,
             )) {
