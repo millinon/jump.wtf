@@ -42,6 +42,8 @@ class jump_config {
     /* max length of file extensions */
     const MAX_EXT_LENGTH = 16;
 
+    /* regex matching extensions */
+    const extension_regex = '(\\.\\w+)+';
 
     /* max file size for direct uploads to S3 */
     const MAX_FILE_SIZE = 1024*1024*128; // 128 MiB

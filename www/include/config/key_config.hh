@@ -7,7 +7,7 @@ class key_config {
 
   const target_length = 4;
 
-  // this is what generated URLs will look like
+  // th`is is what generated URLs will look like
   const regex = '[\\w]{3,5}';
   // this is what requested URLs will look like
   const extended_regex = '[\\w{}()-]{3,30}';

@@ -742,14 +742,12 @@ class jump_api {
         }
         $matches = [];
         if (!preg_match(
-              "~^/(".
-              key_config::extended_regex.
-              ")(\\.[\\w.]{1,".
-              (jump_config::MAX_EXT_LENGTH - 1).
-              "})$~",
+              "~^/(".key_config::extended_regex.')'.
+              '('.jump_config::extension_regex.')',
               $toks['path'],
               $matches,
-            )) {
+          )) {
+              error_log("path: " . $toks['path']); 
           return self::error("Invalid URL specified", 400);
         } else {
           $key = $matches[1];
