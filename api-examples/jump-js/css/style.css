@@ -53,6 +53,10 @@ footer {
     text-align: center;
 }
 
+.input-container span {
+    font-size: 18pt;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         width: 50%;
