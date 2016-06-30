@@ -1,0 +1,60 @@
+.container {
+    width: 100%;
+    margin: 0px auto;
+/*    padding: 0.1em 14px; */
+}
+
+.form-container {
+    
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    color: #F0F0F0;
+}
+
+h1 {
+    text-align: center;
+    margin: 0px auto;
+    font-size: 48pt;
+    text-shadow: 1px 1px 1px #ccc;
+}
+
+h2 {
+    font-size: 36pt;
+}
+
+p, div {
+    font-family: 'Crimson Text', serif;
+    color: #F0F0F0;
+}
+
+#body-container {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: url(img/background.png) repeat 0 0;
+/*    border: 8px solid #F0F0F0; */
+    margin: 0px auto;
+}
+
+input {
+    float: right;
+}
+
+.input-container {
+    width: 600px;
+    margin: 0px auto;
+}
+
+footer {
+    text-align: center;
+}
+
+@media only screen and (min-width: 480px) {
+    body {
+        width: 50%;
+    }
+}

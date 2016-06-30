@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>jump.wtf</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Crimson+Text' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        <div class="container" id="body-container">
+            <header>
+                <h1>JUMP.WTF</h1>
+            </header>
+            <hr />
+
+            <div class="container form-container" id="genURL-container">  
+                <h2>Shorten a link</h2>
+                <form id="genURL-form">
+                    <div class="input-container">
+                        <span>URL:</span>
+                        <input type="url" name="input-url" id="input-url" required="" />
+                    </div>
+                    <br />
+                    <div class="input-container">
+                        <span>Deletion Password:</span>
+                        <input type="password" name="genURL-pass" id="genURL-pass" value="" autocomplete="jump-del-pass" placeholder="(optional)"/>
+                    </div>
+                    <br />
+                    <div class="input-container">
+                        <button type="button" id="genURL-submit">Submit</button>
+                    </div>
+                    <br />
+                </form>
+            </div>
+            <hr />
+            
+            <div class="container form-container" id="genFileURL-container">  
+                <h2>Upload a file</h2>
+                    <div class="input-container">
+                        <span>Deletion Password:</span>
+                        <input type="password" name="genURL-pass" id="genURL-pass" value="" autocomplete="jump-del-pass" placeholder="(optional)"/>
+                    </div>
+                    <br />
+                    <div class="input-container">
+                        <button type="button" id="genURL-submit">Submit</button>
+                    </div>
+                    <br />
+            </div>
+            <hr />
+            
+            <div class="container form-container" id="delURL-container">  
+                <h2>Delete a link</h2>
+                <form id="delURL-form">
+                    <div class="input-container">
+                        <span>URL:</span>
+                        <input type="url" name="jump-url" id="jump-url" required="" />
+                    </div>
+                    <br />
+                    <div class="input-container">
+                        <span>Password:</span>
+                        <input type="password" name="delURL-pass" id="delURL-pass" value="" autocomplete="jump-del-pass" required=""/>
+                    </div>
+                    <br />
+                    <div class="input-container">
+                        <button type="button" id="delURL-submit">Submit</button>
+                    </div>
+                    <br />
+                </form>
+            </div>
+            <hr />
+
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <h4>&copy; Phillip Goldfarb 2016</h4>
+            </div>
+
+        </footer>
+
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="main.js" async></script>
+    </body>
+</html>
