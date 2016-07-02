@@ -106,9 +106,15 @@ class jump_api {
   }
 
   public static $doc;
+  public static $cache;
 
   public function init(): void {
     self::$doc = api_config::api_methods();
+    self::$cache = new Memcached();
+    if (!self::$cache->addServer('localhost', 11211)) {
+      self::$cache = NULL;
+    }
+
   }
 
   public static function validate(array $input): array {
@@ -591,6 +597,10 @@ class jump_api {
       }
     }
 
+    if (!$input['private'] && self::$cache !== NULL) {
+      self::$cache->add($new_key, $base.$new_key);
+    }
+
     return self::success(
       array_merge(
         ['url' => $base.$new_key],
@@ -742,12 +752,16 @@ class jump_api {
         }
         $matches = [];
         if (!preg_match(
-              "~^/(".key_config::extended_regex.')'.
-              '('.jump_config::extension_regex.')',
+              "~^/(".
+              key_config::extended_regex.
+              ')'.
+              '('.
+              jump_config::extension_regex.
+              ')',
               $toks['path'],
               $matches,
-          )) {
-              error_log("path: " . $toks['path']); 
+            )) {
+          error_log("path: ".$toks['path']);
           return self::error("Invalid URL specified", 400);
         } else {
           $key = $matches[1];
@@ -826,6 +840,12 @@ class jump_api {
           }
         }
 
+        if (self::$cache !== NULL) {
+
+          self::$cache->delete($key);
+
+        }
+
         return self::success(['was-file' => true]);
       } else {
         return self::success(['was-file' => false]);
@@ -878,152 +898,164 @@ class jump_api {
       $key = $matches[1];
     }
 
-    $res = $dyclient->getItem(
-      [
-        'TableName' => aws_config::LINK_TABLE,
-        'Key' => ['Object ID' => ['S' => $key]],
-        'ConsistentRead' => true,
-      ],
-    );
+    $cached = (self::$cache == NULL) ? FALSE : self::$cache->get($key);
 
-    if (!isset($res['Item'])) {
-      return self::error('Key not found', 404);
-    }
+    if ($cached !== FALSE) {
+      // cache hit
 
-    $item = $res['Item'];
+      $url = $cached;
 
-    // I know this is bad but I didn't know dynamodb knew about bools when I started
-    $isActive =
-      isset($item['active_b']['BOOL'])
-        ? $item['active_b']['BOOL']
-        : (isset($item['active']['N'])
-             ? (intval($item['active']['N']) === 1)
-             : false);
-
-    $isPrivate =
-      isset($item['private_b']['BOOL'])
-        ? $item['private_b']['BOOL']
-        : (isset($item['isPrivate']['N'])
-             ? (intval($item['isPrivate']['N']) === 1)
-             : false);
-
-    $isFile =
-      isset($item['file_b']['BOOL'])
-        ? $item['file_b']['BOOL']
-        : (isset($item['isFile']['N'])
-             ? (intval($item['isFile']['N']) === 1)
-             : false); // ???
-
-    $clicks = isset($item['clicks']['N']) ? intval($item['clicks']['N']) : 0;
-
-    if (!$isActive) {
-      return self::error("Link removed", 410);
-    }
-
-    if ($isFile) {
-      // private file: generate a signed URL
-      if ($isPrivate) {
-        try {
-          $command = $s3client->getCommand(
-            'GetObject',
-            [
-              'Bucket' => aws_config::PRIV_BUCKET,
-              'Key' => $item['filename']['S'],
-            ],
-          );
-          $url = (string) $s3client->createPresignedRequest(
-            $command,
-            '+15 minutes',
-          )->getURI();
-          $expires = (new DateTime())->modify("+15 minutes");
-        } catch (S3Exception $s3e) {
-          return self::error("Problem fetching link", 503);
-        }
-
-        // public file: generate a CDN-backed URL
-      } else {
-        $url = jump_config::FILE_HOST.$item['filename']['S'];
-      }
-
-      // URL: just return the stored URL
     } else {
-      $url = $item['url']['S'];
-    }
 
-    $promise = null;
-
-    $kill_str = '';
-
-    // remove stupid deprecated attributes from DynamoDB
-    {
-      $kill_list = [];
-
-      if (isset($item['active'])) {
-        array_push($kill_list, 'active');
-      }
-
-      if (isset($item['isPrivate'])) {
-        array_push($kill_list, 'isPrivate');
-      }
-
-      if (isset($item['isFile'])) {
-        array_push($kill_list, 'isFile');
-      }
-
-      //            if ($isFile && isset($item['url'])){
-      //                array_push($kill_list, '#u');
-      //            }
-
-      if (isset($item['Checksum'])) {
-        array_push($kill_list, 'Checksum');
-      }
-
-      if (isset($item['IP'])) {
-        array_push($kill_list, 'IP');
-      }
-
-      if (isset($item['origname'])) {
-        array_push($kill_list, 'origname');
-      }
-
-      if (isset($item['hits'])) {
-        array_push($kill_list, 'hits');
-      }
-
-      if (count($kill_list) > 0) {
-        $kill_str = 'REMOVE '.implode(', ', $kill_list);
-      }
-    }
-
-    // TODO: only do updateItem if we need to change clicks or active
-    // for now, I want to replace the dumb is* keys with booleans
-    try {
-      $dyclient->updateItem(
+      $res = $dyclient->getItem(
         [
           'TableName' => aws_config::LINK_TABLE,
           'Key' => ['Object ID' => ['S' => $key]],
-          'ExpressionAttributeValues' => [
-            ':a' => [
-              'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
-            ],
-            ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
-            ':f' => ['BOOL' => (bool) $isFile],
-            ':p' => ['BOOL' => (bool) $isPrivate],
-          ],
-          //                'ExpressionAttributeNames' => [
-          //                    '#u' => 'url'
-          //                    ],
-          //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
-          //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
-          //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
-          'UpdateExpression' =>
-            'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
-            $kill_str,
+          'ConsistentRead' => true,
         ],
       );
 
-    } catch (DynamoDbException $dde) {
-      error_log('updateItem('.$key.') failed');
+      if (!isset($res['Item'])) {
+        return self::error('Key not found', 404);
+      }
+
+      $item = $res['Item'];
+
+      // I know this is bad but I didn't know dynamodb knew about bools when I started
+      $isActive =
+        isset($item['active_b']['BOOL'])
+          ? $item['active_b']['BOOL']
+          : (isset($item['active']['N'])
+               ? (intval($item['active']['N']) === 1)
+               : false);
+
+      $isPrivate =
+        isset($item['private_b']['BOOL'])
+          ? $item['private_b']['BOOL']
+          : (isset($item['isPrivate']['N'])
+               ? (intval($item['isPrivate']['N']) === 1)
+               : false);
+
+      $isFile =
+        isset($item['file_b']['BOOL'])
+          ? $item['file_b']['BOOL']
+          : (isset($item['isFile']['N'])
+               ? (intval($item['isFile']['N']) === 1)
+               : false); // ???
+
+      $clicks =
+        isset($item['clicks']['N']) ? intval($item['clicks']['N']) : 0;
+
+      if (!$isActive) {
+        return self::error("Link removed", 410);
+      }
+
+      if ($isFile) {
+        // private file: generate a signed URL
+        if ($isPrivate) {
+          try {
+            $command = $s3client->getCommand(
+              'GetObject',
+              [
+                'Bucket' => aws_config::PRIV_BUCKET,
+                'Key' => $item['filename']['S'],
+              ],
+            );
+            $url = (string) $s3client->createPresignedRequest(
+              $command,
+              '+15 minutes',
+            )->getURI();
+            $expires = (new DateTime())->modify("+15 minutes");
+          } catch (S3Exception $s3e) {
+            return self::error("Problem fetching link", 503);
+          }
+
+          // public file: generate a CDN-backed URL
+        } else {
+          $url = jump_config::FILE_HOST.$item['filename']['S'];
+        }
+
+        // URL: just return the stored URL
+      } else {
+        $url = $item['url']['S'];
+      }
+
+      if (!$isPrivate && self::$cache !== NULL) {
+        self::$cache->add($key, $url);
+      }
+
+      $promise = null;
+
+      $kill_str = '';
+
+      // remove stupid deprecated attributes from DynamoDB
+      {
+        $kill_list = [];
+
+        if (isset($item['active'])) {
+          array_push($kill_list, 'active');
+        }
+
+        if (isset($item['isPrivate'])) {
+          array_push($kill_list, 'isPrivate');
+        }
+
+        if (isset($item['isFile'])) {
+          array_push($kill_list, 'isFile');
+        }
+
+        if (isset($item['Checksum'])) {
+          array_push($kill_list, 'Checksum');
+        }
+
+        if (isset($item['IP'])) {
+          array_push($kill_list, 'IP');
+        }
+
+        if (isset($item['origname'])) {
+          array_push($kill_list, 'origname');
+        }
+
+        if (isset($item['hits'])) {
+          array_push($kill_list, 'hits');
+        }
+
+        if (count($kill_list) > 0) {
+          $kill_str = 'REMOVE '.implode(', ', $kill_list);
+        }
+      }
+
+      // TODO: only do updateItem if we need to change clicks or active
+      // for now, I want to replace the dumb is* keys with booleans
+      try {
+        $dyclient->updateItem(
+          [
+            'TableName' => aws_config::LINK_TABLE,
+            'Key' => ['Object ID' => ['S' => $key]],
+            'ExpressionAttributeValues' => [
+              ':a' => [
+                'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
+              ],
+              ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+              ':f' => ['BOOL' => (bool) $isFile],
+              ':p' => ['BOOL' => (bool) $isPrivate],
+            ],
+            //                'ExpressionAttributeNames' => [
+            //                    '#u' => 'url'
+            //                    ],
+            //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
+            //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
+            //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
+            'UpdateExpression' =>
+              'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
+              $kill_str,
+          ],
+        );
+
+      } catch (DynamoDbException $dde) {
+        error_log('updateItem('.$key.') failed');
+      }
+
     }
 
     if (isset($expires)) {

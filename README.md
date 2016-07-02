@@ -25,7 +25,7 @@ The main functions are divided into five different tasks:
 * `result.hh`: Results page
 * `submit.hh`: Submission script
 
-A typical interaction is a user goes to the site root, which is served by `index.hh`. If the user submits a link or file, their browser sends a POST request that gets handled by `submit.hh`. If all goes well, the user is redirected to `result.hh`, presenting the generated URL. If the generated key is in the form "someString", then when a visiting user accesses "jump.wtf/someString", `go.hh` handles the request by looking up the key `someString`. If `go.hh` finds a matching key, then the user is redirected to the corresponding URL. If not, then the user is redirected to the site index.
+A typical interaction is a user goes to the site root, which is served by `index.hh`. If the user submits a link or file, their browser sends a POST request that gets handled by `submit.hh`. If all goes well, the user is redirected to `result.hh`, presenting the generated URL. If the generated key is in the form "someString", then when a visiting user accesses "jump.wtf/someString", `api.hh` handles the request by looking up the key `someString`. If `api.hh` finds a matching key, then the user is redirected to the corresponding URL. If not, then the user is redirected to the site index.
 
 The rest of the resources needed for the site are arranged into a few directories:
 
@@ -81,6 +81,8 @@ Files submitted to jump.wtf are sent to one of two S3 buckets.
 As a very simple example, the site's favicon isn't actually stored on my web server. The url https://jump.wtf/favicon.ico is associated with a row in the table with the primary key `favicon`. The matching URL in the table is `https://f.jump.wf/favicon.ico`, which is mapped by CloudFront to the file `favicon.ico` in a S3 bucket. 'favicon' wasn't an actually generated key; I manually uploaded the file to S3 and inserted a row into the table.
 
 Requests are decoded into a uniform format (from JSON or multipart/formdata or HTTP GET), and routed into the API handler, which performs validation and routes the request to the appropriate method.
+
+There are a few calls to Memcached for handling non-private links, in case a non-CDN-backed link gets posted in a public place, attracting a lot of traffic. Even though AWS should have fast networking internally, removing an unneccessary call to DynamoDb can hopefully improve performance.
 
 ### Link generation process
 
