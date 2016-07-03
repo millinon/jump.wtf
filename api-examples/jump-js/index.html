@@ -17,21 +17,20 @@
 
             <div class="container form-container" id="genURL-container">  
                 <h2>Shorten a link</h2>
-                <form id="genURL-form">
-                    <div class="input-container">
-                        <span>URL:</span>
-                        <input type="url" name="input-url" id="input-url" required="" />
+
+                <div class="row">
+                    <div class="row-input">
+                        <input type="url" name="input-url" id="input-url" required="" placeholder="http://example.com/some/long/link" />
                     </div>
-                    <br />
-                    <div class="input-container">
-                        <span>Deletion Password:</span>
-                        <input type="password" name="genURL-pass" id="genURL-pass" value="" autocomplete="jump-del-pass" placeholder="(optional)"/>
+                   
+                    <a href="#" class="btn" id="shorten-btn">Shorten</a>
+                    <div class="row-output">
+                        <input type="text" name="output-url" id="output-url" placeholder ="https://jump.wtf/wYFS" readonly/>
                     </div>
+
                     <br />
-                    <div class="input-container">
-                        <button type="button" id="genURL-submit">Submit</button>
-                    </div>
                     <br />
+                </div>
                 </form>
             </div>
             <hr />
@@ -39,23 +38,21 @@
             <div class="container form-container" id="genFileURL-container">  
                 <h2>Upload a file</h2>
                 <form id="genFileURL-form">
-                    <div class="input-container dropzone">
-                        <span>Select a file:</span>
-                        <div class="dropzone" id="dz-file-select"></div>
-                    </div>
-                    <div class="input-container">
-                        <span>Deletion Password:</span>
-                        <input type="password" name="genURL-pass" id="genURL-pass" value="" autocomplete="jump-del-pass" placeholder="(optional)"/>
+                    <div class="row">
+                        <div class="row-input">
+                            <input type="file" name="input-file" id="input-file" />
+                        </div>
+                        <a href="#" class="btn" id="upload-btn">Upload</a>
+                        <div class="row-output">
+                            <input type="text" name="output-file" id="output-file" placeholder ="https://jump.wtf/pcFq" readonly/>
+                        </div>
                     </div>
                     <br />
-                    <div class="input-container">
-                        <button type="button" id="genURL-submit">Submit</button>
-                    </div>
                     <br />
                 </form>
             </div>
             <hr />
-            
+
             <div class="container form-container" id="delURL-container">  
                 <h2>Delete a link</h2>
                 <form id="delURL-form">
@@ -88,7 +85,6 @@
 
 
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
-        <script type="text/javascript" src="vendor/dropzone/dist/min/dropzone.min.js"></script>
         <script type="text/javascript" src="js/main.js" async></script>
     </body>
 </html>

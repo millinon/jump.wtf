@@ -1,11 +1,11 @@
 .container {
     width: 100%;
     margin: 0px auto;
-/*    padding: 0.1em 14px; */
+    /*    padding: 0.1em 14px; */
 }
 
 .form-container {
-    
+
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -36,7 +36,6 @@ p, div {
 
 body {
     background: url(img/background.png) repeat 0 0;
-/*    border: 8px solid #F0F0F0; */
     margin: 0px auto;
 }
 
@@ -45,7 +44,7 @@ input {
 }
 
 .input-container {
-    width: 600px;
+    width: 80%;
     margin: 0px auto;
 }
 
@@ -57,8 +56,98 @@ footer {
     font-size: 18pt;
 }
 
+.input-row {
+
+}
+
+.row {
+    line-height: 1em;
+    overflow: auto;
+    width: 80%;
+    position: relative;
+    height: auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.row-output {
+    float: right;
+    text-align: left;
+
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.row-input input {
+    float: left;
+    text-align: left;
+    
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* http://jsfiddle.net/halirgb/fE5kB/ */
+
+a.btn{
+    height:70px;
+    line-height:70px;
+    text-align:center;
+    padding:0 10px;
+    color:#ffffff;
+    background-color:#007bff;
+    position:relative;
+    display:inline-block;
+    width: 100px;
+    font-size: 24pt;
+    text-decoration: none;
+    
+    top: 50%;
+    transform: translateY(-50%);
+}
+a.btn:after{
+    position:absolute;
+    right:-40px;
+    content:" ";
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 35px 0 35px 40px;
+    border-color: transparent transparent transparent #007bff;
+}
+a.btn:hover{
+    background-color:red;
+}
+a.btn:hover:after{
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 35px 0 35px 40px;
+    border-color: transparent transparent transparent #ff0000;
+}
+
+input[type="text"], input[type="url"] {
+    font-size: 14pt;
+}
+
+#input-url {
+    width: 40%;
+    margin-right: 18px;
+}
+
+#output-url {
+    width: 100%;
+}
+
+#output-file {
+    width: 100%;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         width: 50%;
     }
 }
+
+
