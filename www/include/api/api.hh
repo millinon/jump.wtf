@@ -1,11 +1,11 @@
 <?hh
 
 require_once ('aws.hh');
-require_once ('api_reference.hh');
+require_once ('api/reference.hh');
 require_once ('mimes.hh');
 
-require_once ('api_validation.hh');
-require_once ('api_router.hh');
+require_once ('api/validation.hh');
+require_once ('api/router.hh');
 
 class KeygenException extends Exception {
   protected $t;

@@ -1,15 +1,15 @@
 <?hh
 
-include_once('blackhole/blackhole.hh');
+include_once ('blackhole/blackhole.hh');
 
-require_once ('api.hh');
+require_once ('api/api.hh');
 require_once ('error.hh');
 
 function g_main(string $uri): void {
 
   awsHelper::init();
 
-  error_log('/g ' . $uri);
+  error_log('/g '.$uri);
 
   if (strpos($uri, '/') !== false) {
     error_page(404, $uri);

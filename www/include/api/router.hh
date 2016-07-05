@@ -1,7 +1,5 @@
 <?hh
 
-require_once ('api_validation.hh');
-
 class api_router {
 
   public static function route(array $input): array {

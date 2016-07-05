@@ -1,6 +1,6 @@
 <?hh
 
-require_once ('api.hh');
+require_once ('api/api.hh');
 
 function err($s): void {
   $_SESSION['action'] = 'error';
