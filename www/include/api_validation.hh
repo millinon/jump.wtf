@@ -26,7 +26,7 @@ class api_validator {
     }
 
     $func = $input['action'];
-    if (!in_array($func, array_keys(self::$doc))) {
+    if (!in_array($func, array_keys(jump_api::$doc))) {
       throw new ValidationException("Unknown action $func");
     }
 

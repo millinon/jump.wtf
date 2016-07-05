@@ -111,7 +111,7 @@ function s_main(): void {
 
   $_SESSION['action'] = $input['action'];
 
-  $result = jump_api::route($input);
+  $result = api_router::route($input);
 
   $_SESSION['success'] = $result['success'];
 

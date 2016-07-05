@@ -83,7 +83,7 @@ class jump_api {
   public static function genUploadURL(array $input): array {
 
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
@@ -152,7 +152,7 @@ class jump_api {
 
   public static function genFileURL(array $input): array {
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
@@ -422,7 +422,7 @@ class jump_api {
     }
 
     if (!$input['private'] && self::$cache !== NULL) {
-      self::$cache->add($new_key, $base.$new_key);
+      self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
     }
 
     return self::success(
@@ -437,7 +437,7 @@ class jump_api {
 
   public static function genURL($input): array {
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
@@ -549,7 +549,7 @@ class jump_api {
   public static function delURL($input): array {
 
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
@@ -686,7 +686,7 @@ class jump_api {
   public static function jumpTo($input): array {
 
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
     }
@@ -898,7 +898,7 @@ class jump_api {
   public static function getBalance($input): array {
 
     try {
-      $input = self::validate($input);
+      $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve);
     }

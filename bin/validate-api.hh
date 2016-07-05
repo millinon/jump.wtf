@@ -258,7 +258,7 @@ foreach (array_keys($doc) as $action) {
   echo '    Validating examples...'."\n";
   foreach ($action_ref['examples'] as $example) {
     try {
-      jump_api::validate($example);
+      api_validator::validate($example);
     } catch (ValidationException $ve) {
       echo 'Validation failed: '.(string) $ve."\n";
       exit(1);
@@ -333,7 +333,7 @@ echo "Running tests on invalid input...\n";
 
 foreach ($reject_tests as $test) {
   try {
-    jump_api::validate($test);
+    api_validator::validate($test);
   } catch (ValidationException $ve) {
     echo "    Pass: ".(string) $ve."\n";
     continue;
