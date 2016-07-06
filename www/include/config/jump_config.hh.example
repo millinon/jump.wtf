@@ -1,6 +1,6 @@
 <?hh
 
-defined('VERIFY') or die('Edit ' . __FILE__); // delete this line
+defined('VERIFY') or die('Edit ' . basename(__FILE__)); // copy this file to jump_config.hh and delete this line
 
 class jump_config {
 

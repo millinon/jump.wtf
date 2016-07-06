@@ -2,9 +2,7 @@
 
 require_once ("aws.phar");
 
-if (file_exists(__DIR__.'/config/aws_config.hh')) {
-  require_once ('config/aws_config.hh');
-} else {
+if (!include_once('config/aws_config.hh')) {
   require_once ('config/aws_config.hh.example');
 }
 

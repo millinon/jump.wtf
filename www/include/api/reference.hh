@@ -1,8 +1,6 @@
 <?hh
 
-if (file_exists(__DIR__.'/config/jump_config.hh')) {
-  require_once ('config/jump_config.hh');
-} else {
+if (!include_once('config/jump_config.hh')) {
   require_once ('config/jump_config.hh.example');
 }
 

@@ -2,7 +2,9 @@
 
 require_once ('vendor/facebook/xhp-lib/init.php');
 
-require_once ('config/jump_config.hh');
+if (!include_once('config/jump_config.hh')) {
+  require_once ('config/jump_config.hh');
+}
 
 function gen_footer(): mixed {
   return
