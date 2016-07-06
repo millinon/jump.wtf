@@ -3,7 +3,7 @@
 
 set_include_path(dirname(__FILE__).'/../www/include');
 
-require ('api.hh');
+require ('api/api.hh');
 
 if (!isset($argv)) {
   echo ("Run this from the command line");

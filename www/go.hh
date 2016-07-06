@@ -9,8 +9,6 @@ function g_main(string $uri): void {
 
   awsHelper::init();
 
-  error_log('/g '.$uri);
-
   if (strpos($uri, '/') !== false) {
     error_page(404, $uri);
   }
