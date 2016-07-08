@@ -56,9 +56,7 @@ TODO, in no particular order:
 * Check submitters against known malicious IP addresses
 * Rate limit submissions
 * Rate limit (non-existing) key lookups
-* Handle uploads to Glacier non-synchronously
 * Improve Hack code style
-* Improve file upload processing
 * Add submission-time options to the user:
  * Expiration date
 
