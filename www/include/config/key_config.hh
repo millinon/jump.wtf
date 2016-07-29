@@ -5,7 +5,7 @@ class key_config {
   const MIN_LENGTH = 3;
   const MAX_LENGTH = 20;
 
-  const target_length = 4;
+  const target_length = 6;
 
   // th`is is what generated URLs will look like
   const regex = '[\\w]{3,5}';

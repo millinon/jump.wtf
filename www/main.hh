@@ -20,7 +20,7 @@ function main(): void {
   }
 
   if ($uri === 'a') {
-    require ('api.hh');
+    require ('api/api.hh');
     apiHandler::handle();
   } else if ($uri === 's') {
     require ('submit.hh');
