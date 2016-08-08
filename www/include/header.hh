@@ -14,9 +14,15 @@ function gen_head($title = "JUMP.WTF") {
   return
     <head>
       <meta charset="utf-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <title>{$title}</title>
-      <meta name="description" content="" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="description"          content="Link shortening and file hosting service" />
+      <meta name="keywords"             content="URL,link,shorten,upload,web" />
+      <meta name="author"               content="Phillip Goldfarb" />
+      <meta property="og:title"         content="JUMP.WTF" />
+      <meta property="og:type"          content="website" />
+      <meta property="og:description"   content="Link shortening and file hosting service" />
+      <meta property="og:locale"        content="en_US" />
       <meta
         name="viewport"
         content="width=device-width, initial-scale=1, user-scalable=no"

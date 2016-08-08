@@ -29,10 +29,10 @@ function s_main(): void {
   switch ($_POST['action']) {
     case 'new-url':
       $input['action'] = 'genURL';
-      if (!isset($_POST['new-url']) || empty($_POST['new-url'])) {
+      if (!isset($_POST['input-url']) || empty($_POST['input-url'])) {
         err('Invalid request: missing input URL');
       } else {
-        $input['input-url'] = $_POST['new-url'];
+        $input['input-url'] = $_POST['input-url'];
       }
       break;
 

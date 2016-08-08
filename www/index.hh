@@ -123,7 +123,7 @@ function pass_input(
         name="password"
         id={$id}
         maxlength={jump_config::MAX_PASS_LEN}
-        autocomplete="deletion-pass"
+        autocomplete="on"
         required={true}
       />;
     //$input->setAttribute('required', 'true');
@@ -135,7 +135,7 @@ function pass_input(
         name="password"
         id={$id}
         maxlength={jump_config::MAX_PASS_LEN}
-        autocomplete="deletion-pass"
+        autocomplete="on"
         placeholder="(Optional)"
       />;
     //$input->setAttribute('placeholder', '(Optional)');
@@ -176,7 +176,7 @@ function key_input(string $id_prefix){
 
 function collapse_input(string $id_prefix){
     return <div class="input-group">
-        <button id="button" type="button" class="btn showdetails" data-toggle="collapse" data-target={'#'.$id_prefix.'-opt'}>
+        <button id={$id_prefix."-col-button"} type="button" class="btn showdetails" data-toggle="collapse" data-target={'#'.$id_prefix.'-opt'}>
         <span class="glyphicon glyphicon-collapse-down">&nbsp;</span>More Options
         </button>
         <div id={$id_prefix.'-opt'} class="collapse container-fluid" style="margin:0px; padding:0px">
@@ -232,7 +232,7 @@ $tab_classes = "container-fluid col-xs-12 col-sm-12 col-md-6 col-lg-6 col-md-off
                 method="post"
                 enctype="multipart/form-data">
                 {url_input(
-                  'new',
+                  'input',
                   'URL:',
                   'http://example.com',
                   jump_config::MAX_URL_LEN,
