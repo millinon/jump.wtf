@@ -10,7 +10,7 @@ class key_config {
   // th`is is what generated URLs will look like
   const regex = '[\\w]{3,5}';
   // this is what requested URLs will look like
-  const extended_regex = '[\\w{}()-]{3,30}';
+  const extended_regex = '[\\w{}()-]{2,30}';
 
   static function gen_charset() {
     return array_merge(
