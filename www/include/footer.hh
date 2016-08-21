@@ -17,11 +17,9 @@ function gen_footer(): mixed {
 
 function gen_footer_scripts(): mixed {
   $cdn_host = jump_config::cdn_host();
-  $base = jump_config::base_url();
 
   if (substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion') {
     $cdn_host = jump_config::H_CDN_HOST;
-    $base = jump_config::H_BASEURL;
   }
 
   return
@@ -33,7 +31,6 @@ function gen_footer_scripts(): mixed {
       </script>
       <script src={$cdn_host."/vendor/clippy.js/build/clippy.min.js"}>
       </script>
-      <script src={$cdn_host."/vendor/dropzone/dist/dropzone.js"}></script>
       <script
         async={true}
         src={$cdn_host."/js/".file_get_contents("htdocs/js/main.js.latest")}>
