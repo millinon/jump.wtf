@@ -1,7 +1,5 @@
 <?hh
 
-include_once ('blackhole/blackhole.hh');
-
 require_once ('api/api.hh');
 require_once ('error.hh');
 
