@@ -202,7 +202,7 @@ $tab_classes = "container-fluid col-xs-12 col-sm-12 col-md-6 col-lg-6 col-md-off
               <h1>Link Shortening / File Hosting Service</h1>
               <p>
                 By submitting a link or file, you are agreeing to this site's
-                <a target="_blank" href="https://f.jump.wtf/mVR3.txt">
+                <a target="_blank" href="https://jump.wtf/tos">
                   Terms of Service and Privacy Policy
                 </a>. <br />
                 This site's source code is available on
