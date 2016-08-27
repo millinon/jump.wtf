@@ -7,7 +7,7 @@ define('VERIFY', true);
 
 require ('api/api.hh');
 
-/*  The documentation / API validation is pretty solid, but it's fairly complex in terms of hierarchy, so it's easy to mistakenly add a field to the API in the wrong place. This file will verify that for each action defined for the API, the action's fields are well defined. If the API as defined in api_documentation.hh is provably correct, and the validation provably evaluates the API correctly, then the output of the validator will be correct or will throw an exception.
+/*  The documentation / API validation is pretty solid, but it's fairly complex in terms of hierarchy, so it's easy to mistakenly add a field to the API in the wrong place. This file will verify that for each method defined for the API, the method's fields are well defined. If the API as defined in api/reference.hh is provably correct, and the validation provably evaluates the API correctly, then the output of the validator will be correct or will throw an exception.
  */
 
 $doc = api_config::api_methods();

@@ -24,6 +24,7 @@ class api_router {
         return jump_api::jumpTo($input);
         break;
 
+        // TODO: rate limit this
       case 'getBalance':
         return jump_api::getBalance($input);
         break;

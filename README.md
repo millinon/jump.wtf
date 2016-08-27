@@ -29,6 +29,7 @@ A typical interaction is a user goes to the site root, which is served by `index
 
 The rest of the resources needed for the site are arranged into a few directories:
 
+* `www/include/api/`: Definition and implementation of the API
 * `www/include/`: Hack files that are not web-facing
 * `www/include/config/`: Configuration information needed at runtime
 * `www/htdocs/`: static HTML resources (JS / CSS)
@@ -70,6 +71,10 @@ You need to have a web server set up so that it can statically serve the files i
 It is important to note that the only files that are served statically are in the `www/htdocs` directory - no other files should be accessible from the Internet. I was previously making this distinction by checking the prefix of the URI against `/htdocs/`, but I decided that it makes far more sense to distinguish static files by subdomain, and serving all other requests through `main.hh`.
 
 ## How it works
+
+If you're trying to grok this mess, start in the `www/include/api/` directory, which contains its own readme.
+
+At a higher level:
 
 The core of jump.wtf is DynamoDB; a DynamoDB table stores keys and the links associated with them. Submitting a link or file consists of adding a row to the DynamoDB table, and redirecting to a link or file is the same as performing a lookup in the DynamoDB table.
 
