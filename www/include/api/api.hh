@@ -367,15 +367,16 @@ class jump_api {
           'TableName' => aws_config::LINK_TABLE,
           'Item' => array_merge(
             [
-              'Object ID' => ['S' => $new_key],
-              'pass' => ['S' => $pass],
+              'Object ID' => ['S' =>    $new_key],
+              'pass' =>      ['S' =>    $pass],
               'private_b' => ['BOOL' => $input['private']],
-              'active_b' => ['BOOL' => true],
-              'file_b' => ['BOOL' => true],
-              'time' => ['S' => date(DateTime::W3C)],
-              'filename' => ['S' => $new_key.$extension],
-              'ext' => ['S' => $extension],
-              'clicks' => ['N' => strval($input['clicks'] ?: 0)],
+              'active_b' =>  ['BOOL' => true],
+              'file_b' =>    ['BOOL' => true],
+              'time' =>      ['S' =>    date(DateTime::W3C)],
+              'filename' =>  ['S' =>    $new_key.$extension],
+              'ext' =>       ['S' =>    $extension],
+              'clicks' =>    ['N' =>    strval($input['clicks'] ?: 0)],
+              'IP' =>        ['S' =>    $_SERVER['REMOTE_ADDR']],
             ],
             (!empty($salt) ? ['salt' => ['S' => $salt]] : []),
           ),
@@ -830,10 +831,6 @@ class jump_api {
 
         if (isset($item['Checksum'])) {
           array_push($kill_list, 'Checksum');
-        }
-
-        if (isset($item['IP'])) {
-          array_push($kill_list, 'IP');
         }
 
         if (isset($item['origname'])) {

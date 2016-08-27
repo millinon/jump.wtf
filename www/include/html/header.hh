@@ -53,7 +53,7 @@ function gen_head($title = "JUMP.WTF") {
       />
       <link
         rel="stylesheet"
-        href="//fonts.googleapis.com/css?family=Montserrat:700"
+        href="https://fonts.googleapis.com/css?family=Montserrat:700"
         type="text/css"
         data-noprefix=""
       />

@@ -1,0 +1,9 @@
+{
+    "title": "jump.wtf",
+    "description": "jump.wtf is a free link shortening and file hosting service. It allows you to take a long-form URL, like 'http://example.com/foo/bar', and turn it into a short URL, like 'https://jump.wtf/mFczTp'.",
+    "relation": "https://jump.wtf",
+    "keywords": "link shortening, file hosting, tinyurl alternative, imgur alternative",
+    "type": "hosting",
+    "language": "en",
+    "contactInformation": "admin@jump.wtf"
+}
