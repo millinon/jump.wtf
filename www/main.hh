@@ -4,8 +4,6 @@ set_include_path(
   get_include_path().PATH_SEPARATOR.__DIR__.'/include',
 );
 
-include_once ('blackhole/blackhole.hh');
-
 function main(): void {
 
   $matches = array();
