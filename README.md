@@ -44,6 +44,8 @@ There is additionally a `bin/` directory with a few scripts I've written:
 * `deploy.sh`: prepares static resources
 * `minify.js`: minifies JavaScript and CSS resources, with versioning
 * `putFile.hh`: uploads a file, optionally with a custom key, I use this for `robots.txt`
+* `putLink.hh`: generates a link, optionally with a custom key. I use this to replace spam links
+* `delKey.hh`: marks a key as inactive, so that accesses will return 404 errors
 * `pre-commit.sh`: does some basic testing, I use this as my pre-commit hook
 * `validate-api.hh`: makes sure that the API as defined by `api.hh` and `api_ref.hh` is sane
 * `make-code.hh`: generates a promo code with X custom URLs and Y large files
