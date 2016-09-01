@@ -231,7 +231,8 @@ function i_main(): void {
                   Terms of Service and Privacy Policy
                 </a>. <br />
                 This site's source code is available on
-                <a href="https://github.com/millinon/jump.wtf">GitHub</a>.
+                <a href="https://github.com/millinon/jump.wtf">GitHub</a>. <br /> <br />
+                Help support the operation of this site: <a class="coinbase-button" href="https://www.coinbase.com/checkouts/bd79a891a81b4acd1cdf9ec96db2cf20">donate bitcoins</a>
               </p>
             </div>
           </div>

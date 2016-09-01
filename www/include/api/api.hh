@@ -422,18 +422,28 @@ class jump_api {
       }
     }
 
-    if (!$input['private'] && self::$cache !== NULL) {
-      self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
+    $ret = [];
+
+    if($input['private']){
+        $ret = ['url' => $base . $new_key];
+    } else {
+        $ret = ['url' => $base . $new_key, 'cdn-url' => jump_config::FILE_HOST.$new_key.$extension];
     }
 
-    return self::success(
-      array_merge(
+
+    if (!$input['private'] && self::$cache !== NULL) {
+        //self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
+        self::$cache->add($new_key, $ret);
+    }
+ 
+    return self::success($ret);
+    /*  array_merge(
         ['url' => $base.$new_key],
         $input['private']
           ? []
           : ['cdn-url' => jump_config::FILE_HOST.$new_key.$extension],
       ),
-    );
+  );*/
   }
 
   public static function genURL($input): array {
@@ -543,7 +553,7 @@ class jump_api {
       }
     }
 
-    $base = jump_config::base_url();
+    $base = jump_config::BASEURL;//base_url();
     return self::success(['url' => $base.$key]);
   }
 
@@ -728,7 +738,9 @@ class jump_api {
     if ($cached !== FALSE) {
       // cache hit
 
-      $url = $cached;
+        //$url = $cached;
+
+        return self::success(self::$cache->get($key));
 
     } else {
 
@@ -805,10 +817,10 @@ class jump_api {
         $url = $item['url']['S'];
       }
 
-      if (!$isPrivate && self::$cache !== NULL) {
+/*      if (!$isPrivate && self::$cache !== NULL) {
         self::$cache->add($key, $url);
       }
-
+ */
       $promise = null;
 
       $kill_str = '';
@@ -879,9 +891,23 @@ class jump_api {
 
     }
 
-    if (isset($expires)) {
-      return self::success(
-        [
+    $ret = [];
+
+    if(isset($expires)){
+        $ret = [ 'url' => $url, 'is-file' => $isFile, 'expires' => $expires->format(DateTime::ATOM) ];
+    } else {
+        $ret = [ 'url' => $url, 'is-file' => $isFile];
+    }
+
+      if (!$isPrivate && self::$cache !== NULL) {
+          //self::$cache->add($key, $url);
+          self::$cache->add($key, $ret);
+      }
+
+
+    //if (isset($expires)) {
+      return self::success($ret);
+        /*[
           'url' => $url,
           'is-file' => $isFile,
           'expires' => $expires->format(DateTime::ATOM),
@@ -889,7 +915,7 @@ class jump_api {
       );
     } else {
       return self::success(['url' => $url, 'is-file' => $isFile]);
-    }
+    }*/
   }
 
   public static function getBalance($input): array {
@@ -1076,16 +1102,19 @@ class apiHandler {
 
       if (!isset($_GET['action'])) {
         if (!isset($_GET['topic'])) {
-          header('Location: /a/?action=help&topic=help');
+            header('Location: /a/?action=help&topic=help');
+            die();
         } else {
-          header('Location: /a/?action=help&topic='.$_GET['topic']);
+            header('Location: /a/?action=help&topic='.$_GET['topic']);
+            die();
         }
-      } else if ($_GET['action'] != 'help') {
+      } else if ($_GET['action'] != 'help' && $_GET['action'] !== 'getBalance' && $_GET['action'] !== 'jumpTo') {
         self::error('Please use HTTP POST for API calls', 405);
       } else {
         $input = $_GET;
       }
 
+      if($_GET['action'] == 'help'){
       if (!isset($_GET['topic'])) {
         header('Location: /a/?action=help&topic=help');
         die();
@@ -1094,6 +1123,7 @@ class apiHandler {
                    array_keys($api_help['help']['topics']),
                  )) {
         self::error('Invalid help topic', 404);
+                 }
       }
 
     } else if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {

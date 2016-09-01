@@ -19,6 +19,11 @@ content. Following a JUMP.WTF link does not protect you in any way from the
 content hosted at the long form link, nor does it protect you in any way from
 files uploaded to JUMP.WTF by users.
 
+	If you want to screen a shortened URL before visiting it in your browser,
+you can use the API to un-shorten it. For example, to un-shorten the shortened
+URL "https://jump.wtf/tos", you can visit the following URL:
+https://jump.wtf/a?action=jumpTo&jump-key=tos
+
 2) Liability
 
         You are solely responsible for any URLs or files that you choose to
