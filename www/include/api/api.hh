@@ -7,6 +7,10 @@ require_once ('mimes.hh');
 require_once ('api/validation.hh');
 require_once ('api/router.hh');
 
+function banned_terms() {
+    return [ 'jenniferhot1', 'jenniferhot.1' ];
+}
+
 class KeygenException extends Exception {
   protected $t;
 
@@ -21,6 +25,17 @@ class KeygenException extends Exception {
 }
 
 class jump_api {
+
+    // basic URL scanning
+  public static function filter_url(string $url): bool {
+      $pattern = '/' .
+          'jenniferhot\.?1' .
+          '/';
+
+      return preg_match($pattern, $url) === 1;
+  }
+
+
 
   public static function jump_key_exists(string $key): bool {
     $dyclient = awsHelper::dydb_client();
@@ -447,7 +462,8 @@ class jump_api {
   }
 
   public static function genURL($input): array {
-    try {
+
+      try {
       $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
@@ -462,6 +478,12 @@ class jump_api {
     //        $glclient = awsHelper::gl_client();
 
     $balance = ['success' => false, 'custom-urls' => 0];
+
+    if( self::filter_url($input['input-url']) ){ // bad URL
+        error_log(
+            "got spam URL '".$input['input-url']."' from IP " . $_SERVER['REMOTE_ADDR']);
+        return self::error("Internal exception.");
+    }
 
     if (!empty($input['promo-code'])) {
       $balance = self::getBalance(
@@ -738,7 +760,13 @@ class jump_api {
     if ($cached !== FALSE) {
       // cache hit
 
-        //$url = $cached;
+    foreach(banned_terms() as $term){
+        if(strpos(self::$cache->get($key)['url'], $term) !== false){
+            error_log("got spam URL at key $key");
+            return self::error("Internal exception", 500);
+        }
+    }
+
 
         return self::success(self::$cache->get($key));
 
@@ -817,76 +845,27 @@ class jump_api {
         $url = $item['url']['S'];
       }
 
-/*      if (!$isPrivate && self::$cache !== NULL) {
-        self::$cache->add($key, $url);
-      }
- */
-      $promise = null;
+      if($isPrivate){
 
-      $kill_str = '';
+          try {
+              $dyclient->updateItem(
+                  [
+                      'TableName' => aws_config::LINK_TABLE,
+                      'Key' => ['Object ID' => ['S' => $key]],
+                      'ExpressionAttributeValues' => [
+                          ':a' => [
+                              'BOOL' => ($isActive && (!$isPrivate || $clicks > 1)),
+                          ],
+                          ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+                      ],
+                      'UpdateExpression' =>
+                      'SET active_b = :a, clicks = :c '
+                  ],
+              );
 
-      // remove stupid deprecated attributes from DynamoDB
-      {
-        $kill_list = [];
-
-        if (isset($item['active'])) {
-          array_push($kill_list, 'active');
-        }
-
-        if (isset($item['isPrivate'])) {
-          array_push($kill_list, 'isPrivate');
-        }
-
-        if (isset($item['isFile'])) {
-          array_push($kill_list, 'isFile');
-        }
-
-        if (isset($item['Checksum'])) {
-          array_push($kill_list, 'Checksum');
-        }
-
-        if (isset($item['origname'])) {
-          array_push($kill_list, 'origname');
-        }
-
-        if (isset($item['hits'])) {
-          array_push($kill_list, 'hits');
-        }
-
-        if (count($kill_list) > 0) {
-          $kill_str = 'REMOVE '.implode(', ', $kill_list);
-        }
-      }
-
-      // TODO: only do updateItem if we need to change clicks or active
-      // for now, I want to replace the dumb is* keys with booleans
-      try {
-        $dyclient->updateItem(
-          [
-            'TableName' => aws_config::LINK_TABLE,
-            'Key' => ['Object ID' => ['S' => $key]],
-            'ExpressionAttributeValues' => [
-              ':a' => [
-                'BOOL' => ($isActive && (!$isPrivate || $clicks >= 1)),
-              ],
-              ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
-              ':f' => ['BOOL' => (bool) $isFile],
-              ':p' => ['BOOL' => (bool) $isPrivate],
-            ],
-            //                'ExpressionAttributeNames' => [
-            //                    '#u' => 'url'
-            //                    ],
-            //            'ConditionExpression' => '((attribute_exists(active) AND active = 1) OR (attribute_exists(active_b) AND active_b = true)) AND ' .
-            //            '((((attribute_exists(isPrivate) AND isPrivate == 1) OR (attribute_exists(private_b) AND private_b == true)) AND ' .
-            //                            'clicks >= 1) OR ((attribute_exists(isPrivate) AND isPrivate == 0) or (attribute_exists(private_b) AND private_b == false)))',
-            'UpdateExpression' =>
-              'SET active_b = :a, clicks = :c, file_b = :f, private_b = :p '.
-              $kill_str,
-          ],
-        );
-
-      } catch (DynamoDbException $dde) {
-        error_log('updateItem('.$key.') failed');
+          } catch (DynamoDbException $dde) {
+              error_log('updateItem('.$key.') failed');
+          }
       }
 
     }
@@ -899,14 +878,21 @@ class jump_api {
         $ret = [ 'url' => $url, 'is-file' => $isFile];
     }
 
-      if (!$isPrivate && self::$cache !== NULL) {
-          //self::$cache->add($key, $url);
-          self::$cache->add($key, $ret);
-      }
+    foreach(banned_terms() as $term){
+        if(strpos($url, $term) !== false){
+            error_log("got spam URL at key $key");
+            return self::error("Internal exception", 500);
+        }
+    }
+
+    if (!$isPrivate && self::$cache !== NULL) {
+        //self::$cache->add($key, $url);
+        self::$cache->add($key, $ret);
+    }
 
 
     //if (isset($expires)) {
-      return self::success($ret);
+    return self::success($ret);
         /*[
           'url' => $url,
           'is-file' => $isFile,
@@ -915,45 +901,45 @@ class jump_api {
       );
     } else {
       return self::success(['url' => $url, 'is-file' => $isFile]);
-    }*/
+        }*/
   }
 
   public static function getBalance($input): array {
 
-    try {
-      $input = api_validator::validate($input);
-    } catch (ValidationException $ve) {
-      return self::error((string) $ve);
-    }
+      try {
+          $input = api_validator::validate($input);
+      } catch (ValidationException $ve) {
+          return self::error((string) $ve);
+      }
 
-    $dyclient = awsHelper::dydb_client();
+      $dyclient = awsHelper::dydb_client();
 
-    try {
-      $res = $dyclient->getItem(
-        [
-          'TableName' => aws_config::PROMO_TABLE,
-          'ConsistentRead' => true,
-          'Key' => ['code' => ['S' => $input['promo-code']]],
-        ],
+      try {
+          $res = $dyclient->getItem(
+              [
+                  'TableName' => aws_config::PROMO_TABLE,
+                  'ConsistentRead' => true,
+                  'Key' => ['code' => ['S' => $input['promo-code']]],
+              ],
+          );
+      } catch (DynamoDbException $dydbe) {
+          return self::error('Promo code not found', 404);
+      }
+
+      if (!isset($res['Item'])) {
+          return self::error("Promo code lookup failed", 404);
+      }
+
+      $large_files = intval($res['Item']['large-files']['N']);
+      $custom_urls = intval($res['Item']['custom-urls']['N']);
+
+      return self::success(
+          [
+              'large-files' => $large_files,
+              'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
+              'custom-urls' => $custom_urls,
+          ],
       );
-    } catch (DynamoDbException $dydbe) {
-      return self::error('Promo code not found', 404);
-    }
-
-    if (!isset($res['Item'])) {
-      return self::error("Promo code lookup failed", 404);
-    }
-
-    $large_files = intval($res['Item']['large-files']['N']);
-    $custom_urls = intval($res['Item']['custom-urls']['N']);
-
-    return self::success(
-      [
-        'large-files' => $large_files,
-        'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
-        'custom-urls' => $custom_urls,
-      ],
-    );
   }
 
 }
