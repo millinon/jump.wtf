@@ -27,88 +27,93 @@ class KeygenException extends Exception {
 class jump_api {
 
     // basic URL scanning
-  public static function filter_url(string $url): bool {
-      $pattern = '/' .
-          'jenniferhot\.?1' .
-          '/';
+    public static function filter_url(string $url): bool {
+        
+        $banned_domains = [ 'lolvytime.club' ];
 
-      return preg_match($pattern, $url) === 1;
-  }
+        $banned_terms_regex = [ 'jenniferhot' ];
 
+        $input = parse_url($url);
 
-
-  public static function jump_key_exists(string $key): bool {
-    $dyclient = awsHelper::dydb_client();
-
-    $res = $dyclient->query(
-      [
-        'TableName' => aws_config::LINK_TABLE,
-        'KeyConditions' => [
-          'Object ID' => [
-            'AttributeValueList' => [['S' => $key]],
-            'ComparisonOperator' => 'EQ',
-          ],
-        ],
-      ],
-    );
-
-    return $res['Count'] > 0;
-  }
-
-  private static function gen_uniq_key(int $maxtries): string {
-    $tries = 0;
-    $new_key = '';
-
-    do {
-      $tries++;
-      if ($tries > $maxtries) {
-        throw new KeygenException($maxtries);
-      }
-      $new_key = key_config::generate_key();
-    } while (self::jump_key_exists($new_key));
-
-    return $new_key;
-  }
-
-  public static function get_mime(string $extension): string {
-    return
-      mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
-  }
-
-  public static $doc;
-  public static $cache;
-
-  public function init(): void {
-    self::$doc = api_config::api_methods();
-    self::$cache = new Memcached();
-    if (!self::$cache->addServer('localhost', 11211)) {
-      self::$cache = NULL;
+        return 
+            (preg_match('/$' . 
+                implode('|', array_map(preg_quote, $banned_domains)) . '^/', $input['host']) === 1) || (!empty($banned_terms_regex) && preg_match('/'.implode('|', $banned_terms_regex) . '/', $url) === 1);
     }
 
-  }
 
-  public static function error(string $message, int $code = 500): array {
-    return ['success' => false, 'message' => $message, 'code' => $code];
-  }
 
-  public static function success(array $data, int $code = 400): array {
-    return array_merge(['success' => true, 'code' => $code], $data);
-  }
+    public static function jump_key_exists(string $key): bool {
+        $dyclient = awsHelper::dydb_client();
 
-  public static function genUploadURL(array $input): array {
+        $res = $dyclient->query(
+            [
+                'TableName' => aws_config::LINK_TABLE,
+                'KeyConditions' => [
+                    'Object ID' => [
+                        'AttributeValueList' => [['S' => $key]],
+                        'ComparisonOperator' => 'EQ',
+                    ],
+                ],
+            ],
+        );
 
-    try {
-      $input = api_validator::validate($input);
-    } catch (ValidationException $ve) {
-      return self::error((string) $ve, 400);
+        return $res['Count'] > 0;
     }
 
-    $limit = jump_config::MAX_FILE_SIZE;
-    if (isset($input['promo-code'])) {
-      $balance = self::getBalance(
-        ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
-      );
-      if (!$balance['success']) {
+    private static function gen_uniq_key(int $maxtries): string {
+        $tries = 0;
+        $new_key = '';
+
+        do {
+            $tries++;
+            if ($tries > $maxtries) {
+                throw new KeygenException($maxtries);
+            }
+            $new_key = key_config::generate_key();
+        } while (self::jump_key_exists($new_key));
+
+        return $new_key;
+    }
+
+    public static function get_mime(string $extension): string {
+        return
+            mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
+    }
+
+    public static $doc;
+    public static $cache;
+
+    public function init(): void {
+        self::$doc = api_config::api_methods();
+        self::$cache = new Memcached();
+        if (!self::$cache->addServer('localhost', 11211)) {
+            self::$cache = NULL;
+        }
+
+    }
+
+    public static function error(string $message, int $code = 500): array {
+        return ['success' => false, 'message' => $message, 'code' => $code];
+    }
+
+    public static function success(array $data, int $code = 400): array {
+        return array_merge(['success' => true, 'code' => $code], $data);
+    }
+
+    public static function genUploadURL(array $input): array {
+
+        try {
+            $input = api_validator::validate($input);
+        } catch (ValidationException $ve) {
+            return self::error((string) $ve, 400);
+        }
+
+        $limit = jump_config::MAX_FILE_SIZE;
+        if (isset($input['promo-code'])) {
+            $balance = self::getBalance(
+                ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
+            );
+            if (!$balance['success']) {
         return self::error('Invalid promo code', 400);
       } else {
         if ($balance['large-files'] > 0) {
@@ -481,7 +486,7 @@ class jump_api {
 
     if( self::filter_url($input['input-url']) ){ // bad URL
         error_log(
-            "got spam URL '".$input['input-url']."' from IP " . $_SERVER['REMOTE_ADDR']);
+            "rejected URL '".$input['input-url']."' from IP " . $_SERVER['REMOTE_ADDR']);
         return self::error("Internal exception.");
     }
 
@@ -755,18 +760,14 @@ class jump_api {
       $key = $matches[1];
     }
 
-    $cached = (self::$cache == NULL) ? FALSE : self::$cache->get($key);
+    $cached = (self::$cache == NULL) ? NULL : self::$cache->get($key);
 
-    if ($cached !== FALSE) {
+    if ($cached !== NULL) {
       // cache hit
 
-    foreach(banned_terms() as $term){
-        if(strpos(self::$cache->get($key)['url'], $term) !== false){
-            error_log("got spam URL at key $key");
-            return self::error("Internal exception", 500);
+        if(self::filter_url($cached['url'])){
+            return self::error("This link has been flagged as possibly malicious.");
         }
-    }
-
 
         return self::success(self::$cache->get($key));
 
@@ -878,11 +879,8 @@ class jump_api {
         $ret = [ 'url' => $url, 'is-file' => $isFile];
     }
 
-    foreach(banned_terms() as $term){
-        if(strpos($url, $term) !== false){
-            error_log("got spam URL at key $key");
-            return self::error("Internal exception", 500);
-        }
+    if(self::filter_url($url)){
+        return self::error("This link has been flagged as possibly malicious.");
     }
 
     if (!$isPrivate && self::$cache !== NULL) {
