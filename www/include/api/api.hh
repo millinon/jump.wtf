@@ -7,10 +7,6 @@ require_once ('mimes.hh');
 require_once ('api/validation.hh');
 require_once ('api/router.hh');
 
-function banned_terms() {
-    return [ 'jenniferhot1', 'jenniferhot.1' ];
-}
-
 class KeygenException extends Exception {
   protected $t;
 
@@ -26,94 +22,97 @@ class KeygenException extends Exception {
 
 class jump_api {
 
-    // basic URL scanning
-    public static function filter_url(string $url): bool {
-        
-        $banned_domains = [ 'lolvytime.club' ];
+  // basic URL scanning
+  public static function filter_url(string $url): bool {
 
-        $banned_terms_regex = [ 'jenniferhot' ];
+    $banned_domains = ['lovlytime\.club'];
 
-        $input = parse_url($url);
+    $banned_terms_regex = ['jenniferhot', 'fooBar'];
 
-        return 
-            (preg_match('/$' . 
-                implode('|', array_map(preg_quote, $banned_domains)) . '^/', $input['host']) === 1) || (!empty($banned_terms_regex) && preg_match('/'.implode('|', $banned_terms_regex) . '/', $url) === 1);
+    $input = parse_url($url);
+
+    return
+      (preg_match(
+         '/$'.implode('|', $banned_domains).'^/',
+         $input['host'],
+       ) ===
+       1) ||
+      (!empty($banned_terms_regex) &&
+       preg_match('/'.implode('|', $banned_terms_regex).'/', $url) === 1);
+  }
+
+  public static function jump_key_exists(string $key): bool {
+    $dyclient = awsHelper::dydb_client();
+
+    $res = $dyclient->query(
+      [
+        'TableName' => aws_config::LINK_TABLE,
+        'KeyConditions' => [
+          'Object ID' => [
+            'AttributeValueList' => [['S' => $key]],
+            'ComparisonOperator' => 'EQ',
+          ],
+        ],
+      ],
+    );
+
+    return $res['Count'] > 0;
+  }
+
+  private static function gen_uniq_key(int $maxtries): string {
+    $tries = 0;
+    $new_key = '';
+
+    do {
+      $tries++;
+      if ($tries > $maxtries) {
+        throw new KeygenException($maxtries);
+      }
+      $new_key = key_config::generate_key();
+    } while (self::jump_key_exists($new_key));
+
+    return $new_key;
+  }
+
+  public static function get_mime(string $extension): string {
+    return
+      mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
+  }
+
+  public static $doc;
+  public static $cache;
+
+  public function init(): void {
+    self::$doc = api_config::api_methods();
+    self::$cache = new Memcached();
+    if (!self::$cache->addServer('localhost', 11211)) {
+      self::$cache = NULL;
     }
 
+  }
 
+  public static function error(string $message, int $code = 500): array {
+    return ['success' => false, 'message' => $message, 'code' => $code];
+  }
 
-    public static function jump_key_exists(string $key): bool {
-        $dyclient = awsHelper::dydb_client();
+  public static function success(array $data, int $code = 400): array {
+    return array_merge(['success' => true, 'code' => $code], $data);
+  }
 
-        $res = $dyclient->query(
-            [
-                'TableName' => aws_config::LINK_TABLE,
-                'KeyConditions' => [
-                    'Object ID' => [
-                        'AttributeValueList' => [['S' => $key]],
-                        'ComparisonOperator' => 'EQ',
-                    ],
-                ],
-            ],
-        );
+  public static function genUploadURL(array $input): array {
 
-        return $res['Count'] > 0;
+    try {
+      $input = api_validator::validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve, 400);
     }
 
-    private static function gen_uniq_key(int $maxtries): string {
-        $tries = 0;
-        $new_key = '';
-
-        do {
-            $tries++;
-            if ($tries > $maxtries) {
-                throw new KeygenException($maxtries);
-            }
-            $new_key = key_config::generate_key();
-        } while (self::jump_key_exists($new_key));
-
-        return $new_key;
-    }
-
-    public static function get_mime(string $extension): string {
-        return
-            mimes::$mime_types[strtolower(substr($extension, 1))] ?: "application/octet-stream";
-    }
-
-    public static $doc;
-    public static $cache;
-
-    public function init(): void {
-        self::$doc = api_config::api_methods();
-        self::$cache = new Memcached();
-        if (!self::$cache->addServer('localhost', 11211)) {
-            self::$cache = NULL;
-        }
-
-    }
-
-    public static function error(string $message, int $code = 500): array {
-        return ['success' => false, 'message' => $message, 'code' => $code];
-    }
-
-    public static function success(array $data, int $code = 400): array {
-        return array_merge(['success' => true, 'code' => $code], $data);
-    }
-
-    public static function genUploadURL(array $input): array {
-
-        try {
-            $input = api_validator::validate($input);
-        } catch (ValidationException $ve) {
-            return self::error((string) $ve, 400);
-        }
-
-        $limit = jump_config::MAX_FILE_SIZE;
-        if (isset($input['promo-code'])) {
-            $balance = self::getBalance(
-                ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
-            );
-            if (!$balance['success']) {
+    $limit = jump_config::MAX_FILE_SIZE;
+    if (isset($input['promo-code'])) {
+      $balance = self::getBalance(
+        ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
+      );
+      if (!$balance['success']) {
         return self::error('Invalid promo code', 400);
       } else {
         if ($balance['large-files'] > 0) {
@@ -387,16 +386,16 @@ class jump_api {
           'TableName' => aws_config::LINK_TABLE,
           'Item' => array_merge(
             [
-              'Object ID' => ['S' =>    $new_key],
-              'pass' =>      ['S' =>    $pass],
+              'Object ID' => ['S' => $new_key],
+              'pass' => ['S' => $pass],
               'private_b' => ['BOOL' => $input['private']],
-              'active_b' =>  ['BOOL' => true],
-              'file_b' =>    ['BOOL' => true],
-              'time' =>      ['S' =>    date(DateTime::W3C)],
-              'filename' =>  ['S' =>    $new_key.$extension],
-              'ext' =>       ['S' =>    $extension],
-              'clicks' =>    ['N' =>    strval($input['clicks'] ?: 0)],
-              'IP' =>        ['S' =>    $_SERVER['REMOTE_ADDR']],
+              'active_b' => ['BOOL' => true],
+              'file_b' => ['BOOL' => true],
+              'time' => ['S' => date(DateTime::W3C)],
+              'filename' => ['S' => $new_key.$extension],
+              'ext' => ['S' => $extension],
+              'clicks' => ['N' => strval($input['clicks'] ?: 0)],
+              'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
             ],
             (!empty($salt) ? ['salt' => ['S' => $salt]] : []),
           ),
@@ -444,31 +443,33 @@ class jump_api {
 
     $ret = [];
 
-    if($input['private']){
-        $ret = ['url' => $base . $new_key];
+    if ($input['private']) {
+      $ret = ['url' => $base.$new_key];
     } else {
-        $ret = ['url' => $base . $new_key, 'cdn-url' => jump_config::FILE_HOST.$new_key.$extension];
+      $ret = [
+        'url' => $base.$new_key,
+        'cdn-url' => jump_config::FILE_HOST.$new_key.$extension,
+      ];
     }
-
 
     if (!$input['private'] && self::$cache !== NULL) {
-        //self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
-        self::$cache->add($new_key, $ret);
+      //self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
+      self::$cache->add($new_key, $ret);
     }
- 
+
     return self::success($ret);
     /*  array_merge(
-        ['url' => $base.$new_key],
-        $input['private']
-          ? []
-          : ['cdn-url' => jump_config::FILE_HOST.$new_key.$extension],
-      ),
-  );*/
+     ['url' => $base.$new_key],
+     $input['private']
+     ? []
+     : ['cdn-url' => jump_config::FILE_HOST.$new_key.$extension],
+     ),
+     );*/
   }
 
   public static function genURL($input): array {
 
-      try {
+    try {
       $input = api_validator::validate($input);
     } catch (ValidationException $ve) {
       return self::error((string) $ve, 400);
@@ -484,12 +485,17 @@ class jump_api {
 
     $balance = ['success' => false, 'custom-urls' => 0];
 
-    if( self::filter_url($input['input-url']) ){ // bad URL
-        error_log(
-            "rejected URL '".$input['input-url']."' from IP " . $_SERVER['REMOTE_ADDR']);
-        return self::error("Internal exception.");
+    if (self::filter_url($input['input-url'])) { // bad URL
+      error_log(
+        "got flagged URL '".
+        $input['input-url'].
+        "' from IP ".
+        $_SERVER['REMOTE_ADDR'],
+    );
+      // actually, let's go ahead and let them submit it so it's harder to tell that filtering is happening
+      //return self::error("Internal exception.");
     }
-
+ 
     if (!empty($input['promo-code'])) {
       $balance = self::getBalance(
         ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
@@ -547,6 +553,7 @@ class jump_api {
               'clicks' => ['N' => strval($input['clicks'] ?: 0)],
               'time' => ['S' => date(DateTime::W3C)],
               'file_b' => ['BOOL' => false],
+              'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
             ],
             (!empty($salt) ? ['salt' => ['S' => $salt]] : []),
           ),
@@ -580,7 +587,7 @@ class jump_api {
       }
     }
 
-    $base = jump_config::BASEURL;//base_url();
+    $base = jump_config::BASEURL; //base_url();
     return self::success(['url' => $base.$key]);
   }
 
@@ -735,6 +742,7 @@ class jump_api {
     $url = "";
     $expires = NULL;
     $isFile = false;
+    $docache = true;
 
     if (isset($input['jump-key'])) {
       $key = $input['jump-key'];
@@ -762,14 +770,16 @@ class jump_api {
 
     $cached = (self::$cache == NULL) ? NULL : self::$cache->get($key);
 
-    if ($cached !== NULL) {
+
+    if ($cached != NULL) {
       // cache hit
 
-        if(self::filter_url($cached['url'])){
-            return self::error("This link has been flagged as possibly malicious.");
-        }
-
-        return self::success(self::$cache->get($key));
+      if (self::filter_url($cached['url'])) {
+        return
+          self::error("This link has been flagged as possibly malicious.", 409);
+      }
+    
+      return self::success(self::$cache->get($key));
 
     } else {
 
@@ -846,98 +856,111 @@ class jump_api {
         $url = $item['url']['S'];
       }
 
-      if($isPrivate){
+      if ($isPrivate) {
 
-          try {
-              $dyclient->updateItem(
-                  [
-                      'TableName' => aws_config::LINK_TABLE,
-                      'Key' => ['Object ID' => ['S' => $key]],
-                      'ExpressionAttributeValues' => [
-                          ':a' => [
-                              'BOOL' => ($isActive && (!$isPrivate || $clicks > 1)),
-                          ],
-                          ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
-                      ],
-                      'UpdateExpression' =>
-                      'SET active_b = :a, clicks = :c '
-                  ],
-              );
+        $docache = false;
 
-          } catch (DynamoDbException $dde) {
-              error_log('updateItem('.$key.') failed');
-          }
+        try {
+          $dyclient->updateItem(
+            [
+              'TableName' => aws_config::LINK_TABLE,
+              'Key' => ['Object ID' => ['S' => $key]],
+              'ExpressionAttributeValues' => [
+                ':a' => [
+                  'BOOL' => ($isActive && (!$isPrivate || $clicks > 1)),
+                ],
+                ':c' => ['N' => strval(($isPrivate ? ($clicks - 1) : 0))],
+              ],
+              'UpdateExpression' => 'SET active_b = :a, clicks = :c ',
+            ],
+          );
+
+        } catch (DynamoDbException $dde) {
+          error_log('updateItem('.$key.') failed');
+        }
       }
 
     }
 
     $ret = [];
 
-    if(isset($expires)){
-        $ret = [ 'url' => $url, 'is-file' => $isFile, 'expires' => $expires->format(DateTime::ATOM) ];
+    if (isset($expires)) {
+      $ret = [
+        'url' => $url,
+        'is-file' => $isFile,
+        'expires' => $expires->format(DateTime::ATOM),
+      ];
     } else {
-        $ret = [ 'url' => $url, 'is-file' => $isFile];
+      $ret = ['url' => $url, 'is-file' => $isFile];
     }
 
-    if(self::filter_url($url)){
-        return self::error("This link has been flagged as possibly malicious.");
+    if (self::filter_url($url)) {
+        if(isset($item['IP'])){
+            if($item['IP']['S'] != $_SERVER['REMOTE_ADDR']){
+                return self::error("This link has been flagged as possibly malicious.", 409);
+            } else {
+                $docache = false;
+            }
+        } else {
+                return self::error("This link has been flagged as possibly malicious.", 409);
+
+        }
     }
 
-    if (!$isPrivate && self::$cache !== NULL) {
-        //self::$cache->add($key, $url);
-        self::$cache->add($key, $ret);
+    if ($docache && self::$cache !== NULL) {
+      //self::$cache->add($key, $url);
+      self::$cache->add($key, $ret);
     }
-
 
     //if (isset($expires)) {
     return self::success($ret);
-        /*[
-          'url' => $url,
-          'is-file' => $isFile,
-          'expires' => $expires->format(DateTime::ATOM),
-        ],
-      );
-    } else {
-      return self::success(['url' => $url, 'is-file' => $isFile]);
-        }*/
+    /*[
+     'url' => $url,
+     'is-file' => $isFile,
+     'expires' => $expires->format(DateTime::ATOM),
+     ],
+     );
+     } else {
+     return self::success(['url' => $url, 'is-file' => $isFile]);
+     }*/
   }
 
   public static function getBalance($input): array {
 
-      try {
-          $input = api_validator::validate($input);
-      } catch (ValidationException $ve) {
-          return self::error((string) $ve);
-      }
+    try {
+      $input = api_validator::validate($input);
+    } catch (ValidationException $ve) {
+      return self::error((string) $ve);
+    }
 
-      $dyclient = awsHelper::dydb_client();
+    $dyclient = awsHelper::dydb_client();
 
-      try {
-          $res = $dyclient->getItem(
-              [
-                  'TableName' => aws_config::PROMO_TABLE,
-                  'ConsistentRead' => true,
-                  'Key' => ['code' => ['S' => $input['promo-code']]],
-              ],
-          );
-      } catch (DynamoDbException $dydbe) {
-          return self::error('Promo code not found', 404);
-      }
-
-      if (!isset($res['Item'])) {
-          return self::error("Promo code lookup failed", 404);
-      }
-
-      $large_files = intval($res['Item']['large-files']['N']);
-      $custom_urls = intval($res['Item']['custom-urls']['N']);
-
-      return self::success(
-          [
-              'large-files' => $large_files,
-              'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
-              'custom-urls' => $custom_urls,
-          ],
+    try {
+      $res = $dyclient->getItem(
+        [
+          'TableName' => aws_config::PROMO_TABLE,
+          'ConsistentRead' => true,
+          'Key' => ['code' => ['S' => $input['promo-code']]],
+        ],
       );
+    } catch (DynamoDbException $dydbe) {
+      return self::error('Promo code not found', 404);
+    }
+
+    if (!isset($res['Item'])) {
+      return self::error("Promo code lookup failed", 404);
+    }
+
+    $large_files = intval($res['Item']['large-files']['N']);
+    $custom_urls = intval($res['Item']['custom-urls']['N']);
+
+    return self::success(
+      [
+        'large-files' => $large_files,
+        'large-file-size' => jump_config::PROMO_MAX_FILE_SIZE,
+        'custom-urls' => $custom_urls,
+      ],
+    );
   }
 
 }
@@ -1086,28 +1109,30 @@ class apiHandler {
 
       if (!isset($_GET['action'])) {
         if (!isset($_GET['topic'])) {
-            header('Location: /a/?action=help&topic=help');
-            die();
+          header('Location: /a/?action=help&topic=help');
+          die();
         } else {
-            header('Location: /a/?action=help&topic='.$_GET['topic']);
-            die();
+          header('Location: /a/?action=help&topic='.$_GET['topic']);
+          die();
         }
-      } else if ($_GET['action'] != 'help' && $_GET['action'] !== 'getBalance' && $_GET['action'] !== 'jumpTo') {
+      } else if ($_GET['action'] != 'help' &&
+                 $_GET['action'] !== 'getBalance' &&
+                 $_GET['action'] !== 'jumpTo') {
         self::error('Please use HTTP POST for API calls', 405);
       } else {
         $input = $_GET;
       }
 
-      if($_GET['action'] == 'help'){
-      if (!isset($_GET['topic'])) {
-        header('Location: /a/?action=help&topic=help');
-        die();
-      } else if (!in_array(
-                   $_GET['topic'],
-                   array_keys($api_help['help']['topics']),
-                 )) {
-        self::error('Invalid help topic', 404);
-                 }
+      if ($_GET['action'] == 'help') {
+        if (!isset($_GET['topic'])) {
+          header('Location: /a/?action=help&topic=help');
+          die();
+        } else if (!in_array(
+                     $_GET['topic'],
+                     array_keys($api_help['help']['topics']),
+                   )) {
+          self::error('Invalid help topic', 404);
+        }
       }
 
     } else if ($_SERVER['CONTENT_TYPE'] !== 'application/json') {
