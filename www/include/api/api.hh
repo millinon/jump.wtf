@@ -582,7 +582,7 @@ class jump_api {
       }
     }
 
-    $base = jump_config::BASEURL; //base_url();
+    $base = jump_config::base_url();
     return self::success(['url' => $base.$key]);
   }
 
