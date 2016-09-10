@@ -452,11 +452,6 @@ class jump_api {
       ];
     }
 
-    if (!$input['private'] && self::$cache !== NULL) {
-      //self::$cache->add($new_key, jump_config::FILE_HOST.$new_key.$extension);
-      self::$cache->add($new_key, $ret);
-    }
-
     return self::success($ret);
     /*  array_merge(
      ['url' => $base.$new_key],
