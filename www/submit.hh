@@ -126,7 +126,13 @@ function s_main(): void {
         }
 
       case 'genURL':
-        $_SESSION['url'] = $result['url'];
+          $_SESSION['url'] = $result['url'];
+
+          if(jump_config::in_tor() && isset($result['hidden-url'])){
+              $_SESSION['hidden-url'] = $result['hidden-url'];
+          }
+          
+
         break;
 
       case 'delURL':

@@ -39,5 +39,6 @@
 
     register('copy-url');
     register('copy-cdn');
+    register('copy-tor');
 
 }());

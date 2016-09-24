@@ -20,7 +20,10 @@ class api_config {
       'url' => [
         'description' => 'Generated jump.wtf URL',
         'type' => 'string',
-      ],
+    ],
+    'hidden-url' => [
+        'description' => 'Generated Tor hidden service URL',
+        'type' => 'string']
     ];
 
     $file_retval = array_merge(
@@ -171,7 +174,7 @@ class api_config {
                     'default' => '.txt',
                     'min-length' => 1,
                     'max-length' => jump_config::MAX_EXT_LENGTH,
-                    'regex' => '/^(\\.\\w{1,4})*$/',
+                    'regex' => '/^(\\.\\w{1,8})*$/',
                   ],
                 /*'save-backup' =>
                  [

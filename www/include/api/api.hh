@@ -25,15 +25,15 @@ class jump_api {
   // basic URL scanning
   public static function filter_url(string $url): bool {
 
-    $banned_domains = ['lovlytime\.club'];
+    $banned_domains = ['lovlytime\.club', 'find2home\.online'];
 
-    $banned_terms_regex = ['jenniferhot', 'fooBar'];
+    $banned_terms_regex = ['jenniferhot', 'Tigerlette27'];
 
     $input = parse_url($url);
 
     return
       (preg_match(
-         '/$'.implode('|', $banned_domains).'^/',
+         '/'.implode('|', $banned_domains).'/',
          $input['host'],
        ) ===
        1) ||
@@ -407,8 +407,6 @@ class jump_api {
     }
     $s3client->deleteObject(['Bucket' => $dest_bucket, 'Key' => $tmp_file]);
 
-    $cdn_host = jump_config::cdn_host();
-    $base = jump_config::base_url();
 
     if ($used_promo_size || $used_promo_urls) {
 
@@ -440,15 +438,19 @@ class jump_api {
         error_log("Failed to decrement promo code ".$input['promo-code']);
       }
     }
+    
+    $cdn_host = jump_config::cdn_host();
+    $base = jump_config::base_url();
 
     $ret = [];
 
     if ($input['private']) {
-      $ret = ['url' => $base.$new_key];
+      $ret = ['url' => jump_config::BASEURL.$new_key, 'hidden-url' => jump_config::H_BASEURL.$new_key];
     } else {
       $ret = [
         'url' => $base.$new_key,
         'cdn-url' => jump_config::FILE_HOST.$new_key.$extension,
+        'hidden-url' => jump_config::H_BASEURL.$new_key
       ];
     }
 
@@ -583,7 +585,7 @@ class jump_api {
     }
 
     $base = jump_config::base_url();
-    return self::success(['url' => $base.$key]);
+    return self::success(['url' => jump_config::BASEURL.$key, 'hidden-url' => jump_config::H_BASEURL.$key]);
   }
 
   public static function delURL($input): array {

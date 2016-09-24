@@ -53,11 +53,16 @@ class jump_config {
     const MAX_LOCAL_FILE_SIZE = jump_config::MAX_FILE_SIZE / 8;
     const PROMO_MAX_LOCAL_FILE_SIZE = jump_config::MAX_LOCAL_FILE_SIZE * 4;
 
+    
+    static function in_tor(){
+        // TODO: add support for .onion.to, .onion.cab, etc
 
-
+        return isset($_SERVER['SERVER_NAME']) && preg_match('/\.onion$/', $_SERVER['SERVER_NAME']);
+    }
 
     static function cdn_host(){
-        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+        //if(isset($_SERVER['SERVER_NAME']) && substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+        if(self::in_tor()){
             return jump_config::H_CDN_HOST;
         } else {
             return jump_config::CDN_HOST;
@@ -65,7 +70,8 @@ class jump_config {
     }
 
     static function base_url(){
-        if(substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+        //if(isset($_SERVER['SERVER_NAME']) && substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion'){
+        if(self::in_tor()){
             return jump_config::H_BASEURL;
         } else {
             return jump_config::BASEURL;
