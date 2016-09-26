@@ -2,6 +2,8 @@
 
 require_once ('api/api.hh');
 
+require_once ('helpers.hh');
+
 function err($s): void {
   $_SESSION['action'] = 'error';
   $_SESSION['message'] = $s;
@@ -128,7 +130,7 @@ function s_main(): void {
       case 'genURL':
           $_SESSION['url'] = $result['url'];
 
-          if(jump_config::in_tor() && isset($result['hidden-url'])){
+          if(in_tor() && isset($result['hidden-url'])){
               $_SESSION['hidden-url'] = $result['hidden-url'];
           }
           

@@ -2,6 +2,8 @@
 
 require_once ('vendor/facebook/xhp-lib/init.php');
 
+require_once ('helpers.hh');
+
 if (!include_once('config/jump_config.hh')) {
   require_once ('config/jump_config.hh');
 }
@@ -16,7 +18,7 @@ function gen_footer(): mixed {
 }
 
 function gen_footer_scripts(): mixed {
-  $cdn_host = jump_config::cdn_host();
+  $cdn_host = cdn_host();
 
   if (substr($_SERVER['SERVER_NAME'], -strlen('.onion')) === '.onion') {
     $cdn_host = jump_config::H_CDN_HOST;

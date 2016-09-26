@@ -2,14 +2,16 @@
 
 require_once ('vendor/facebook/xhp-lib/init.php');
 
+require_once ('helpers.hh');
+
 if (!include_once('config/jump_config.hh')) {
   require_once ('config/jump_config.hh.example');
 }
 
 function gen_head($title = "JUMP.WTF") {
 
-  $cdn_host = jump_config::cdn_host();
-  $base = jump_config::base_url();
+  $cdn_host = cdn_host();
+  $base = base_url();
 
   return
     <head>
@@ -67,7 +69,7 @@ function gen_head($title = "JUMP.WTF") {
 
 function gen_nav() {
 
-  $base = jump_config::base_url();
+  $base = base_url();
 
   //echo "<body>";
   return

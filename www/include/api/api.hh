@@ -22,25 +22,6 @@ class KeygenException extends Exception {
 
 class jump_api {
 
-  // basic URL scanning
-  public static function filter_url(string $url): bool {
-
-    $banned_domains = ['lovlytime\.club', 'find2home\.online'];
-
-    $banned_terms_regex = ['jenniferhot', 'Tigerlette27'];
-
-    $input = parse_url($url);
-
-    return
-      (preg_match(
-         '/'.implode('|', $banned_domains).'/',
-         $input['host'],
-       ) ===
-       1) ||
-      (!empty($banned_terms_regex) &&
-       preg_match('/'.implode('|', $banned_terms_regex).'/', $url) === 1);
-  }
-
   public static function jump_key_exists(string $key): bool {
     $dyclient = awsHelper::dydb_client();
 
@@ -438,17 +419,13 @@ class jump_api {
         error_log("Failed to decrement promo code ".$input['promo-code']);
       }
     }
-    
-    $cdn_host = jump_config::cdn_host();
-    $base = jump_config::base_url();
-
     $ret = [];
 
     if ($input['private']) {
       $ret = ['url' => jump_config::BASEURL.$new_key, 'hidden-url' => jump_config::H_BASEURL.$new_key];
     } else {
       $ret = [
-        'url' => $base.$new_key,
+        'url' => jump_config::BASEURL.$new_key,
         'cdn-url' => jump_config::FILE_HOST.$new_key.$extension,
         'hidden-url' => jump_config::H_BASEURL.$new_key
       ];
@@ -482,7 +459,7 @@ class jump_api {
 
     $balance = ['success' => false, 'custom-urls' => 0];
 
-    if (self::filter_url($input['input-url'])) { // bad URL
+    if (filter_url($input['input-url'])) { // bad URL
       error_log(
         "got flagged URL '".
         $input['input-url'].
@@ -584,7 +561,6 @@ class jump_api {
       }
     }
 
-    $base = jump_config::base_url();
     return self::success(['url' => jump_config::BASEURL.$key, 'hidden-url' => jump_config::H_BASEURL.$key]);
   }
 
@@ -771,7 +747,7 @@ class jump_api {
     if ($cached != NULL) {
       // cache hit
 
-      if (self::filter_url($cached['url'])) {
+      if (filter_url($cached['url'])) {
         return
           self::error("This link has been flagged as possibly malicious.", 409);
       }
@@ -891,11 +867,12 @@ class jump_api {
       $ret = ['url' => $url, 'is-file' => $isFile];
     }
 
-    if (self::filter_url($url)) {
+    if (filter_url($url)) {
         if(isset($item['IP'])){
             if($item['IP']['S'] != $_SERVER['REMOTE_ADDR']){
                 return self::error("This link has been flagged as possibly malicious.", 409);
             } else {
+                error_log("Bamboozled submitter " . $_SERVER['REMOTE_ADDR']);
                 $docache = false;
             }
         } else {
