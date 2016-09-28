@@ -4,6 +4,7 @@
 set_include_path(dirname(__FILE__).'/../www/include');
 
 require ('api/api.hh');
+require ('helpers.hh');
 
 if (!isset($argv)) {
   echo 'Run this from the command line';
@@ -76,7 +77,7 @@ $input = $argv[1];
   }
 
 
-  echo jump_config::base_url() . $key . "\n";
+  echo base_url() . $key . "\n";
   
   exit(0);
 
