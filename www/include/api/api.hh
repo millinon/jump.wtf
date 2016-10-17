@@ -3,6 +3,8 @@
 require_once ('aws.hh');
 require_once ('api/reference.hh');
 require_once ('mimes.hh');
+require_once ('helpers.hh');
+
 
 require_once ('api/validation.hh');
 require_once ('api/router.hh');
@@ -354,18 +356,16 @@ class jump_api {
     }
 
     $pass = 'nopass';
-    $salt = '';
 
     if (!empty($input['password'])) {
-      $salt = uniqid('', true);
-      $pass = hash('sha256', $input['password'].$salt);
+        $pass = password_hash($input['password'], PASSWORD_DEFAULT);
     }
 
     try {
       $res = $dyclient->putItem(
         [
           'TableName' => aws_config::LINK_TABLE,
-          'Item' => array_merge(
+          'Item' =>
             [
               'Object ID' => ['S' => $new_key],
               'pass' => ['S' => $pass],
@@ -378,8 +378,6 @@ class jump_api {
               'clicks' => ['N' => strval($input['clicks'] ?: 0)],
               'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
             ],
-            (!empty($salt) ? ['salt' => ['S' => $salt]] : []),
-          ),
         ],
       );
     } catch (DynamoDbException $dydbe) {
@@ -506,18 +504,16 @@ class jump_api {
     }
 
     $pass = 'nopass';
-    $salt = '';
 
     if (!empty($input['password'])) {
-      $salt = uniqid('', true);
-      $pass = hash('sha256', $input['password'].$salt);
+        $pass = password_hash($input['password'], PASSWORD_DEFAULT);
     }
 
     try {
       $result = $dyclient->putItem(
         [
           'TableName' => aws_config::LINK_TABLE,
-          'Item' => array_merge(
+          'Item' =>
             [
               'Object ID' => ['S' => $key],
               'url' => ['S' => $input['input-url']],
@@ -529,8 +525,6 @@ class jump_api {
               'file_b' => ['BOOL' => false],
               'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
             ],
-            (!empty($salt) ? ['salt' => ['S' => $salt]] : []),
-          ),
         ],
       );
     } catch (DynamoDbException $ex) {
@@ -599,7 +593,7 @@ class jump_api {
               ')'.
               '('.
               jump_config::extension_regex.
-              ')',
+              ')?$~',
               $toks['path'],
               $matches,
             )) {
@@ -630,21 +624,26 @@ class jump_api {
     $table_pass = $item['pass']['S'];
     $isFile =
       isset($item['file_b']['BOOL'])
-        ? boolval($item['file_b'])
+        ? boolval($item['file_b']['BOOL'])
         : (intval($item['isFile']['N']) === 1);
     if ($isFile) {
       $filename = $item['filename']['S'];
     }
-    $isPrivate = intval($item['isPrivate']['N']) === 1;
+    $isPrivate = isset($item['private_b']) ? boolval($item['private_b']['BOOL']) : (intval($item['isPrivate']['N']) === 1);
     $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
 
-    if (hash('sha256', $input['password'].$salt) === $table_pass) {
+
+    if (password_verify($input['password'], $table_pass) || hash('sha256', $input['password'].$salt) === $table_pass) {
       try {
         $dyclient->updateItem(
           [
             'TableName' => aws_config::LINK_TABLE,
             'Key' => ['Object ID' => ['S' => $key]],
-            'UpdateExpression' => 'SET active_b = false',
+            'UpdateExpression' => 'SET active_b = :f',
+            'ExpressionAttributeValues' => [
+                ':f' => [
+                    'BOOL' => FALSE
+                    ]]
           ],
         );
       } catch (DynamoDbException $dde) {
