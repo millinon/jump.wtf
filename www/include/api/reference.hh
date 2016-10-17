@@ -20,10 +20,11 @@ class api_config {
       'url' => [
         'description' => 'Generated jump.wtf URL',
         'type' => 'string',
-    ],
-    'hidden-url' => [
+      ],
+      'hidden-url' => [
         'description' => 'Generated Tor hidden service URL',
-        'type' => 'string']
+        'type' => 'string',
+      ],
     ];
 
     $file_retval = array_merge(
@@ -67,7 +68,7 @@ class api_config {
       'requires-params' => ['promo-code'],
       //'min-length' => key_config::MIN_LENGTH,
       //'max-length' => key_config::MAX_LENGTH,
-      'regex' => '/^'.key_config::extended_regex.'$/',
+      'regex' => '/^'.key_config::key_regex.'$/',
       'type' => 'string',
     ];
 
@@ -281,7 +282,7 @@ class api_config {
                     'type' => 'string',
                     //'min-length' => key_config::MIN_LENGTH,
                     //'max-length' => key_config::MAX_LENGTH,
-                    'regex' => '/^'.key_config::extended_regex.'$/',
+                    'regex' => '/^'.key_config::key_regex.'$/',
                   ],
                 'jump-url' =>
                   [
@@ -341,7 +342,7 @@ class api_config {
                       jump_config::BASEURL.
                       "fooBar.baz' expects 'fooBar'",
                     'type' => 'string',
-                    'regex' => '/^'.key_config::extended_regex.'$/',
+                    'regex' => '/^'.key_config::key_regex.'$/',
                   ],
                 'jump-url' => [
                   'description' => 'jump.wtf link to jump to',

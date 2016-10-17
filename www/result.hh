@@ -98,34 +98,49 @@ function make_container() {
       {message()}<br />
     </div>;
 
-  if(isset($_SESSION['hidden-url'])){
+  if (isset($_SESSION['hidden-url'])) {
     $container->appendChild(
-        <p>
-          Hidden service URL:
-          <a id="tor-url" href={$_SESSION['hidden-url']} target="_blank">
-            {$_SESSION['hidden-url']}
-          </a>
-        </p>);
+      <p>
+        Hidden service URL:
+        <a id="tor-url" href={$_SESSION['hidden-url']} target="_blank">
+          {$_SESSION['hidden-url']}
+        </a>
+      </p>,
+    );
   }
 
   $buttons = <div id="button-container" class="container centered"></div>;
 
   if (isset($_SESSION['url'])) {
     $buttons->appendChild(
-      <p>{copy_button('copy-url', 'Copy to clipboard', $_SESSION['url'])}</p>
+      <p>
+        {copy_button('copy-url', 'Copy to clipboard', $_SESSION['url'])}
+      </p>
     );
 
     if (isset($_SESSION['cdn-url'])) {
-        $buttons->appendChild(<p>{copy_button('copy-cdn', 'Copy direct link', $_SESSION['cdn-url'])}</p>);
-     // $buttons->appendChild(<br />);
-     // $buttons->appendChild(
-     //   copy_button('copy-cdn', 'Copy direct link', $_SESSION['cdn-url']),
-     // );
-     // $buttons->appendChild(<br />);
+      $buttons->appendChild(
+        <p>
+          {copy_button('copy-cdn', 'Copy direct link', $_SESSION['cdn-url'])}
+        </p>,
+      );
+      // $buttons->appendChild(<br />);
+      // $buttons->appendChild(
+      //   copy_button('copy-cdn', 'Copy direct link', $_SESSION['cdn-url']),
+      // );
+      // $buttons->appendChild(<br />);
     }
 
-    if(isset($_SESSION['hidden-url'])){
-        $buttons->appendChild(<p>{copy_button('copy-tor', 'Copy hidden service link', $_SESSION['hidden-url'])}</p>);
+    if (isset($_SESSION['hidden-url'])) {
+      $buttons->appendChild(
+        <p>
+          {copy_button(
+            'copy-tor',
+            'Copy hidden service link',
+            $_SESSION['hidden-url'],
+          )}
+        </p>,
+      );
     }
   }
 

@@ -5,7 +5,6 @@ require_once ('api/reference.hh');
 require_once ('mimes.hh');
 require_once ('helpers.hh');
 
-
 require_once ('api/validation.hh');
 require_once ('api/router.hh');
 
@@ -358,26 +357,25 @@ class jump_api {
     $pass = 'nopass';
 
     if (!empty($input['password'])) {
-        $pass = password_hash($input['password'], PASSWORD_DEFAULT);
+      $pass = password_hash($input['password'], PASSWORD_DEFAULT);
     }
 
     try {
       $res = $dyclient->putItem(
         [
           'TableName' => aws_config::LINK_TABLE,
-          'Item' =>
-            [
-              'Object ID' => ['S' => $new_key],
-              'pass' => ['S' => $pass],
-              'private_b' => ['BOOL' => $input['private']],
-              'active_b' => ['BOOL' => true],
-              'file_b' => ['BOOL' => true],
-              'time' => ['S' => date(DateTime::W3C)],
-              'filename' => ['S' => $new_key.$extension],
-              'ext' => ['S' => $extension],
-              'clicks' => ['N' => strval($input['clicks'] ?: 0)],
-              'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
-            ],
+          'Item' => [
+            'Object ID' => ['S' => $new_key],
+            'pass' => ['S' => $pass],
+            'private_b' => ['BOOL' => $input['private']],
+            'active_b' => ['BOOL' => true],
+            'file_b' => ['BOOL' => true],
+            'time' => ['S' => date(DateTime::W3C)],
+            'filename' => ['S' => $new_key.$extension],
+            'ext' => ['S' => $extension],
+            'clicks' => ['N' => strval($input['clicks'] ?: 0)],
+            'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
+          ],
         ],
       );
     } catch (DynamoDbException $dydbe) {
@@ -385,7 +383,6 @@ class jump_api {
       return self::error('Failed to create new URL', 503);
     }
     $s3client->deleteObject(['Bucket' => $dest_bucket, 'Key' => $tmp_file]);
-
 
     if ($used_promo_size || $used_promo_urls) {
 
@@ -420,12 +417,15 @@ class jump_api {
     $ret = [];
 
     if ($input['private']) {
-      $ret = ['url' => jump_config::BASEURL.$new_key, 'hidden-url' => jump_config::H_BASEURL.$new_key];
+      $ret = [
+        'url' => jump_config::BASEURL.$new_key,
+        'hidden-url' => jump_config::H_BASEURL.$new_key,
+      ];
     } else {
       $ret = [
         'url' => jump_config::BASEURL.$new_key,
         'cdn-url' => jump_config::FILE_HOST.$new_key.$extension,
-        'hidden-url' => jump_config::H_BASEURL.$new_key
+        'hidden-url' => jump_config::H_BASEURL.$new_key,
       ];
     }
 
@@ -463,11 +463,11 @@ class jump_api {
         $input['input-url'].
         "' from IP ".
         $_SERVER['REMOTE_ADDR'],
-    );
+      );
       // actually, let's go ahead and let them submit it so it's harder to tell that filtering is happening
       //return self::error("Internal exception.");
     }
- 
+
     if (!empty($input['promo-code'])) {
       $balance = self::getBalance(
         ['action' => 'getBalance', 'promo-code' => $input['promo-code']],
@@ -506,25 +506,24 @@ class jump_api {
     $pass = 'nopass';
 
     if (!empty($input['password'])) {
-        $pass = password_hash($input['password'], PASSWORD_DEFAULT);
+      $pass = password_hash($input['password'], PASSWORD_DEFAULT);
     }
 
     try {
       $result = $dyclient->putItem(
         [
           'TableName' => aws_config::LINK_TABLE,
-          'Item' =>
-            [
-              'Object ID' => ['S' => $key],
-              'url' => ['S' => $input['input-url']],
-              'private_b' => ['BOOL' => $input['private']],
-              'pass' => ['S' => $pass],
-              'active_b' => ['BOOL' => true],
-              'clicks' => ['N' => strval($input['clicks'] ?: 0)],
-              'time' => ['S' => date(DateTime::W3C)],
-              'file_b' => ['BOOL' => false],
-              'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
-            ],
+          'Item' => [
+            'Object ID' => ['S' => $key],
+            'url' => ['S' => $input['input-url']],
+            'private_b' => ['BOOL' => $input['private']],
+            'pass' => ['S' => $pass],
+            'active_b' => ['BOOL' => true],
+            'clicks' => ['N' => strval($input['clicks'] ?: 0)],
+            'time' => ['S' => date(DateTime::W3C)],
+            'file_b' => ['BOOL' => false],
+            'IP' => ['S' => $_SERVER['REMOTE_ADDR']],
+          ],
         ],
       );
     } catch (DynamoDbException $ex) {
@@ -555,7 +554,12 @@ class jump_api {
       }
     }
 
-    return self::success(['url' => jump_config::BASEURL.$key, 'hidden-url' => jump_config::H_BASEURL.$key]);
+    return self::success(
+      [
+        'url' => jump_config::BASEURL.$key,
+        'hidden-url' => jump_config::H_BASEURL.$key,
+      ],
+    );
   }
 
   public static function delURL($input): array {
@@ -589,7 +593,7 @@ class jump_api {
         $matches = [];
         if (!preg_match(
               "~^/(".
-              key_config::extended_regex.
+              key_config::key_regex.
               ')'.
               '('.
               jump_config::extension_regex.
@@ -629,21 +633,21 @@ class jump_api {
     if ($isFile) {
       $filename = $item['filename']['S'];
     }
-    $isPrivate = isset($item['private_b']) ? boolval($item['private_b']['BOOL']) : (intval($item['isPrivate']['N']) === 1);
+    $isPrivate =
+      isset($item['private_b'])
+        ? boolval($item['private_b']['BOOL'])
+        : (intval($item['isPrivate']['N']) === 1);
     $salt = isset($item['salt']) ? $item['salt']['S'] : $key;
 
-
-    if (password_verify($input['password'], $table_pass) || hash('sha256', $input['password'].$salt) === $table_pass) {
+    if (password_verify($input['password'], $table_pass) ||
+        hash('sha256', $input['password'].$salt) === $table_pass) {
       try {
         $dyclient->updateItem(
           [
             'TableName' => aws_config::LINK_TABLE,
             'Key' => ['Object ID' => ['S' => $key]],
             'UpdateExpression' => 'SET active_b = :f',
-            'ExpressionAttributeValues' => [
-                ':f' => [
-                    'BOOL' => FALSE
-                    ]]
+            'ExpressionAttributeValues' => [':f' => ['BOOL' => FALSE]],
           ],
         );
       } catch (DynamoDbException $dde) {
@@ -728,7 +732,7 @@ class jump_api {
       $matches = [];
       if (!preg_match(
             "~^/(".
-            key_config::regex.
+            key_config::key_regex.
             ")(\\.[\\w.]{1,".
             jump_config::MAX_EXT_LENGTH.
             "})$~",
@@ -742,15 +746,16 @@ class jump_api {
 
     $cached = (self::$cache == NULL) ? NULL : self::$cache->get($key);
 
-
     if ($cached != NULL) {
       // cache hit
 
       if (filter_url($cached['url'])) {
-        return
-          self::error("This link has been flagged as possibly malicious.", 409);
+        return self::error(
+          "This link has been flagged as possibly malicious.",
+          409,
+        );
       }
-    
+
       return self::success(self::$cache->get($key));
 
     } else {
@@ -867,17 +872,23 @@ class jump_api {
     }
 
     if (filter_url($url)) {
-        if(isset($item['IP'])){
-            if($item['IP']['S'] != $_SERVER['REMOTE_ADDR']){
-                return self::error("This link has been flagged as possibly malicious.", 409);
-            } else {
-                error_log("Bamboozled submitter " . $_SERVER['REMOTE_ADDR']);
-                $docache = false;
-            }
+      if (isset($item['IP'])) {
+        if ($item['IP']['S'] != $_SERVER['REMOTE_ADDR']) {
+          return self::error(
+            "This link has been flagged as possibly malicious.",
+            409,
+          );
         } else {
-                return self::error("This link has been flagged as possibly malicious.", 409);
-
+          error_log("Bamboozled submitter ".$_SERVER['REMOTE_ADDR']);
+          $docache = false;
         }
+      } else {
+        return self::error(
+          "This link has been flagged as possibly malicious.",
+          409,
+        );
+
+      }
     }
 
     if ($docache && self::$cache !== NULL) {

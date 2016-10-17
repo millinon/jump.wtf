@@ -20,12 +20,14 @@ function error_message(int $status): mixed {
         <p>
           The link you were looking for could not be found.<br />
           Sorry about that!<br />
-          </p>;
+        </p>;
 
     case 409:
-        return
+      return
         <p>
-            The link you were looking for has been marked as possibly dangerous.<br /></p>;
+          The link you were looking for has been marked as possibly dangerous.
+          <br />
+        </p>;
 
     default:
       return error_message(404);

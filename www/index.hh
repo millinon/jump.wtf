@@ -232,7 +232,13 @@ function i_main(): void {
                 </a>. <br />
                 This site's source code is available on
                 <a href="https://jump.wtf/github">GitHub</a>. <br /> <br />
-                Help support the operation of this site: <a class="coinbase-button" href="https://www.coinbase.com/checkouts/bd79a891a81b4acd1cdf9ec96db2cf20">donate bitcoins</a>
+                Help support the operation of this site:
+                <a
+                  class="coinbase-button"
+                  href=
+                    "https://www.coinbase.com/checkouts/bd79a891a81b4acd1cdf9ec96db2cf20">
+                  donate bitcoins
+                </a>
               </p>
             </div>
           </div>

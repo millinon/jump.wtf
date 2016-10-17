@@ -16,7 +16,7 @@ function g_main(string $uri): void {
   $result = jump_api::jumpTo(['action' => 'jumpTo', 'jump-key' => $uri]);
 
   if ($result['success'] !== true) {
-//    error_log($result['message']);
+    //    error_log($result['message']);
     error_page($result['code'], $uri);
   } else {
     header('Location:'.$result['url']);

@@ -265,67 +265,90 @@ foreach (array_keys($doc) as $action) {
     }
   }
 
-  echo 'Pass\n';
+  echo "Pass\n";
 }
 
 $reject_tests =
   [
+    // empty
     [],
+    // missing action
     ['noaction' => true],
+    // empty action
     ['action' => ''],
+    // invalid action
     ['action' => 'fakeaction'],
+    // invalid parameter
     ['action' => 'genURL', 'fakeParam' => 'test'],
+    // invalid parameter for genUploadURL
     ['action' => 'genUploadURL', 'input-url' => 'http://example.com'],
+    // invalid type for private parameter, missing clicks parameter
     [
       'action' => 'genURL',
       'input-url' => 'http://example.com',
       'private' => 5,
     ],
-    //['action' => 'genURL', 'input-url' => 'not a URL'], // URLs aren't tested during validation, since that's done by filter_var
+    // invalid input URL
+    // ['action' => 'genURL', 'input-url' => 'not a URL'], // URLs aren't tested during validation, since that's done by filter_var
+    // // missing private parameter
     [
       'action' => 'genURL',
       'input-url' => 'http://example.com',
       'clicks' => 5,
     ],
+    // invalid clicks parameter value
     [
       'action' => 'genURL',
       'input-url' => 'http://example.com',
       'private' => true,
       'clicks' => jump_config::MAX_CLICKS + 1,
     ],
+    // file-data excludes tmp-key
     [
       'action' => 'genFileURL',
       'file-data' => 'aGVsbG8K',
-      'tmp-key' => '5677988ddaee51.96624275',
+      'tmp-key' => 'gu-5677988ddaee51.96624275',
     ],
+    // invalid tmp-key parameter value
     ['action' => 'genFileURL', 'tmp-key' => 'invalid key'],
+    // invalid clicks parameter value
     [
       'action' => 'genURL',
       'input-url' => 'http://example.com',
       'private' => true,
       'clicks' => 0,
     ],
+    // invalid jump-key parameter value
     ['action' => 'jumpTo', 'jump-key' => 'https://jump.wtf/foo'],
+    // invalid jump-key parameter value
     [
       'action' => 'jumpTo',
-      'jump-key' => 'looooooooooooooooooooooooooooooooooooooooooooongKey',
+      'jump-key' => 'l'.str_repeat('o', key_config::MAX_LENGTH).'ngKey',
     ],
+    // invalid jump-key parameter value
     [
       'action' => 'delURL',
       'password' => 'a password',
       'jump-key' => 'https://jump.wtf/fooBar',
     ],
+    // invalid password parameter length
     ['action' => 'delURL', 'password' => '', 'jump-key' => 'foo'],
+    // custom-url requires promo-code
     [
       'action' => 'genURL',
       'input-url' => 'https://jump.wtf',
       'custom-url' => 'fooBar',
     ],
+    // missing password
     ['action' => 'delURL', 'jump-key' => 'realKey'],
+    // invalid extension parameter length
     [
       'action' => 'genFileURL',
       'file-data' => 'd2hvb3BzIHRoaXMgaXMgYW4gaW52YWxpZCBleHRlbnNpb24K',
-      'extension' => '.loooooooong.invalid.extension',
+      'extension' =>
+        '.l'.
+        str_repeat('o', jump_config::MAX_EXT_LENGTH).
+        'ng.invalid.extension',
     ],
   ];
 

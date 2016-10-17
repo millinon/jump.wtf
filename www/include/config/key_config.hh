@@ -3,14 +3,14 @@
 class key_config {
 
   const MIN_LENGTH = 3;
-  const MAX_LENGTH = 20;
+  const MAX_LENGTH = 64;
 
   const target_length = 6;
 
-  // th`is is what generated URLs will look like
-  const regex = '[\\w]{3,5}';
+  // this is what generated URLs will look like
+  //const regex = '[\\w]{'.key_config::MIN_LENGTH.','.key_config::TARGET_LENGTH.'}';
   // this is what requested URLs will look like
-  const extended_regex = '[%\\w{}()-]{2,64}';
+  const key_regex = '[%\\w{}()-]{'.self::MIN_LENGTH.','.self::MAX_LENGTH.'}';
 
   static function gen_charset() {
     return array_merge(
