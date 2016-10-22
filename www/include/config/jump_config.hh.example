@@ -55,7 +55,7 @@ class jump_config {
 
     // these are each arrays of regular expressions that input URLs will be
     //   filtered through. Be cautious, as these may introduce a DoS vector
-    static $banned_hosts = [ 'some\.bad\.host', '(.*\.)?shady.domain' ];
+    static $banned_hosts = [ 'some\.bad\.host', '(.*\.)?shady\.domain' ];
     static $banned_terms = [ 'illegal_stuff', 'black_market_teddy_bears'];
 
 }

@@ -5,6 +5,8 @@ set_include_path(dirname(__FILE__).'/../www/include');
 
 require ('api/api.hh');
 
+require('helpers.hh');
+
 if (!isset($argv)) {
   echo 'Run this from the command line';
   exit(1);
