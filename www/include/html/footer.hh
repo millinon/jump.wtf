@@ -26,7 +26,9 @@ function gen_footer_scripts(): mixed {
 
   return
     <p>
-      <script src={$cdn_host."/vendor/jquery-1.11.1.min.js"}></script>
+      <!--
+        <script src={$cdn_host."/vendor/jquery-1.11.1.min.js"}></script>
+      --> <script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
       <script src={$cdn_host."/vendor/clipboard.js/dist/clipboard.min.js"}>
       </script>
       <script src={$cdn_host."/vendor/bootstrap/dist/js/bootstrap.min.js"}>

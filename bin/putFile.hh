@@ -5,7 +5,7 @@ set_include_path(dirname(__FILE__).'/../www/include');
 
 require ('api/api.hh');
 
-require('helpers.hh');
+require ('helpers.hh');
 
 if (!isset($argv)) {
   echo 'Run this from the command line';
@@ -126,7 +126,7 @@ if ($argc > 2) {
     json_encode(
       [
         'success' => true,
-        'url' => jump_config::base_url().$key,
+        'url' => base_url().$key,
         'cdn-url' => jump_config::FILE_HOST.$key.$ext,
       ],
       JSON_PRETTY_PRINT,
