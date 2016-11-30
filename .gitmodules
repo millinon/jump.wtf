@@ -20,3 +20,6 @@
 [submodule "www/htdocs/vendor/dropzone"]
 	path = www/htdocs/vendor/dropzone
 	url = https://github.com/enyo/dropzone.git
+[submodule "api-examples/jump-html-xhr/vendor/dropzone"]
+	path = api-examples/jump-html-xhr/vendor/dropzone
+	url = https://github.com/enyo/dropzone.git

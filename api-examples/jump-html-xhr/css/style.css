@@ -1,0 +1,161 @@
+.container {
+    width: 100%;
+    margin: 0px auto;
+    /*    padding: 0.1em 14px; */
+}
+
+.form-container {
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    color: #F0F0F0;
+}
+
+h1 {
+    text-align: center;
+    margin: 0px auto;
+    font-size: 48pt;
+    text-shadow: 1px 1px 1px #ccc;
+}
+
+h2 {
+    font-size: 36pt;
+}
+
+p, div {
+    font-family: 'Crimson Text', serif;
+    color: #F0F0F0;
+}
+
+#body-container {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: url(img/background.png) repeat 0 0;
+    /*    border: 8px solid #F0F0F0; */
+    margin: 0px auto;
+}
+
+input {
+    float: right;
+}
+
+.input-container {
+    width: 500px;
+    margin: 0px auto;
+}
+
+.file-input {
+    width: 16em;
+}
+
+footer {
+    text-align: center;
+}
+
+.input-container span {
+    font-size: 18pt;
+}
+
+.dropzone {
+    border: 2px solid #F0F0F0;
+    width: 50%;
+    margin: 4px auto;
+    padding: 8px;
+}
+
+.row {
+    line-height: 1em;
+    overflow: auto;
+    width: 80%;
+    position: relative;
+    height: auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.row-output {
+    float: right;
+    text-align: left;
+}
+
+.row-input input {
+    float: left;
+    text-align: left;
+}
+
+/* http://jsfiddle.net/halirgb/fE5kB/ */
+
+a.btn{
+    height:70px;
+    line-height:70px;
+    text-align:center;
+    padding:0 10px;
+    color:#ffffff;
+    background-color:#007bff;
+    position:relative;
+    display:inline-block;
+    width: 100px;
+    font-size: 24pt;
+    text-decoration: none;
+    
+    top: 50%;
+    transform: translateY(-50%);
+}
+a.btn:after{
+    position:absolute;
+    right:-40px;
+    content:" ";
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 35px 0 35px 40px;
+    border-color: transparent transparent transparent #007bff;
+}
+a.btn:hover{
+    background-color:red;
+}
+a.btn:hover:after{
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 35px 0 35px 40px;
+    border-color: transparent transparent transparent #ff0000;
+}
+
+input[type="text"], input[type="url"] {
+    font-size: 14pt;
+}
+
+#input-url {
+    width: 40%;
+    margin-right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: relative;
+}
+
+.row-output input {
+    top: 50%;
+    transform: translateY(-50%);
+    display: relative;
+
+    width: 12em;
+    margin-left: 10%;
+}
+
+.copy-btn {
+    float: right;
+}
+
+@media only screen and (min-width: 480px) {
+    body {
+        width: 50%;
+    }
+}
+
+

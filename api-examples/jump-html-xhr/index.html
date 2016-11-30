@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>jump.wtf</title>
+        <link rel="stylesheet" type="text/css" href="vendor/dropzone/dist/min/dropzone.min.js" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" />
+        <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css' />
+        <link href='https://fonts.googleapis.com/css?family=Crimson+Text' rel='stylesheet' type='text/css' />
+    </head>
+    <body>
+        <div class="container" id="body-container">
+            <header>
+                <h1>JUMP.WTF</h1>
+            </header>
+            <hr />
+
+            <div class="container form-container" id="genURL-container">  
+                <h2>Shorten a link</h2>
+
+                <div class="row">
+                    <div class="row-input">
+                        <input type="url" name="input-url" id="input-url" required="" placeholder="http://example.com/some/long/link" />
+                    </div>
+                   
+                    <a href="#" class="btn" id="shorten-btn">Shorten</a>
+                    <div class="row-output">
+                        <input type="text" name="output-url" id="output-url" placeholder ="https://jump.wtf/wYFS" readonly/>
+                        <br>
+                        <button class="copy-btn" type="button" id="copy-url-btn">Copy</button>
+                    </div>
+
+                    <br />
+                    <br />
+                </div>
+                </form>
+            </div>
+            <hr />
+            
+            <div class="container form-container" id="genFileURL-container">  
+                <h2>Upload a file</h2>
+                <form id="genFileURL-form">
+                    <div class="row">
+                        <div class="row-input">
+                            <input class="file-input" type="file" name="input-file" id="input-file" />
+                        </div>
+                        <a href="#" class="btn" id="upload-btn">Upload</a>
+                        <div class="row-output">
+                            <input type="text" name="output-file" id="output-file" placeholder ="https://jump.wtf/pcFq" readonly/>
+                            <br />
+                            <button class="copy-btn" type="button" id="copy-file-btn">Copy</button>
+                        </div>
+                    </div>
+                    <br />
+                </form>
+            </div>
+            <hr />
+
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <h4>&copy; Phillip Goldfarb 2016</h4>
+            </div>
+
+        </footer>
+
+
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.12/clipboard.min.js"></script>
+        <script type="text/javascript" src="js/main.js" async></script>
+    </body>
+</html>
