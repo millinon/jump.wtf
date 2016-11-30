@@ -180,13 +180,6 @@ function r_main(): void {
       </div>
       {gen_footer()}
       {gen_footer_scripts()}
-      <script
-        src=
-          {"//".
-          jump_config::CDN_HOST.
-          "/js/".
-          file_get_contents("htdocs/js/clip.js.latest")}>
-      </script>
     </body>;
   if (isset($_SESSION['url'])) {
     $body->appendChild(

@@ -2,6 +2,8 @@
 
 set_include_path(get_include_path().PATH_SEPARATOR.__DIR__.'/include');
 
+require_once ('helpers.hh');
+
 function main(): void {
 
   $matches = array();
@@ -30,7 +32,7 @@ function main(): void {
   } else if ($uri !== '') {
     require ('go.hh');
     g_main($uri);
-  } else /*if ($uri === "")*/ {
+  } else {
     require ('index.hh');
     i_main();
   }

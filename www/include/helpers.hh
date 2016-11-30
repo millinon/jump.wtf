@@ -24,13 +24,17 @@ function base_url(): string {
 
 // return true if it's a bad url
 function filter_url(string $url): bool {
+
   $parsed = parse_url($url);
 
-  if (!empty(jump_config::$banned_hosts) &&
-      preg_match(
-        '/'.implode('|', jump_config::$banned_hosts).'/i',
-        $parsed['host'],
-      ) == 1) {
+  if (empty($parsed['host']) ||
+      (!empty(jump_config::$banned_hosts) &&
+       preg_match(
+         // this is just a regex of all the hostnames
+         '/'.implode('|', jump_config::$banned_hosts).'/i',
+         // this is the URL's hostname
+         $parsed['host'],
+       ) == 1)) {
     return true;
   } else if (!empty(jump_config::$banned_terms) &&
              preg_match(

@@ -98,7 +98,7 @@ Once the key has been selected and the data uploaded, the user is presented with
 
 ### Link forwarding process
 
-When a request is submitted to `go.hh`, the key is extracted as someURI in the URL: "https://jump.wtf/someURI" (where someURI matches the regular expression "^[A-Za-z0-9]{4}$").
+When a request is submitted to `go.hh`, the key is extracted as someURI in the URL: "https://jump.wtf/someURI" (where someURI matches the regular expression "^[A-Za-z0-9]{2,}$").
 
 They key is then queried as the primary index from the DynamoDB table. Since public file uploads are stored as a CDN-backed link, public files and links are handled in the same manner. If the link is to a private file, `go.hh` generates a signed URL to the file in the private S3 bucket, only valid for fifteen minutes. This is to prevent direct linking to the file in S3, which would make it impossible to track the number of clicks on a private link.
 

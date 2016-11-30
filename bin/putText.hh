@@ -5,6 +5,8 @@ set_include_path(dirname(__FILE__).'/../www/include');
 
 require ('api/api.hh');
 
+require_once ('helpers.hh');
+
 if (!isset($argv)) {
   echo 'Run this from the command line';
   exit(1);
@@ -75,8 +77,8 @@ if ($inuse) {
       [
         'DistributionId' => aws_config::CF_DIST_ID,
         'InvalidationBatch' => [
-          'CallerReference' => 'jump.wtf-putfile-'.$key.'.'.rand(0, 8),
-          'Paths' => ['Quantity' => 1, 'Items' => ['/'.$key.$ext]],
+          'CallerReference' => 'jump.wtf-puttext-'.$key.'.'.rand(0, 8),
+          'Paths' => ['Quantity' => 1, 'Items' => ['/'.$key.'.*']],
         ],
       ],
     );
@@ -89,7 +91,7 @@ if ($inuse) {
 
 echo
   json_encode(
-    ['success' => true, 'url' => jump_config::base_url().$key],
+    ['success' => true, 'url' => base_url().$key],
     JSON_PRETTY_PRINT,
   ).
   "\n"

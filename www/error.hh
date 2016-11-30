@@ -25,8 +25,7 @@ function error_message(int $status): mixed {
     case 409:
       return
         <p>
-          The link you were looking for has been marked as possibly dangerous.
-          <br />
+          The link you clicked has been flagged. Sorry! <br />
         </p>;
 
     default:

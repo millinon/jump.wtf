@@ -26,6 +26,10 @@ https://jump.wtf/a?action=jumpTo&jump-key=tos
 
 2) Liability
 
+        JUMP.WTF does not host content that is submitted as a URL, but only
+redirects to the long-form URL. Any files hosted by JUMP.WTF are submitted
+by users.
+
         You are solely responsible for any URLs or files that you choose to
 submit, or choose to send to another person. If I receieve any complaint
 regarding content hosted at a JUMP.WTF URL or as a file on JUMP.WTF, it may be
@@ -33,9 +37,10 @@ removed. By uploading a URL or file, you agree that you have the rights to do
 so. Attempting any sort of malicious submission or tampering with the provided
 services revokes your right to submit URLs or files.
 
-        Likewise, if you learn of a URL or file that has been illegally
-submitted, contact me at dmca@jump.wtf with the ID of the offending
-content, and it will be immediately removed should your complaint be valid.
+        Likewise, if you learn of a malicious or illegal URL or file
+that has been submitted, contact me at dmca@jump.wtf with the ID of the
+offending content, and it will be immediately removed should your complaint
+be valid.
 
 3) Privacy
 
@@ -45,7 +50,7 @@ If you opt to submit an optional password for future deletion, a
 hashed version of that password will be stored.
 
 	I may periodically check logs of files uplodaded and URLs generated to
-assess the site performance, but this data will never be sold or transferred
+assess the site activity, but this data will never be sold or transferred
 to any other third party, with the exception of a situation in which I am
 legally required to. No other identifying information is ever stored.
 
@@ -60,9 +65,9 @@ person could find your content. If this is a concern, you can email me, and I
 can assign your content a longer URL that will be essentially impossible to
 guess.
 
-        I will never look at a URL generated for your content or the content
-you submit, again unless I am legally required to review it. I do not receive
-any kind of notification when content is submitted.
+        I may use tools to investigate what a URL points to, and may check
+files or links that have been submitted, if I determine that a link requires
+investigation for any reason. I do not receive notification of link creation.
 
         If you decide at a later time that you wish to delete submitted
 content, but you did not set a password or do not remember the password, you

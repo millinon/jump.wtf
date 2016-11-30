@@ -872,7 +872,7 @@ class jump_api {
     }
 
     if (filter_url($url)) {
-      if (isset($item['IP'])) {
+      if (!in_tor() && isset($item['IP'])) {
         if ($item['IP']['S'] != $_SERVER['REMOTE_ADDR']) {
           return self::error(
             "This link has been flagged as possibly malicious.",
