@@ -6,7 +6,7 @@ require_once ('html/header.hh');
 require_once ('html/footer.hh');
 
 function input_none() {
-  return <div class="input-group"><input style="display:none;" /></div>;
+  return <div class="input-group"><input class="input-none" /></div>;
 }
 
 function input_label(string $label) {
@@ -27,7 +27,7 @@ function file_input() {
             id="input-file"
           />
         </span>
-        <span id="file-label" style="margin-left: 5px"></span>
+        <span id="file-label" class="file-label"></span>
       </span>
     </div>;
 }
@@ -201,8 +201,7 @@ function collapse_input(string $id_prefix) {
       </button>
       <div
         id={$id_prefix.'-opt'}
-        class="collapse container-fluid"
-        style="margin:0px; padding:0px">
+        class="collapse container-fluid form-container">
         {pass_input($id_prefix, 'Password for deletion:')}
         {expire_input($id_prefix)}
         {key_input($id_prefix)}

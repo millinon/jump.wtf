@@ -106,6 +106,19 @@ html {
      */
 }
 
+.input-none {
+    display: none;
+}
+
+.form-container {
+    margin: 0px;
+    padding: 0px;
+}
+
+.file-label {
+    margin-left: 5px;
+}
+
 @media only screen 
 and (min-device-width : 320px) 
 and (max-device-width : 480px) {
