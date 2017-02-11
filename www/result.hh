@@ -49,7 +49,10 @@ function message(): mixed {
           Your link has been generated:
           <a id="newlink" href={$_SESSION['url']} target="_blank">
             {$_SESSION['url']}
-          </a>
+            </a>
+            <br />
+            <br />
+            <img src={"https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=". urlencode($_SESSION['url'])."&choe=UTF-8"} />
         </p>;
       break;
 
@@ -59,7 +62,10 @@ function message(): mixed {
           Your file has been uploaded:
           <a id="newlink" href={$_SESSION['url']} target="_blank">
             {$_SESSION['url']}
-          </a>
+            </a>
+            <br />
+            <br />
+            <img src={"https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=". urlencode($_SESSION['url'])."&choe=UTF-8"} />
         </p>;
       break;
 
@@ -185,8 +191,7 @@ function r_main(): void {
     $body->appendChild(
       <script
         src=
-          {'//'.
-          jump_config::CDN_HOST.
+          {jump_config::CDN_HOST.
           '/js/'.
           file_get_contents('htdocs/js/clip.js.latest')}>
       </script>,

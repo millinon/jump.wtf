@@ -105,10 +105,10 @@ argv.forEach(function (ifname) {
             var ofname = base + "-" + matches + ".min." + extension;
             console.log("Minifying " + basename + " to " + ofname);
 
-            new compressor.minify({
-                type: 'yui-' + extension,
-                fileIn: ifname,
-                fileOut: dir + ofname,
+            compressor.minify({
+                compressor: 'yui-' + extension,
+                input: ifname,
+                output: dir + ofname,
                 callback: function (err) {
                     if (err) {
                         console.log(err.toString());
