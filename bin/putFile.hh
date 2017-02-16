@@ -4,7 +4,6 @@
 set_include_path(dirname(__FILE__).'/../www/include');
 
 require ('api/api.hh');
-
 require ('helpers.hh');
 
 if (!isset($argv)) {
@@ -28,9 +27,9 @@ if (!file_exists($file)) {
   exit(1);
 }
 
-if ($argc > 2) {
-
   awsHelper::init();
+
+if ($argc > 2) {
 
   $inuse = false;
 
@@ -145,7 +144,7 @@ if ($argc > 2) {
 
   echo
     json_encode(
-      jump_api::route(
+      api_router::route(
         [
           'action' => 'genFileURL',
           'extension' => $ext,

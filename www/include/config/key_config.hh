@@ -3,9 +3,9 @@
 class key_config {
 
   const MIN_LENGTH = 3;
-  const MAX_LENGTH = 64;
+  const MAX_LENGTH = 128;
 
-  const target_length = 6;
+  const target_length = 7;
 
   // this is what generated URLs will look like
   //const regex = '[\\w]{'.key_config::MIN_LENGTH.','.key_config::TARGET_LENGTH.'}';
