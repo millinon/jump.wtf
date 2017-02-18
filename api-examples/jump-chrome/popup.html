@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+	<head>
+		<title>jump.wtf Popup</title>
+		<style>
+			body {
+				font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+				font-size: 100%;
+			}
+			#status {
+				/* avoid an excessively wide status text */
+				white-space: pre;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				max-width: 400px;
+			}
+			#message-div {
+			}
+			#btn-div {
+				text-align: center;
+			}
+			#button {
+				display: none;
+				margin: 0px auto;
+			}
+		</style>
+
+		<script src="popup.js"></script>
+	</head>
+	<body>
+		<div id="status">Please wait...</div>
+		<div id="message-div"><p id="message"></p><a id="link" target="_blank"></a></div>
+		<br />
+		<div id="btn-div"><button id="button" type="button">Copy to clipboard</button></div>
+		<img id="qr-code" hidden>
+	</body>
+</html>
+

@@ -1,0 +1,20 @@
+{
+    "manifest_version": 2,
+
+    "name": "jump.wtf Link Shortener",
+    "short_name": "jump.wtf",
+    "description": "This extension shortens a URL to a link that is easier to share.",
+    "version": "1.2",
+    "homepage_url": "https://jump.wtf",
+    "browser_action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html",
+        "default_title": "Shorten URL"
+    },
+    "permissions": [
+        "activeTab",
+        "clipboardWrite",
+        "https://jump.wtf/"
+                                                                                                    ]
+}
+
