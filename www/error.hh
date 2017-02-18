@@ -1,7 +1,5 @@
 <?hh
 
-require_once ('vendor/facebook/xhp-lib/init.php');
-
 require_once ('html/header.hh');
 
 require_once ('html/footer.hh');

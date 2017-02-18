@@ -1,7 +1,5 @@
 <?hh
 
-require_once ("aws.phar");
-
 if (!include_once('config/aws_config.hh')) {
   require_once ('config/aws_config.hh.example');
 }

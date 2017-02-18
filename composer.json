@@ -1,0 +1,9 @@
+{
+    "require": {
+        "aws/aws-sdk-php": "^3.22",
+        "facebook/xhp-lib": "2.x"
+    },
+    "config": {
+        "vendor-dir": "www/include/vendor"
+    }
+}
