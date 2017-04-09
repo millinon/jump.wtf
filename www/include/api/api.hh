@@ -447,13 +447,23 @@ class jump_api {
       return self::error((string) $ve, 400);
     }
 
+    if( $url_parts = parse_url($input['input-url']) ){
+        if( ! isset($url_parts['scheme']) ){
+            if( isset(jump_config::DEFAULT_PROTOCOL) ){
+                $input['input-url'] = jump_config::DEFAULT_PROTOCOL . $input['input-url'];
+            } else {
+                return self::error('Protocol missing from input URL. Did you mean http://' . $input['input-url'] . '?');
+            }
+        } else if( ! isset($url_parts['host']) ){
+            return self::error('Host missing from input URL.');
+        }
+    }
+    
     if (!filter_var($input['input-url'], FILTER_VALIDATE_URL)) {
       return self::error("Invalid URL detected.", 400);
     }
 
-    //        $s3client = awsHelper::s3_client();
     $dyclient = awsHelper::dydb_client();
-    //        $glclient = awsHelper::gl_client();
 
     $balance = ['success' => false, 'custom-urls' => 0];
 

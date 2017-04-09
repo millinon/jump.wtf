@@ -3,6 +3,8 @@
 
 set_include_path(dirname(__FILE__).'/../www/include');
 
+require ('vendor/autoload.php');
+
 require ('api/api.hh');
 
 if (!isset($argv)) {

@@ -36,6 +36,10 @@ class jump_config {
     /* maximum input URL length */
     const MAX_URL_LEN = 128;
 
+    /* default protocol */
+    /* comment out to show an error instead */
+    const DEFAULT_PROTOCOL = "http://";
+
     /* max password length */
     const MAX_PASS_LEN = 20;
 
