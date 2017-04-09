@@ -3,8 +3,13 @@
 
 set_include_path(dirname(__FILE__).'/../www/include');
 
+require ('vendor/autoload.php');
+
 require ('api/api.hh');
 require ('helpers.hh');
+require ('aws.hh');
+
+$_SERVER['REMOTE_ADDR'] = 'localhost';
 
 if (!isset($argv)) {
   echo 'Run this from the command line';

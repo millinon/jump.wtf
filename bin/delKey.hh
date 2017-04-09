@@ -3,7 +3,10 @@
 
 set_include_path(dirname(__FILE__).'/../www/include');
 
+require_once ('vendor/autoload.php');
+
 require ('api/api.hh');
+require ('helpers.hh');
 
 if (!isset($argv)) {
   echo 'Run this from the command line';
